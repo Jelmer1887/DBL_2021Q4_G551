@@ -73,7 +73,7 @@ export class BarchartComponent implements OnInit {
 
         // Create the Y-axis band scale
         const y = d3.scaleLinear()
-            .domain([0, 4800])
+            .domain([0, d3.max(this.selectedData, d => parseInt(d.Mails)) + 300])
             .range([this.height, 0]);
 
         this.chart.selectAll('bars')
