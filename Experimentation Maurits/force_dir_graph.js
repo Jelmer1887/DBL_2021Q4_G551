@@ -21,7 +21,7 @@ async function makeLinks(someData) {
     for(i = 1; i<d.length; i++) {
         links.push({source: parseInt(d[i][1]), target: parseInt(d[i][4])});
     }
-    console.log(links);
+    //console.log(links);
     return links;
 }
 
@@ -36,50 +36,51 @@ async function makeNodes(l){
         link.target = nodes[link.target] ||
         (nodes[link.target] = {id: link.target})
     });
-    console.log(nodes); //shows undefined: {id:92} but still displays this id as intended in array. 92 occurs twice, where the person sent themselves an email.
+    //console.log(nodes); //shows undefined: {id:92} but still displays this id as intended in array. 92 occurs twice, where the person sent themselves an email.
     return nodes;
 }
 
-var linksArray = makeLinks(parseData(getData()));
-var nodesArray = makeNodes(makeLinks(parseData(getData())));
+var linksArray = new Array();
+var nodesArray = new Array();
 
-//behaviour of our simulation
-async function makeSimulation(l, n){
-var links = await l;
-var nodes = await n;
+async function makeData() {
+  linksArray = await makeLinks(parseData(getData()));
+  nodesArray = await makeNodes(makeLinks(parseData(getData())));
+    return [linksArray, nodesArray];
+}
+
 var simulation = d3
-    .forceSimulation(nodes)
-    .force("link", d3.forceLink(links))
+    .forceSimulation(makeData()[1])
+    .force("link", d3.forceLink(makeData()[0]))
     .force("charge", d3.forceManyBody().strength(-30))
     .force("center", d3.forceCenter(width/2, height/2))
     .on("tick", ticked);
-}
+
 
 //tells how to draw a node
 var node = svg
-    .append("g") 
-    .selectAll("circle")
-    .data(nodesArray)
-    .enter()
-    .append("circle")
-    .attr("r", 5)
-    .attr("fill", function(d) {
-        return "orange";
-    })
-    .attr("stroke", "yellow");
+  .append("g")
+  .attr("class", "nodes")
+  .selectAll("circle")
+  .data(nodesArray)
+  .enter()
+  .append("circle")
+  .attr("r", 5)
+  .attr("fill", function(d) {
+    return "red";
+  })
 
 //tells how to draw an edge
 var link = svg
-    .append("g")
-    .attr("class", "links")
-    .selectAll("line")
-    .data(linksArray)
-    .enter()
-    .append("line")
-    .attr("stroke-width", function(d) {
-      return 3;
-    });
-
+  .append("g")
+  .attr("class", "links")
+  .selectAll("line")
+  .data(linksArray)
+  .enter()
+  .append("line")
+  .attr("stroke-width", function(d) {
+    return 3;
+  }); 
 //what the simulation does on a tick
 function ticked() {
     link
@@ -103,9 +104,9 @@ function ticked() {
       .attr("cy", function(d) {
         return d.y;
       });
-      console.log("tick");
+      //console.log("tick bro");
 }
-makeSimulation(linksArray, nodesArray);
+
 
 
 
