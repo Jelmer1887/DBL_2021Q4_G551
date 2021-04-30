@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { BarchartComponent } from './barchart/barchart.component';
 import { ContactComponent } from './contact/contact.component';
 import { HomeComponent } from './home/home.component';
+import { VisComponent } from './vis/vis.component';
 
 const routes: Routes = [
     {
@@ -14,9 +15,15 @@ const routes: Routes = [
         component: ContactComponent
     },
     {
+        path: 'vis',
+        component: VisComponent
+    },
+    {
         path: 'chart',
         component: BarchartComponent
     }
+
+
 ];
 
 @NgModule({

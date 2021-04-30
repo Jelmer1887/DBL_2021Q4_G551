@@ -5,11 +5,12 @@ import { Component, OnInit } from '@angular/core';
     template: `
   <footer class = "footer">
     <div class = "container content has-text-centered">
-      <p> made by Andrei Preda.... and Kay :)
+      <p> made by Group 51
     </div>
   </footer>
   `,
     styles: [
+
     ]
 })
 export class FooterComponent implements OnInit {
