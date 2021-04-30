@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-header',
-  template: `
+    selector: 'app-header',
+    template: `
   <div class = "navbar is-dark">
   
     <!-- logo -->
@@ -16,18 +16,19 @@ import { Component, OnInit } from '@angular/core';
         <a class="navbar-item" routerLink="/">Home</a>
         <a class="navbar-item" routerLink="/contact">Contact</a>
         <a class="navbar-item" routerLink="/users">Users</a>
+        <a class="navbar-item" routerLink="/chart">Chart</a>
       </div>
     </div>
   </div>
   `,
-  styles: [
-  ]
+    styles: [
+    ]
 })
 export class HeaderComponent implements OnInit {
 
-  constructor() { }
+    constructor() { }
 
-  ngOnInit(): void {
-  }
+    ngOnInit(): void {
+    }
 
 }
