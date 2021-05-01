@@ -4,10 +4,12 @@ import { HttpClientModule } from '@angular/common/http';
 
 
 import { AppComponent } from './app.component';
+import { BarchartComponent } from './barchart/barchart.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    BarchartComponent
   ],
   imports: [
     BrowserModule,

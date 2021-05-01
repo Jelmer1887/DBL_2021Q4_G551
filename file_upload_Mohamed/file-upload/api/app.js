@@ -17,8 +17,12 @@ const storage = multer.diskStorage({
         cb(null, 'uploads')
       },
       filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, file.fieldname + '-' + uniqueSuffix + '.csv')
+        if (file.mimetype.split('/')[1]=='vnd.ms-excel'){
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            cb(null, file.fieldname + '-' + uniqueSuffix + '.csv');
+        } else{
+            console.log("The file-type doesn't belong to csv");
+        }
       }
     })
 
