@@ -1,5 +1,5 @@
-const width = 500;
-const height = 500;
+const width = 1000;
+const height = 1000;
 
 function runSimulation(links, nodes) {
     const simulation = d3.forceSimulation(nodes)
@@ -27,7 +27,7 @@ function runSimulation(links, nodes) {
         .data(nodes)
         .join("circle")
         .attr("r", 2)
-        .attr("fill", "#ff0000")
+        .attr("fill", "#0000ff")
         .call(drag(simulation));
 
     node.append("title")
@@ -49,7 +49,7 @@ function runSimulation(links, nodes) {
 
 function drag(simulation) {
     function dragstarted(event) {
-        if (!event.active) simulation.alphaTarget(0.1).restart();
+        if (!event.active) simulation.alphaTarget(0.2).restart();
         event.subject.fx = event.subject.x;
         event.subject.fy = event.subject.y;
     }
@@ -81,11 +81,11 @@ var nodes = [
 ];
 
 var links = [
-    { "source": 0, "target": 1 },
-    { "source": 0, "target": 5 },
-    { "source": 2, "target": 1 },
-    { "source": 3, "target": 5 },
-    { "source": 2, "target": 4 },
+    { "source": 0, "target": 1, "value": 1 },
+    { "source": 0, "target": 5, "value": 1 },
+    { "source": 2, "target": 1, "value": 1 },
+    { "source": 3, "target": 5, "value": 1 },
+    { "source": 2, "target": 4, "value": 1 },
 ]
 
 runSimulation(links, nodes);
@@ -127,6 +127,7 @@ document.getElementById('file').onchange = function () {
             for (var n of nodes) {
                 if (n.id === source) {
                     srcFound = true;
+                    break;
                 }
             }
             if (!srcFound) {
@@ -138,6 +139,7 @@ document.getElementById('file').onchange = function () {
             for (var n of nodes) {
                 if (n.id === target) {
                     tarFound = true;
+                    break;
                 }
             }
             if (!tarFound) {
@@ -145,7 +147,17 @@ document.getElementById('file').onchange = function () {
             }
 
             // Create the link between the source and target
-            links.push({ "source": source, "target": target });
+            var linkFound = false;
+            for (var l of links) {
+                if (l.source === source && l.target === target) {
+                    linkFound = true;
+                    l.value += 1;
+                    break;
+                }
+            }
+            if (!linkFound) {
+                links.push({ "source": source, "target": target, "value": 1 });
+            }
         }
 
         // Start the simulation with the new links and nodes.
