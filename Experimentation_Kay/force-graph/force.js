@@ -18,7 +18,7 @@ function runSimulation(links, nodes) {
         .selectAll("line")
         .data(links)
         .join("line")
-        .attr("stroke-width", d => Math.sqrt(d.value));
+        .attr("stroke-width", d => Math.min(Math.sqrt(d.value), 8));
 
     const node = svg.append("g")
         .attr("stroke", "#fff")
@@ -88,6 +88,10 @@ var links = [
     { "source": 2, "target": 4, "value": 1 },
 ]
 
+// The month and year we want to look at.
+var year = 2001;
+var month = 12;
+
 runSimulation(links, nodes);
 
 document.getElementById('file').onchange = function () {
@@ -103,18 +107,20 @@ document.getElementById('file').onchange = function () {
         nodes = [];
         links = [];
 
+        var filter = year + "-" + month;
+
         // Loop through all the lines, but skip the first since that one never contains data.
-        for (var line = 1; line < lines.length; line++) {
+        for (var line of lines) {
             // Get the different columns by splitting on the "," .
-            var columns = lines[line].split(',');
+            var columns = line.split(',');
 
             // Make sure it's not an empty line.
             if (columns.length <= 4) {
                 continue;
             }
 
-            // Filter to a specific month for performance and clarity.
-            if (!columns[0].includes("2001-12")) {
+            // Filter to a specific month for more clarity.
+            if (!columns[0].includes(filter)) {
                 continue;
             }
 
@@ -149,7 +155,8 @@ document.getElementById('file').onchange = function () {
             // Create the link between the source and target
             var linkFound = false;
             for (var l of links) {
-                if (l.source === source && l.target === target) {
+                if ((l.source === source && l.target === target) ||
+                    (l.source === target && l.target === source)) {
                     linkFound = true;
                     l.value += 1;
                     break;
