@@ -1,8 +1,7 @@
 <div class="container">
-  <input #fileInput type='file' accept='.csv'/>
-  <button (click) = "onFileUpload()">Upload</button>
+    <input #fileInput type='file' accept='.csv' />
+    <button (click)="onFileUpload()">Upload</button>
 </div>
 
 <h1>{{title}}</h1>
-<app-barchart></app-barchart>
-
+<app-barchart [file]="file"></app-barchart>

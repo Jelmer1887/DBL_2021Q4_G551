@@ -13,12 +13,12 @@ function runSimulation(links, nodes) {
     svg.selectAll("g").remove();
 
     const link = svg.append("g")
-        .attr("stroke", "#999")
         .attr("stroke-opacity", 0.6)
         .selectAll("line")
         .data(links)
         .join("line")
-        .attr("stroke-width", d => Math.min(Math.sqrt(d.value), 8));
+        .attr("stroke-width", d => Math.min(Math.sqrt(d.value), 8))
+        .attr("stroke", d => linkColor(d.sentiment));
 
     const node = svg.append("g")
         .attr("stroke", "#fff")
@@ -27,7 +27,7 @@ function runSimulation(links, nodes) {
         .data(nodes)
         .join("circle")
         .attr("r", 2)
-        .attr("fill", "#0000ff")
+        .attr("fill", d => nodeColor(d.job))
         .call(drag(simulation));
 
     node.append("title")
@@ -46,6 +46,65 @@ function runSimulation(links, nodes) {
     });
 }
 
+function linkColor(sentiment) {
+    /*
+    var sum = 0;
+    for (var s of sentiment) {
+        sum += s;
+    }
+    
+    var average = sum / sentiment.length;
+    if (average > 0.1) {
+        return "#55EE55";
+    }
+    if (average < -0.1) {
+        return "#EE5555";
+    }
+    
+    return "#999999";
+    */
+
+    for (var s of sentiment) {
+        if (s > 0.1) {
+            return "#55EE55";
+        }
+
+        if (s < -0.1) {
+            return "#EE5555";
+        }
+    }
+
+    return "#999999";
+}
+
+function nodeColor(job) {
+    switch (job) {
+        case "Employee":
+            return "#0000FF";
+        case "Vice President":
+            return "#00FF00";
+        case "Manager":
+            return "#00FFFF";
+        case "In House Lawyer":
+            return "#FFFF00";
+        case "Trader":
+            return "#FF00FF";
+        case "Director":
+            return "#0808FF";
+        case "Managing Director":
+            return "#0404FF";
+        case "President":
+            return "#FF0707";
+        case "CEO":
+            return "#FF0000"
+        case "Unknown":
+            return "#555555";
+
+        default:
+            console.log(job);
+            return "#000000";
+    }
+}
 
 function drag(simulation) {
     function dragstarted(event) {
@@ -72,20 +131,20 @@ function drag(simulation) {
 }
 
 var nodes = [
-    { "id": 0 },
-    { "id": 1 },
-    { "id": 2 },
-    { "id": 3 },
-    { "id": 4 },
-    { "id": 5 },
+    { "id": 0, "job": "Employee" },
+    { "id": 1, "job": "Unknown" },
+    { "id": 2, "job": "Employee" },
+    { "id": 3, "job": "Employee" },
+    { "id": 4, "job": "Vice President" },
+    { "id": 5, "job": "Manager" },
 ];
 
 var links = [
-    { "source": 0, "target": 1, "value": 1 },
-    { "source": 0, "target": 5, "value": 1 },
-    { "source": 2, "target": 1, "value": 1 },
-    { "source": 3, "target": 5, "value": 1 },
-    { "source": 2, "target": 4, "value": 1 },
+    { "source": 0, "target": 1, "value": 1, "sentiment": [0.0] },
+    { "source": 0, "target": 5, "value": 1, "sentiment": [0.4] },
+    { "source": 2, "target": 1, "value": 1, "sentiment": [0.9] },
+    { "source": 3, "target": 5, "value": 1, "sentiment": [-0.5] },
+    { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
 ]
 
 // The month and year we want to look at.
@@ -137,7 +196,7 @@ document.getElementById('file').onchange = function () {
                 }
             }
             if (!srcFound) {
-                nodes.push({ "id": source });
+                nodes.push({ "id": source, "job": columns[3] });
             }
 
             // Add the target if we can't find it in the array of nodes.
@@ -149,7 +208,7 @@ document.getElementById('file').onchange = function () {
                 }
             }
             if (!tarFound) {
-                nodes.push({ "id": target });
+                nodes.push({ "id": target, "job": columns[6] });
             }
 
             // Create the link between the source and target
@@ -159,11 +218,12 @@ document.getElementById('file').onchange = function () {
                     (l.source === target && l.target === source)) {
                     linkFound = true;
                     l.value += 1;
+                    l.sentiment.push(columns[8]);
                     break;
                 }
             }
             if (!linkFound) {
-                links.push({ "source": source, "target": target, "value": 1 });
+                links.push({ "source": source, "target": target, "value": 1, "sentiment": [columns[8]] });
             }
         }
 

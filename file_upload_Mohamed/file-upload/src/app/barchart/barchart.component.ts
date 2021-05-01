@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, SimpleChange, OnChanges, SimpleChanges } from '@angular/core';
 import * as d3 from 'd3';
 
 @Component({
@@ -6,21 +6,21 @@ import * as d3 from 'd3';
     templateUrl: './barchart.component.html',
     styleUrls: ['./barchart.component.css']
 })
-export class BarchartComponent implements OnInit {
+export class BarchartComponent implements OnInit, OnChanges {
 
     private data = [
-        { "Id": "0", "Month": "Jan", "Mails": "3060" },
-        { "Id": "1", "Month": "Feb", "Mails": "2505" },
-        { "Id": "2", "Month": "Mar", "Mails": "2294" },
-        { "Id": "3", "Month": "Apr", "Mails": "2290" },
-        { "Id": "4", "Month": "May", "Mails": "2163" },
-        { "Id": "5", "Month": "Jun", "Mails": "1531" },
-        { "Id": "6", "Month": "Jul", "Mails": "1914" },
-        { "Id": "7", "Month": "Aug", "Mails": "2394" },
-        { "Id": "8", "Month": "Sep", "Mails": "2744" },
-        { "Id": "9", "Month": "Oct", "Mails": "4257" },
-        { "Id": "10", "Month": "Nov", "Mails": "3636" },
-        { "Id": "11", "Month": "Dec", "Mails": "2253" },
+        { "Id": "0", "Month": "Jan", "Mails": 0 },
+        { "Id": "1", "Month": "Feb", "Mails": 0 },
+        { "Id": "2", "Month": "Mar", "Mails": 0 },
+        { "Id": "3", "Month": "Apr", "Mails": 0 },
+        { "Id": "4", "Month": "May", "Mails": 0 },
+        { "Id": "5", "Month": "Jun", "Mails": 0 },
+        { "Id": "6", "Month": "Jul", "Mails": 0 },
+        { "Id": "7", "Month": "Aug", "Mails": 0 },
+        { "Id": "8", "Month": "Sep", "Mails": 0 },
+        { "Id": "9", "Month": "Oct", "Mails": 0 },
+        { "Id": "10", "Month": "Nov", "Mails": 0 },
+        { "Id": "11", "Month": "Dec", "Mails": 0 },
     ];
 
     private colors = [
@@ -42,6 +42,8 @@ export class BarchartComponent implements OnInit {
     private selectedData = this.data;
     private unselectedIds = [];
 
+    @Input() file;
+
     constructor() { }
 
     ngOnInit(): void {
@@ -49,6 +51,25 @@ export class BarchartComponent implements OnInit {
         this.drawBars();
         this.handleInput();
     }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        let fileReader = new FileReader();
+        fileReader.onload = (e) => {
+            // By lines
+            var lines = fileReader.result.toString().split('\n');
+            for (var line = 1; line < lines.length; line++) {
+                let monthStr = lines[line].substring(5, 7);
+                let monthNum = parseInt(monthStr);
+                // console.log(monthNum);
+                this.data[monthNum - 1].Mails += 1;
+            }
+
+            this.drawBars();
+
+        }
+        fileReader.readAsText(this.file);
+    }
+
     private createSvg(): void {
         this.container = d3.select("svg")
             .attr("width", this.width)
