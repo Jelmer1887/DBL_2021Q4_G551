@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, SimpleChange, OnChanges, SimpleChanges } from '@angular/core';
 import * as d3 from 'd3';
 
 @Component({
@@ -6,6 +6,7 @@ import * as d3 from 'd3';
     templateUrl: './barchart.component.html',
     styleUrls: ['./barchart.component.css']
 })
+
 export class BarchartComponent implements OnInit, OnChanges {
 
     private data = [
@@ -55,11 +56,6 @@ export class BarchartComponent implements OnInit, OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         let fileReader = new FileReader();
         fileReader.onload = (e) => {
-            // Reset the data.
-            for (var d of this.data) {
-                d.Mails = 0;
-            }
-
             // By lines
             var lines = fileReader.result.toString().split('\n');
             for (var line = 1; line < lines.length; line++) {
@@ -72,13 +68,11 @@ export class BarchartComponent implements OnInit, OnChanges {
             this.drawBars();
 
         }
-        if (this.file != null) {
-            fileReader.readAsText(this.file);
-        }
+        fileReader.readAsText(this.file);
     }
 
     private createSvg(): void {
-        this.container = d3.select("#barchart")
+        this.container = d3.select("svg")
             .attr("width", this.width)
             .attr("height", this.height + this.marginTop + this.marginBot);
     }
