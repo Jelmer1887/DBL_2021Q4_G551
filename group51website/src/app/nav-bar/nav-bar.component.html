@@ -1,3 +1,4 @@
+<p>nav-bar works!</p>
 <nav class="navbar has-background-info-light" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
         <div class="navbar-item">
@@ -12,24 +13,27 @@
     <div id="NavMenu" class="navbar-menu">
 
         <div class="navbar-start">
-            <a class="navbar-item" href="../../index.html">
+            <a class="navbar-item">
                 Home
             </a>
         </div>
         <div class="navbar-end">
             <div class="navbar-item">
-                <div class="buttons">
-                    <button class="button is-success" disabled>Upload a dataset</button>
-                </div>
+                <button class = "button" disabled>
+                    Upload dataset
+                </button>
             </div>
-            <a class="navbar-item" href="../../visualisations.html">
-                Static view
-            </a>
-            <a class="navbar-item" disabled>
+            <div class="navbar-item">
+                <span class="icon">
+                    <i class="far fa-map"></i>
+                </span>
+                <a routerLink="/visualisation-page">Static view</a>
+            </div>
+            <a class="navbar-item">
                 Dynamic view
             </a>
-            <a class="navbar-item" disabled>
-                Documentation
+            <a class="navbar-item">
+                About
             </a>
         </div>
 
