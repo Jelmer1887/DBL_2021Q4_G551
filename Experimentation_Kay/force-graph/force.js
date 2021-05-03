@@ -1,22 +1,25 @@
-const width = 1000;
+//dimensions of the svg 
+const width = 1000;  
 const height = 1000;
 
+//TODO: Make behaviour of forceSimulation intuitive and user friendly (experiment with parameters). 
 function runSimulation(links, nodes) {
-    const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id))
-        .force("charge", d3.forceManyBody())
-        .force("center", d3.forceCenter(width / 2, height / 2));
+    const simulation = d3.forceSimulation(nodes) //automatically runs simulation 
+        .force("link", d3.forceLink(links).id(d => d.id)) //Adds forces between nodes, depending on if they're linked
+        .force("charge", d3.forceManyBody()) // nodes repel each other
+        .force("center", d3.forceCenter(width / 2, height / 2)); // nodes get pulled towards the centre of svg 
 
-    const svg = d3.select("svg")
-        .attr("viewBox", [0, 0, width, height]);
+    const svg = d3.select("svg") //let d3 know where the simulation takes place
+        .attr("viewBox", [0, 0, width, height]); //gives it dimensions
 
     svg.selectAll("g").remove();
 
-    const link = svg.append("g")
-        .attr("stroke-opacity", 0.6)
+    //adds visuals of the links
+    const link = svg.append("g")  //"g" is an element of SVG used to group other SVG elements
+        .attr("stroke-opacity", 0.6) 
         .selectAll("line")
         .data(links)
-        .join("line")
+        .join("line") 
         .attr("stroke-width", d => Math.min(Math.sqrt(d.value), 8))
         .attr("stroke", d => linkColor(d.sentiment));
 
@@ -27,12 +30,13 @@ function runSimulation(links, nodes) {
         .data(nodes)
         .join("circle")
         .attr("r", 2)
-        .attr("fill", d => nodeColor(d.job))
-        .call(drag(simulation));
+        .attr("fill", d => nodeColor(d.job)) //colour nodes depending on job title 
+        .call(drag(simulation)); //makes sure you can drag nodes
 
     node.append("title")
-        .text(d => d.id);
+        .text(d => d.id); //gives each node element in the svg a title (its id). Visible when hovering over node.
 
+    //function that updates position of nodes and links
     simulation.on("tick", () => {
         link
             .attr("x1", d => d.source.x)
@@ -63,7 +67,7 @@ function linkColor(sentiment) {
     
     return "#999999";
     */
-
+    //link colour based on sentiment of message
     for (var s of sentiment) {
         if (s > 0.1) {
             return "#55EE55";
@@ -77,6 +81,7 @@ function linkColor(sentiment) {
     return "#999999";
 }
 
+//node colour based on job title
 function nodeColor(job) {
     switch (job) {
         case "Employee":
@@ -106,20 +111,22 @@ function nodeColor(job) {
     }
 }
 
+//to drag nodes around
+//for a better understanding of alphaTarget (and alphaMin) check API or https://stackoverflow.com/questions/46426072/what-is-the-difference-between-alphatarget-and-alphamin
 function drag(simulation) {
     function dragstarted(event) {
-        if (!event.active) simulation.alphaTarget(0.2).restart();
+        if (!event.active) simulation.alphaTarget(0.2).restart(); //alphaTarget indicates how eager the nodes are to move. Changing this parameter changes behaviour of graph!!!
         event.subject.fx = event.subject.x;
         event.subject.fy = event.subject.y;
     }
 
-    function dragged(event) {
+    function dragged(event) { //if node is being dragged, update position of node
         event.subject.fx = event.x;
         event.subject.fy = event.y;
     }
 
-    function dragended(event) {
-        if (!event.active) simulation.alphaTarget(0);
+    function dragended(event) { 
+        if (!event.active) simulation.alphaTarget(0); //drag has ended, the simulation stops moving  (alphaTarget(0))
         event.subject.fx = null;
         event.subject.fy = null;
     }
@@ -147,7 +154,7 @@ var links = [
     { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
 ]
 
-// The month and year we want to look at.
+// The month and year we want to look at. Add slider for multiple time frames. 
 var year = 2001;
 var month = 12;
 
