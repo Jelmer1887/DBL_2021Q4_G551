@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { NavBarComponent } from  './../nav-bar/nav-bar.component'
 
 @Component({
   selector: 'app-visualisation-page',
@@ -27,8 +28,9 @@ export class VisualisationPageComponent implements OnInit {
     this.file = file;
 
     // update displayed name
-    const fileName = document.querySelector('#file-upload .file-name');
+    /*const fileName = document.querySelector('#file-upload .file-name');
     fileName.textContent = file.name;
+    */
   }
 
 }

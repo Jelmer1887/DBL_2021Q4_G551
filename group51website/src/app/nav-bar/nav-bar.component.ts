@@ -30,8 +30,9 @@ export class NavBarComponent implements OnInit {
     this.file = file;
 
     // update displayed name
-    const fileName = document.querySelector('#file-upload .file-name');
-    fileName.textContent = file.name;
+    //const fileName = document.querySelector('#file-upload .file-name');
+    var labels = document.querySelectorAll('#file-upload .file-name');
+    labels.forEach((label) => {label.textContent = file.name; console.log(label);})
+    //fileName.textContent = file.name;
   }
-  
 }
