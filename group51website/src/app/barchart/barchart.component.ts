@@ -72,7 +72,7 @@ export class BarchartComponent implements OnInit, OnChanges {
     }
 
     private createSvg(): void {
-        this.container = d3.select("svg")
+        this.container = d3.select("#barchart")
             .attr("width", this.width)
             .attr("height", this.height + this.marginTop + this.marginBot);
     }

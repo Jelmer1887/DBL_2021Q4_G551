@@ -12,20 +12,24 @@ export class ForceGraphComponent implements OnInit, OnChanges {
     @Input() file;
 
     private nodes = [
+        /*
         { "id": 0, "job": "Employee" },
         { "id": 1, "job": "Unknown" },
         { "id": 2, "job": "Employee" },
         { "id": 3, "job": "Employee" },
         { "id": 4, "job": "Vice President" },
         { "id": 5, "job": "Manager" },
+        */
     ];
 
     private links = [
+        /*
         { "source": 0, "target": 1, "value": 1, "sentiment": [0.0] },
         { "source": 0, "target": 5, "value": 1, "sentiment": [0.4] },
         { "source": 2, "target": 1, "value": 1, "sentiment": [0.9] },
         { "source": 3, "target": 5, "value": 1, "sentiment": [-0.5] },
         { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
+        */
     ]
 
     private width = 600;
