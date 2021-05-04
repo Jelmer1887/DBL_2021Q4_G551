@@ -9,19 +9,19 @@ import { BarchartComponent } from './barchart/barchart.component';
 import { ForceGraphComponent } from './force-graph/force-graph.component'
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        routingComponents,    // routingComponents is a list of all components we can route to (excl. root)
-        NavBarComponent,
-
-        BarchartComponent,
-        ForceGraphComponent
-    ],
-    imports: [
-        BrowserModule,
-        AppRoutingModule
-    ],
-    providers: [],
-    bootstrap: [AppComponent]
+  declarations: [
+    AppComponent,
+    routingComponents,    // routingComponents is a list of all components we can route to (excl. root)
+    NavBarComponent,
+    
+    BarchartComponent,
+    ForceGraphComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }
