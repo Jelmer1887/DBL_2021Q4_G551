@@ -157,7 +157,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             .selectAll("circle")
             .data(nodes)
             .join("circle")
-            .attr("r", 2)
+            .attr("r", 5)
             .attr("fill", (d: any) => this.nodeColor(d.job))
             .call(this.drag(simulation));
 
