@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import * as d3 from 'd3';
 
 @Component({
@@ -7,7 +7,7 @@ import * as d3 from 'd3';
     styles: [
     ]
 })
-export class ForceGraphComponent implements OnInit, OnChanges {
+export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
     @Input() file;
 
@@ -32,8 +32,8 @@ export class ForceGraphComponent implements OnInit, OnChanges {
         */
     ]
 
-    private width = 600;
-    private height = 600;
+    private width;
+    private height = 800;
 
     private year = 2001;
     private month = 12;
@@ -41,6 +41,10 @@ export class ForceGraphComponent implements OnInit, OnChanges {
     constructor() { }
 
     ngOnChanges(changes: SimpleChanges): void {
+        if (this.container) {
+            this.width = this.container.nativeElement.offsetWidth;
+        }
+
         let fileReader = new FileReader();
 
         fileReader.onload = (e) => {
@@ -122,7 +126,7 @@ export class ForceGraphComponent implements OnInit, OnChanges {
             this.runSimulation(this.links, this.nodes);
         };
 
-        if (this.file != null) {
+        if (this.file) {
             fileReader.readAsText(this.file);
         }
     }
@@ -241,8 +245,11 @@ export class ForceGraphComponent implements OnInit, OnChanges {
         }
     }
 
-    ngOnInit(): void {
+    ngAfterViewInit(): void {
+        this.width = this.container.nativeElement.offsetWidth;
         this.runSimulation(this.links, this.nodes);
     }
 
+    @ViewChild('container')
+    container: ElementRef;
 }

@@ -10,18 +10,18 @@ import * as d3 from 'd3';
 export class BarchartComponent implements OnInit, OnChanges {
 
     private data = [
-        { "Id": "0", "Month": "Jan", "Mails": 0 },
-        { "Id": "1", "Month": "Feb", "Mails": 0 },
-        { "Id": "2", "Month": "Mar", "Mails": 0 },
-        { "Id": "3", "Month": "Apr", "Mails": 0 },
+        { "Id": "0", "Month": "January", "Mails": 0 },
+        { "Id": "1", "Month": "February", "Mails": 0 },
+        { "Id": "2", "Month": "March", "Mails": 0 },
+        { "Id": "3", "Month": "April", "Mails": 0 },
         { "Id": "4", "Month": "May", "Mails": 0 },
-        { "Id": "5", "Month": "Jun", "Mails": 0 },
-        { "Id": "6", "Month": "Jul", "Mails": 0 },
-        { "Id": "7", "Month": "Aug", "Mails": 0 },
-        { "Id": "8", "Month": "Sep", "Mails": 0 },
-        { "Id": "9", "Month": "Oct", "Mails": 0 },
-        { "Id": "10", "Month": "Nov", "Mails": 0 },
-        { "Id": "11", "Month": "Dec", "Mails": 0 },
+        { "Id": "5", "Month": "June", "Mails": 0 },
+        { "Id": "6", "Month": "July", "Mails": 0 },
+        { "Id": "7", "Month": "Augustus", "Mails": 0 },
+        { "Id": "8", "Month": "September", "Mails": 0 },
+        { "Id": "9", "Month": "October", "Mails": 0 },
+        { "Id": "10", "Month": "November", "Mails": 0 },
+        { "Id": "11", "Month": "December", "Mails": 0 },
     ];
 
     private colors = [
@@ -56,6 +56,12 @@ export class BarchartComponent implements OnInit, OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         let fileReader = new FileReader();
         fileReader.onload = (e) => {
+
+            // Reset the data.
+            for (var d of this.data) {
+                d.Mails = 0;
+            }
+
             // By lines
             var lines = fileReader.result.toString().split('\n');
             for (var line = 1; line < lines.length; line++) {
@@ -68,7 +74,10 @@ export class BarchartComponent implements OnInit, OnChanges {
             this.drawBars();
 
         }
-        fileReader.readAsText(this.file);
+
+        if (this.file != null) {
+            fileReader.readAsText(this.file);
+        }
     }
 
     private createSvg(): void {
@@ -130,17 +139,6 @@ export class BarchartComponent implements OnInit, OnChanges {
         const listItems = d3.select("ul")
             .selectAll("li")
             .data(this.data)
-            .enter()
-            .append("li")
-            .attr("box-shadow", "0 2px 8px rgba(0, 0, 0, 0.25)")
-            .attr("margin-bottom", "1rem")
-            .attr("padding", "1rem")
-            .attr("width", "10rem")
-            .attr("display", "flex")
-            .attr("justify-content", "space-between")
-            .attr("align-items", "center")
-            .attr("font-weight", "bold");
-
 
         listItems.append('span').text(d => d.Month);
 
