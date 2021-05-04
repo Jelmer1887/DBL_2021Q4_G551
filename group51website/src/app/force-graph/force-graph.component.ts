@@ -179,7 +179,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
     drag(simulation) {
         let dragstarted = (event) => {
-            if (!event.active) simulation.alphaTarget(0.2).restart();
+            if (!event.active) simulation.alphaTarget(0.3).restart();
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
         }
