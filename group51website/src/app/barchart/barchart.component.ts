@@ -68,8 +68,8 @@ export class BarchartComponent implements OnInit, OnChanges {
                 let monthStr = lines[line].substring(5, 7);
                 let monthNum = parseInt(monthStr);
                 // console.log(monthNum);
-                this.data[monthNum - 1].Mails += 1;
-            }
+                this.data[monthNum - 1].Mails += 1;     // This line is causing some error: 'Cannot read attribute 'Mail' from ...'
+            }                                           // See the console in the inspect menu on the webpage after loading dataset
 
             this.drawBars();
 
