@@ -28,8 +28,8 @@ export class ForceGraphComponent implements OnInit, OnChanges {
         { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
     ]
 
-    private width = 1000;
-    private height = 1000;
+    private width = 600;
+    private height = 600;
 
     private year = 2001;
     private month = 12;
