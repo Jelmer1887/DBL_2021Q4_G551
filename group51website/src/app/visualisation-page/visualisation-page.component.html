@@ -21,8 +21,8 @@
             <div class="level-left">
 
                 <div class="level-item">
-                    <div class="control has-icons-left is-medium">
-                        <div class="select is-medium">
+                    <div class="control has-icons-left is-normal">
+                        <div class="select is-normal">
                             <select>
                                 <option selected>Select visuals</option>
                                 <option>Force Directed Graph</option>
@@ -36,7 +36,7 @@
                 </div>
 
                 <div class="level-item">
-                    <button class="button is-rounded is-medium">PlaceHolder Button</button>
+                    <button class="button is-rounded is-normal">PlaceHolder Button</button>
                 </div>
 
                 <div class="level-item">
@@ -86,7 +86,7 @@
             <div class="level-right">
 
                 <div class="level-item">
-                    <button class="button is-rounded is-danger is-medium">
+                    <button class="button is-rounded is-danger is-normal">
                         <span class="icon is-left">
                             <i class="far fa-trash-alt"></i>
                         </span>
@@ -95,8 +95,8 @@
                 </div>
 
                 <div class="level-item">
-                    <div class="control has-icons-left is-medium">
-                        <div class="select is-medium">
+                    <div class="control has-icons-left is-normal">
+                        <div class="select is-normal">
                             <select>
                                 <option selected>Select visuals</option>
                                 <option>Force Directed Graph</option>
@@ -111,5 +111,23 @@
 
             </div>
         </div>
+
+        <div class="file has-name" id="file-upload">
+            <label class="file-label">
+                <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv' name="resume">
+                <span class="file-cta">
+                    <span class="file-icon">
+                        <i class="fas fa-upload"></i>
+                    </span>
+                    <span class="file-label">
+                        Upload file
+                    </span>
+                </span>
+                <span class="file-name">
+                    No file selected
+                </span>
+            </label>
+        </div>
+
     </div>
 </div>
