@@ -32,6 +32,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
         */
     ]
 
+    //This will hold the number of links every node has
+    private mLinkNum=[]
+
     private width;
     private height = 800;
 
@@ -55,6 +58,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             // Empty the nodes and links so we can read the new ones.
             this.nodes = [];
             this.links = [];
+            this.mLinkNum = [];
 
             var filter = this.year + "-" + this.month;
 
@@ -107,23 +111,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                     if ((l.source === source && l.target === target) ||
                         (l.source === target && l.target === source)) {
                         linkFound = true;
-                        l.value += 1;
+                        //l.value += 1;
                         l.sentiment.push(parseFloat(columns[8]));
                         break;
                     }
                 }
-                if (!linkFound) {
+                //if (!linkFound) {
                     this.links.push({
                         "source": source,
                         "target": target,
-                        "value": 1,
+                        //"value": 1,
                         "sentiment": [parseFloat(columns[8])]
                     });
-                }
+                //}
             }
 
             // Start the simulation with the new links and nodes.
-            this.runSimulation(this.links, this.nodes);
+            this.runSimulation(this.links, this.nodes, this.mLinkNum);
         };
 
         if (this.file) {
@@ -131,25 +135,35 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
         }
     }
 
-    runSimulation(links, nodes): void {
-        const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id((d: any) => d.id))
-            .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(this.width / 2, this.height / 2));
+    runSimulation(links, nodes, mLinkNum): void {
 
-        const svg = d3.select("#force-graph")
+        var data = {"nodes":nodes,"links":links};
+        sortLinks();
+        setLinkIndexAndNum();
+
+        const simulation = d3.forceSimulation(nodes)                            //automatically runs simulation
+            .force("link", d3.forceLink(links).id((d: any) => d.id))            //Adds forces between nodes, depending on if they're linked
+            .force("charge", d3.forceManyBody())                                // nodes repel each other
+            .force("center", d3.forceCenter(this.width / 2, this.height / 2));  // nodes get pulled towards the centre of svg
+
+        const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
             .attr("width", this.width)
             .attr("height", this.height);
 
         svg.selectAll("g").remove();
 
-        const link = svg.append("g")
+        //adds visuals of the links
+        const link = svg.append("g")        //"g" is an element of SVG used to group other SVG elements
             .attr("stroke-opacity", 0.6)
-            .selectAll("line")
+            .selectAll("path")
             .data(links)
-            .join("line")
-            .attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.value), 8))
-            .attr("stroke", (d: any) => this.linkColor(d.sentiment));
+            .join("path")
+            .attr("stroke-width", 2)
+            //.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.value), 8))
+            .attr("stroke", (d: any) => this.linkColor(d.sentiment))
+            .on("click",function(d,i){
+                linkGUI(i);                                     //To display info about link
+            });
 
         const node = svg.append("g")
             .attr("stroke", "#fff")
@@ -158,39 +172,159 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             .data(nodes)
             .join("circle")
             .attr("r", 5)
-            .attr("fill", (d: any) => this.nodeColor(d.job))
-            .call(this.drag(simulation));
+            .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
+            .call(this.drag(simulation))                        //makes sure you can drag nodes
+            .on("click",function(d,i){
+                nodeclicked(this);                              //Small animation of node
+                nodeGUI(i);                                     //To display info about node
+                
+            });
 
         node.append("title")
-            .text((d: any) => d.id);
+            .text((d: any) => d.id);                            //gives each node element in the svg a title (its id). Visible when hovering over node.
 
+        //function that updates position of nodes and links
         simulation.on("tick", () => {
-            link
+            /*link
                 .attr("x1", (d: any) => d.source.x)
                 .attr("y1", (d: any) => d.source.y)
                 .attr("x2", (d: any) => d.target.x)
                 .attr("y2", (d: any) => d.target.y);
-
+            */
+            link.attr("d", (d:any) => {
+                var dx = d.target.x - d.source.x,
+                    dy = d.target.y - d.source.y,
+                    dr = Math.sqrt(dx * dx + dy * dy);
+                // get the total link numbers between source and target node
+                var lTotalLinkNum = mLinkNum[d.target.id + "," + d.source.id] || mLinkNum[d.source.id + "," + d.target.id];
+                if(lTotalLinkNum > 1)
+                {
+                    // if there are multiple links between these two nodes, we need generate different dr for each path
+                    dr = dr/(1 + (1/lTotalLinkNum) * (d.linkindex - 1));
+                }
+                // generate svg path
+                return "M" + d.source.x + "," + d.source.y + 
+                        "A" + dr + "," + dr + " 0 0 1," + d.target.x + "," + d.target.y + 
+                        "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y;	
+            });
             node
                 .attr("cx", (d: any) => d.x)
                 .attr("cy", (d: any) => d.y);
         });
+
+        function nodeclicked(node){
+            d3.select(node)
+                .transition()
+                .attr("stroke", "black")
+                .attr("stroke-width",2)
+                .attr("r",4*2)
+
+                .transition()
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 1)
+                .attr("r",4);
+        }
+
+        function nodeGUI(i){
+            var sentLinks = links.filter(function(e) {
+                return e.source.id == i.id;      //Finds emails sent
+            })
+            var receivedLinks = links.filter(function(e) {
+               return e.target.id == i.id;      //Finds emails received
+            })
+             for(var link in sentLinks){
+                 console.log("Sent an email to " + sentLinks[link]['target']['id']);
+             }
+             for(var link in receivedLinks){
+                console.log("Received an email from " + receivedLinks[link]['source']['id']);
+            }
+            
+        }
+
+        function linkGUI(i){
+            var fromNode = nodes.filter(function(e) {
+                return e.id == i.source.id;      //Finds from node
+            })
+            var toNode = nodes.filter(function(e) {
+                return e.id == i.target.id;      //Finds to node
+            })
+            console.log("Email from "+fromNode[0]['id']+" and to "+toNode[0]['id'])
+        }
+
+        // sort the links by source, then target
+        function sortLinks(){								
+            data.links.sort(function(a,b) {
+                if (a.source > b.source) 
+                {
+                    return 1;
+                }
+                else if (a.source < b.source) 
+                {
+                    return -1;
+                }
+                else 
+                {
+                    if (a.target > b.target) 
+                    {
+                        return 1;
+                    }
+                    if (a.target < b.target) 
+                    {
+                        return -1;
+                    }
+                    else 
+                    {    
+                        return 0;
+                    }
+                }
+            });
+        }
+        
+        //any links with duplicate source and target get an incremented 'linkindex'
+        function setLinkIndexAndNum(){								
+            for (var i = 0; i < data.links.length; i++) 
+            {
+                if (i != 0 &&
+                    data.links[i].source == data.links[i-1].source &&
+                    data.links[i].target == data.links[i-1].target) 
+                {
+                    data.links[i].linkindex = data.links[i-1].linkindex + 1;
+                }
+                else
+                {
+                    data.links[i].linkindex = 1;
+                }
+                // save the total number of links between two nodes
+                if(mLinkNum[data.links[i].target + "," + data.links[i].source] !== undefined)
+                {
+                    mLinkNum[data.links[i].target + "," + data.links[i].source] ++;
+                }
+                else
+                {
+                    mLinkNum[data.links[i].source + "," + data.links[i].target] = data.links[i].linkindex;
+                }
+            }
+            console.log(mLinkNum);
+        }
+
     }
 
+    //to drag nodes around
+    //for a better understanding of alphaTarget (and alphaMin) check API or https://stackoverflow.com/questions/46426072/what-is-the-difference-between-alphatarget-and-alphamin
     drag(simulation) {
         let dragstarted = (event) => {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
+            if (!event.active) simulation.alphaTarget(0.3).restart();   //alphaTarget indicates how eager the nodes are to move. Changing this parameter changes behaviour of graph!!!
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
         }
 
-        let dragged = (event) => {
+        let dragged = (event) => {          //if node is being dragged, update position of node
             event.subject.fx = event.x;
             event.subject.fy = event.y;
         }
 
         let dragended = (event) => {
-            if (!event.active) simulation.alphaTarget(0);
+            if (!event.active) simulation.alphaTarget(0);       //drag has ended, the simulation stops moving  (alphaTarget(0))
             event.subject.fx = null;
             event.subject.fy = null;
         }
@@ -201,6 +335,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             .on("end", dragended);
     }
 
+    //link colour based on sentiment of message
     linkColor(sentiment): string {
         console.log(sentiment);
         for (var s of sentiment) {
@@ -216,6 +351,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
         return "#999999";
     }
 
+    //node colour based on job title
     nodeColor(job): string {
         switch (job) {
             case "Employee":
@@ -247,7 +383,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
-        this.runSimulation(this.links, this.nodes);
+        this.runSimulation(this.links, this.nodes, this.mLinkNum);
     }
 
     @ViewChild('container')
