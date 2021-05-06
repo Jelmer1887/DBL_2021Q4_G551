@@ -1,33 +1,39 @@
-<nav class="navbar" role="navigation" aria-label="main navigation">
-    <div class="navbar-brand">
-      <a class="navbar-item" href="https://bulma.io">
-        <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
-      </a>
-  
-      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-      </a>
-    </div>
-  
-    <div id="navbarBasicExample" class="navbar-menu">
-      <div class="navbar-start">
-        <a class="navbar-item">
-          Home
-        </a>
-  
-        <a class="navbar-item">
-          Documentation
-        </a>
+
+<section class="hero is-link is-medium">
+    <div class="hero-body">
+      <div class="container has-text-centered"> <!-- removing this uncenters the text -->
+      <div class="container has-text-centered" style="display: inline-block; background: rgba(0, 0, 0, 0.5);"> 
+        <p class="title">
+          Group 51: 2IOA0 DBL HTI + Webtech
+        </p>
+        <p class="subtitle">
+          Simple and easy to use visualisations of emails!
+        </p>
+      </div>
       </div>
     </div>
-  </nav>
-  
-<section class="hero is-link is-fullheight-with-navbar">
-    <div class="hero-body">
-      <p class="title">
-        Fullheight hero with navbar
-      </p>
-    </div>
 </section>
+
+<div class="columns mt-3 mx-3">
+  <div class="column">
+    <div class="container" style="text-align: center">
+      <img src="./assets/job.png" alt="job" style="width:200px;height:200px;">
+      <h1 class="is-size-4 pt-3">Test out the visualisation</h1>
+      <button class="button is-primary mt-3 mb-3" routerLink="visualisation-page">Visualisations</button>
+    </div>
+  </div>
+  <div class="column">
+    <div class="container" style="text-align: center">
+      <img src="./assets/outgoing.png" alt="job" style="width:200px;height:200px;">
+      <h1 class="is-size-4 pt-3">Upload your own csv</h1>
+      <button class="button is-primary mt-3 mb-3" routerLink="visualisation-page">Upload</button>
+    </div>
+  </div>
+  <div class="column">
+    <div class="container" style="text-align: center">
+      <img src="./assets/recruitment.png" alt="job" style="width:200px;height:200px;">
+      <h1 class="is-size-4 pt-3">Visit our about page</h1>
+      <button class="button is-primary mt-3 mb-3" routerLink="about">About</button>
+    </div>
+  </div>
+</div>
