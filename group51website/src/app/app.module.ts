@@ -8,7 +8,8 @@ import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { BarchartComponent } from './barchart/barchart.component';
 import { ForceGraphComponent } from './force-graph/force-graph.component';
 import { HomePageComponent } from './home-page/home-page.component';
-import { FooterComponent } from './footer/footer.component'
+import { FooterComponent } from './footer/footer.component';
+import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.component'
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { FooterComponent } from './footer/footer.component'
     BarchartComponent,
     ForceGraphComponent,
     HomePageComponent,
-    FooterComponent
+    FooterComponent,
+    DynamicVisPageComponent
   ],
   imports: [
     BrowserModule,
