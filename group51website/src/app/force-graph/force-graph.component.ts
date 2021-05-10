@@ -33,13 +33,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
     ]
 
     //This will hold the number of links every node has
-    private mLinkNum=[]
+    private mLinkNum = []
 
     private width;
     private height = 800;
 
-    private year = 2001;
-    private month = 12;
+    // Filter start and end date.
+    private startDate = 20011201;
+    private endDate = 20011231;
 
     constructor() { }
 
@@ -60,8 +61,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             this.links = [];
             this.mLinkNum = [];
 
-            var filter = this.year + "-" + this.month;
-
             // Loop through all the lines, but skip the first since that one never contains data.
             for (var line of lines) {
                 // Get the different columns by splitting on the "," .
@@ -73,7 +72,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                 }
 
                 // Filter to a specific month for more clarity.
-                if (!columns[0].includes(filter)) {
+                // Remove the '-' from the date
+                var dateString = columns[0].split('-').join('');
+                // Turn it into an integer
+                var dateInt = parseInt(dateString);
+                // This comparison works because the format is YY-MM-DD,
+                // So the bigger number will always be later in time.
+                if (dateInt < this.startDate || dateInt > this.endDate) {
                     continue;
                 }
 
@@ -117,12 +122,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                     }
                 }
                 //if (!linkFound) {
-                    this.links.push({
-                        "source": source,
-                        "target": target,
-                        //"value": 1,
-                        "sentiment": [parseFloat(columns[8])]
-                    });
+                this.links.push({
+                    "source": source,
+                    "target": target,
+                    //"value": 1,
+                    "sentiment": [parseFloat(columns[8])]
+                });
                 //}
             }
 
@@ -137,7 +142,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
     runSimulation(links, nodes, mLinkNum): void {
 
-        var data = {"nodes":nodes,"links":links};
+        var data = { "nodes": nodes, "links": links };
         sortLinks();
         setLinkIndexAndNum();
 
@@ -161,7 +166,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             .attr("stroke-width", 2)
             //.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.value), 8))
             .attr("stroke", (d: any) => this.linkColor(d.sentiment))
-            .on("click",function(d,i){
+            .on("click", function (d, i) {
                 linkGUI(i);                                     //To display info about link
             });
 
@@ -174,10 +179,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             .attr("r", 5)
             .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
             .call(this.drag(simulation))                        //makes sure you can drag nodes
-            .on("click",function(d,i){
+            .on("click", function (d, i) {
                 nodeclicked(this);                              //Small animation of node
                 nodeGUI(i);                                     //To display info about node
-                
+
             });
 
         node.append("title")
@@ -191,116 +196,104 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                 .attr("x2", (d: any) => d.target.x)
                 .attr("y2", (d: any) => d.target.y);
             */
-            link.attr("d", (d:any) => {
+            link.attr("d", (d: any) => {
                 var dx = d.target.x - d.source.x,
                     dy = d.target.y - d.source.y,
                     dr = Math.sqrt(dx * dx + dy * dy);
                 // get the total link numbers between source and target node
                 var lTotalLinkNum = mLinkNum[d.target.id + "," + d.source.id] || mLinkNum[d.source.id + "," + d.target.id];
-                if(lTotalLinkNum > 1)
-                {
+                if (lTotalLinkNum > 1) {
                     // if there are multiple links between these two nodes, we need generate different dr for each path
-                    dr = dr/(1 + (1/lTotalLinkNum) * (d.linkindex - 1));
+                    dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 1));
                 }
                 // generate svg path
-                return "M" + d.source.x + "," + d.source.y + 
-                        "A" + dr + "," + dr + " 0 0 1," + d.target.x + "," + d.target.y + 
-                        "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y;	
+                return "M" + d.source.x + "," + d.source.y +
+                    "A" + dr + "," + dr + " 0 0 1," + d.target.x + "," + d.target.y +
+                    "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y;
             });
             node
                 .attr("cx", (d: any) => d.x)
                 .attr("cy", (d: any) => d.y);
         });
 
-        function nodeclicked(node){
+        function nodeclicked(node) {
             d3.select(node)
                 .transition()
                 .attr("stroke", "black")
-                .attr("stroke-width",2)
-                .attr("r",4*2)
+                .attr("stroke-width", 2)
+                .attr("r", 4 * 2)
 
                 .transition()
                 .attr("stroke", "#fff")
                 .attr("stroke-width", 1)
-                .attr("r",4);
+                .attr("r", 4);
         }
 
-        function nodeGUI(i){
-            var sentLinks = links.filter(function(e) {
+        function nodeGUI(i) {
+            var sentLinks = links.filter(function (e) {
                 return e.source.id == i.id;      //Finds emails sent
             })
-            var receivedLinks = links.filter(function(e) {
-               return e.target.id == i.id;      //Finds emails received
+            var receivedLinks = links.filter(function (e) {
+                return e.target.id == i.id;      //Finds emails received
             })
-             for(var link in sentLinks){
-                 console.log("Sent an email to " + sentLinks[link]['target']['id']);
-             }
-             for(var link in receivedLinks){
+            for (var link in sentLinks) {
+                console.log("Sent an email to " + sentLinks[link]['target']['id']);
+            }
+            for (var link in receivedLinks) {
                 console.log("Received an email from " + receivedLinks[link]['source']['id']);
             }
-            
+
         }
 
-        function linkGUI(i){
-            var fromNode = nodes.filter(function(e) {
+        function linkGUI(i) {
+            var fromNode = nodes.filter(function (e) {
                 return e.id == i.source.id;      //Finds from node
             })
-            var toNode = nodes.filter(function(e) {
+            var toNode = nodes.filter(function (e) {
                 return e.id == i.target.id;      //Finds to node
             })
-            console.log("Email from "+fromNode[0]['id']+" and to "+toNode[0]['id'])
+            console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
         }
 
         // sort the links by source, then target
-        function sortLinks(){								
-            data.links.sort(function(a,b) {
-                if (a.source > b.source) 
-                {
+        function sortLinks() {
+            data.links.sort(function (a, b) {
+                if (a.source > b.source) {
                     return 1;
                 }
-                else if (a.source < b.source) 
-                {
+                else if (a.source < b.source) {
                     return -1;
                 }
-                else 
-                {
-                    if (a.target > b.target) 
-                    {
+                else {
+                    if (a.target > b.target) {
                         return 1;
                     }
-                    if (a.target < b.target) 
-                    {
+                    if (a.target < b.target) {
                         return -1;
                     }
-                    else 
-                    {    
+                    else {
                         return 0;
                     }
                 }
             });
         }
-        
+
         //any links with duplicate source and target get an incremented 'linkindex'
-        function setLinkIndexAndNum(){								
-            for (var i = 0; i < data.links.length; i++) 
-            {
+        function setLinkIndexAndNum() {
+            for (var i = 0; i < data.links.length; i++) {
                 if (i != 0 &&
-                    data.links[i].source == data.links[i-1].source &&
-                    data.links[i].target == data.links[i-1].target) 
-                {
-                    data.links[i].linkindex = data.links[i-1].linkindex + 1;
+                    data.links[i].source == data.links[i - 1].source &&
+                    data.links[i].target == data.links[i - 1].target) {
+                    data.links[i].linkindex = data.links[i - 1].linkindex + 1;
                 }
-                else
-                {
+                else {
                     data.links[i].linkindex = 1;
                 }
                 // save the total number of links between two nodes
-                if(mLinkNum[data.links[i].target + "," + data.links[i].source] !== undefined)
-                {
-                    mLinkNum[data.links[i].target + "," + data.links[i].source] ++;
+                if (mLinkNum[data.links[i].target + "," + data.links[i].source] !== undefined) {
+                    mLinkNum[data.links[i].target + "," + data.links[i].source]++;
                 }
-                else
-                {
+                else {
                     mLinkNum[data.links[i].source + "," + data.links[i].target] = data.links[i].linkindex;
                 }
             }
@@ -337,7 +330,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
     //link colour based on sentiment of message
     linkColor(sentiment): string {
-        console.log(sentiment);
+        // console.log(sentiment);
         for (var s of sentiment) {
             if (s > 0.1) {
                 return "#55EE55";
