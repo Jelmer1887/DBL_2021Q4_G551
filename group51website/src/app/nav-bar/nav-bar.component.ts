@@ -1,13 +1,14 @@
 import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
 
+export var Navbarfile;
+
 @Component({
   selector: 'app-nav-bar',
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.css']
 })
-export class NavBarComponent implements OnInit {
 
-  file;
+export class NavBarComponent implements OnInit {
 
   @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
 
@@ -27,12 +28,12 @@ export class NavBarComponent implements OnInit {
       alert('Please upload a csv file :D');
     }
 
-    this.file = file;
+    Navbarfile = file;  // update varaible to service
+    console.log("NavBar: updated file to object: ")
+    console.log(Navbarfile);
 
     // update displayed name
-    //const fileName = document.querySelector('#file-upload .file-name');
     var labels = document.querySelectorAll('#file-upload .file-name');
     labels.forEach((label) => {label.textContent = file.name; console.log(label);})
-    //fileName.textContent = file.name;
   }
 }

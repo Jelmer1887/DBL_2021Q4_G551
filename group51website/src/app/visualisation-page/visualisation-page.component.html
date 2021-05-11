@@ -118,7 +118,8 @@
         <div class="file has-name is-info" id="file-upload">
             <!--Container-->
             <label class="file-label">
-                <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv' name="resume">
+                <!-- (change)="onFileUpload()" put that in the input tag to re-enable it-->
+                <input class="file-input" #fileInput type='file' accept='.csv' name="resume">
                 <span class="file-cta">
                     <span class="file-icon">
                         <i class="fas fa-upload"></i>
