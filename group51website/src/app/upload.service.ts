@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Navbarfile } from './nav-bar/nav-bar.component'
+import { Observable, of, BehaviorSubject } from 'rxjs';
 
 
 @Injectable({
@@ -8,17 +7,17 @@ import { Navbarfile } from './nav-bar/nav-bar.component'
 })
 export class UploadService {
 
+  private fileSource = new BehaviorSubject(new File([],'no file'))
+  currentFile = this.fileSource.asObservable();
+
   constructor() { }
 
   // returns a observable file to be used by consumer
-  getFile(): Observable<File>{
-    const file = of(Navbarfile);
 
-    console.log("service: found file object: ")
-    console.log(Navbarfile);
-    console.log("service: providing: " + file)
-    return file;
+  changeFile(newfile : File){
+    console.log("service: got new file!");
+    console.log(newfile);
+    this.fileSource.next(newfile);
   }
-
 
 }

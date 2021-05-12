@@ -16,11 +16,11 @@ export class VisualisationPageComponent implements OnInit {
   constructor(private uploadService : UploadService) {  }
 
   ngOnInit(): void {
-    this.getFile();
+    this.uploadService.currentFile.subscribe(newfile => this.file = newfile);
   }
-  
+
   getFile(): void {
-    this.uploadService.getFile().subscribe(newfile => this.file = newfile);
+    console.log('getfile is deprecated!')
   }
 
   /*

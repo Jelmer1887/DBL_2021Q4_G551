@@ -1,6 +1,5 @@
+import { UploadService } from './../upload.service';
 import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
-
-export var Navbarfile;
 
 @Component({
   selector: 'app-nav-bar',
@@ -10,14 +9,14 @@ export var Navbarfile;
 
 export class NavBarComponent implements OnInit {
 
+  file;
+
   @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
 
-  constructor() { }
+  constructor(private uploadService : UploadService) {  }
 
   ngOnInit(): void {
-    // Link UPLOAD button to Modal
-    // as from: https://github.com/jgthms/bulma/issues/683 
-    // REMOVED
+    this.uploadService.currentFile.subscribe(newfile => this.file = newfile);
   }
 
   onFileUpload() {
@@ -28,9 +27,10 @@ export class NavBarComponent implements OnInit {
       alert('Please upload a csv file :D');
     }
 
-    Navbarfile = file;  // update varaible to service
-    console.log("NavBar: updated file to object: ")
-    console.log(Navbarfile);
+    this.file = file;  // update varaible to service
+    console.log("NavBar: updated file to object: ");
+    console.log(file);
+    this.uploadService.changeFile(this.file);
 
     // update displayed name
     var labels = document.querySelectorAll('#file-upload .file-name');
