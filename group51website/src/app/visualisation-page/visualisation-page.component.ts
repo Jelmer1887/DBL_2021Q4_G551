@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
-import { NavBarComponent } from  './../nav-bar/nav-bar.component'
+import { UploadService } from './../upload.service';
 
 @Component({
   selector: 'app-visualisation-page',
@@ -12,25 +12,11 @@ export class VisualisationPageComponent implements OnInit {
 
   @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
 
-  constructor() { }
-
+  constructor(private uploadService : UploadService) {  }
   ngOnInit(): void {
+    this.uploadService.currentFile.subscribe(newfile => this.file = newfile);
   }
 
-  onFileUpload() {
-    // get file from button
-    const file = this.fileInput.nativeElement.files[0];
-    console.log(file);
-    if (file.type.split('/')[1] != 'vnd.ms-excel') {
-      alert('Please upload a csv file :D');
-    }
-
-    this.file = file;
-
-    // update displayed name
-    /*const fileName = document.querySelector('#file-upload .file-name');
-    fileName.textContent = file.name;
-    */
-  }
+  
 
 }
