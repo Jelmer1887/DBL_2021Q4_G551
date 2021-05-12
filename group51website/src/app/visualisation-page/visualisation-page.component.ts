@@ -1,6 +1,5 @@
-import { UploadService } from './../upload.service';
-import { Component, ElementRef, ViewChild, OnInit, Input } from '@angular/core';
-import { AppComponent } from  './../app.component'
+import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { NavBarComponent } from  './../nav-bar/nav-bar.component'
 
 @Component({
   selector: 'app-visualisation-page',
@@ -13,17 +12,11 @@ export class VisualisationPageComponent implements OnInit {
 
   @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
 
-  constructor(private uploadService : UploadService) {  }
+  constructor() { }
 
   ngOnInit(): void {
-    this.uploadService.currentFile.subscribe(newfile => this.file = newfile);
   }
 
-  getFile(): void {
-    console.log('getfile is deprecated!')
-  }
-
-  /*
   onFileUpload() {
     // get file from button
     const file = this.fileInput.nativeElement.files[0];
@@ -33,7 +26,11 @@ export class VisualisationPageComponent implements OnInit {
     }
 
     this.file = file;
+
+    // update displayed name
+    /*const fileName = document.querySelector('#file-upload .file-name');
+    fileName.textContent = file.name;
+    */
   }
-  */
 
 }

@@ -1,5 +1,4 @@
-import { Component, AfterViewInit, ViewChild } from '@angular/core';  // afterviewInit and ViewChild are leftovers that might be used later...
-import {NavBarComponent} from './nav-bar/nav-bar.component'
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
