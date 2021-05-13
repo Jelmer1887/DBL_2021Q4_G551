@@ -1,10 +1,12 @@
 <div class="box mx-3 my-3">
 
-  <div class="block" style="height:500px"> <!--Vis will go here--></div>
+  <div class="block" style="height:500px">
+    <!--Vis will go here-->
+  </div>
 
   <div class="box" style="background-color: lightgray; padding: 0">
-    <div class = "container">
-    <div class="dropdown is-hoverable is-up mt-4">
+    <div class="container">
+      <div class="dropdown is-hoverable is-up mt-4">
         <div class="dropdown-trigger">
           <button class="button" aria-haspopup="true" aria-controls="dropdown-menu4">
             <span>Visualisations</span>
@@ -26,8 +28,10 @@
             </div>
           </div>
         </div>
-    	</div>
-      <input class="slider is-info is-medium mt-5 ml-5" step="1" min="0" max="100" value="50" type="range" style="width:1100px">
+      </div>
+      <input class="slider is-info is-medium mt-5 ml-5" step="1" min="0" max="100" value="50" type="range" id="myRange"
+        style="width:1100px">
+        <!--<p>{{output}}</p>-->
     </div>
   </div>
 </div>

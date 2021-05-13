@@ -7,7 +7,14 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DynamicVisPageComponent implements OnInit {
 
-  constructor() { }
+  constructor() {
+    var slider = document.getElementById("myRange");
+    var output = document.getElementById("demo");
+    //$("p").hide();
+}
+
+ 
+  
 
   ngOnInit(): void {
   }

@@ -1,70 +1,71 @@
 <nav class="navbar has-background-info-light" role="navigation" aria-label="main navigation">
-    <div class="navbar-brand">
-        <div class="navbar-item">
-            <a class="navbar-item">
-                <h1 class="title is-2">G51 Visuals</h1>
-            </a>
-        </div>
+  <div class="navbar-brand">
+    <div class="navbar-item">
+      <a class="navbar-item">
+        <h1 class="title is-2">G51 Visuals</h1>
+      </a>
+    </div>
+  </div>
+
+  <a class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="NavMenu"></a>
+
+  <div id="NavMenu" class="navbar-menu">
+
+    <div class="navbar-start has-text is-size-4">
+      <a class="navbar-item" routerLink="">
+        Home
+      </a>
     </div>
 
-    <a class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="NavMenu"></a>
+    <div class="navbar-end has-text is-size-5">
+      <div class="navbar-item">
+        <button class="button" disabled>
+          Upload dataset
+        </button>
+      </div>
 
-    <div id="NavMenu" class="navbar-menu">
 
-        <div class="navbar-start has-text is-size-4">
-            <a class="navbar-item" routerLink="">
-                Home
-            </a>
+      <div class="navbar-item">
+        <!-- Upload Button -->
+        <div class="file has-name is-info" id="file-upload">
+          <!--Container-->
+          <label class="file-label">
+            <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv' name="resume">
+            <span class="file-cta">
+              <span class="file-icon">
+                <i class="fas fa-upload"></i>
+              </span>
+              <span class="file-label">
+                Upload .csv file
+              </span>
+            </span>
+            <span class="file-name">
+              No file selected
+            </span>
+          </label>
         </div>
-
-        <div class="navbar-end has-text is-size-5">
-            <div class="navbar-item">
-                <button class = "button" disabled>
-                    Upload dataset
-                </button>
-            </div>
+      </div>
 
 
-            <div class="navbar-item">
-                <!-- Upload Button -->
-                <div class="file has-name is-info" id="file-upload">    <!--Container-->
-                    <label class="file-label">
-                        <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv' name="resume">
-                        <span class="file-cta">
-                            <span class="file-icon">
-                                <i class="fas fa-upload"></i>
-                            </span>
-                            <span class="file-label">
-                                Upload .csv file
-                            </span>
-                        </span>
-                        <span class="file-name">
-                            No file selected
-                        </span>
-                    </label>
-                </div>
-            </div>
-
-
-            <div class="navbar-item">
-                <span class="icon mr-2">
-                    <i class="far fa-map"></i>
-                </span>
-                <a routerLink="/static-vis">Static view</a>
-            </div>
-            <div class="navbar-item">
-                <span class="icon mr-2">
-                    <i class="far fa-map"></i>
-                </span>
-                <a routerLink="/dynamic-vis">Dynamic view</a>
-            </div>
-            <div class="navbar-item">
-                <span class="icon mr-2">
-                    <i class="fas fa-question-circle"></i>
-                </span>
-                <a routerLink="/">About</a>
-            </div>
-        </div>
-
+      <div class="navbar-item">
+        <span class="icon mr-2">
+          <i class="far fa-map"></i>
+        </span>
+        <a routerLink="/static-vis">Static view</a>
+      </div>
+      <div class="navbar-item">
+        <span class="icon mr-2">
+          <i class="far fa-map"></i>
+        </span>
+        <a routerLink="/dynamic-vis">Dynamic view</a>
+      </div>
+      <div class="navbar-item">
+        <span class="icon mr-2">
+          <i class="fas fa-question-circle"></i>
+        </span>
+        <a routerLink="/">About</a>
+      </div>
     </div>
+
+  </div>
 </nav>
