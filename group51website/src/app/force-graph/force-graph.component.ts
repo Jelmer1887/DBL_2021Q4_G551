@@ -38,6 +38,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
     private width;
     private height = 800;
 
+    @Input() showIndividualLinks;
+
     // Filter start and end date.
     private startDate = 20011201;
     private endDate = 20011231;
@@ -45,6 +47,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
     constructor() { }
 
     ngOnChanges(changes: SimpleChanges): void {
+        console.log(this.showIndividualLinks);
         if (this.container) {
             this.width = this.container.nativeElement.offsetWidth;
         }
@@ -95,7 +98,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                     }
                 }
                 if (!srcFound) {
-                    this.nodes.push({ "id": source, "job": columns[3] });
+                    this.nodes.push({ "id": source, "job": columns[3], "address": columns[2] });
                 }
 
                 // Add the target if we can't find it in the array of nodes.
@@ -107,7 +110,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                     }
                 }
                 if (!tarFound) {
-                    this.nodes.push({ "id": target, "job": columns[6] });
+                    this.nodes.push({ "id": target, "job": columns[6], "address": columns[5] });
                 }
 
                 // Create the link between the source and target
@@ -121,14 +124,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                         break;
                     }
                 }
-                //if (!linkFound) {
-                this.links.push({
-                    "source": source,
-                    "target": target,
-                    //"value": 1,
-                    "sentiment": [parseFloat(columns[8])]
-                });
-                //}
+                if (!linkFound || this.showIndividualLinks) {
+                    this.links.push({
+                        "source": source,
+                        "target": target,
+                        "sentiment": [parseFloat(columns[8])]
+                    });
+                }
             }
 
             // Start the simulation with the new links and nodes.
@@ -142,7 +144,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
     runSimulation(links, nodes, mLinkNum): void {
 
-        var data = { "nodes": nodes, "links": links };
+        // var data = { "nodes": nodes, "links": links };
         sortLinks();
         setLinkIndexAndNum();
 
@@ -153,23 +155,52 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
         const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
             .attr("width", this.width)
-            .attr("height", this.height);
+            .attr("height", this.height)
+        /*
+        .call(d3.zoom()
+            .scaleExtent([1, 10])
+            .on("zoom", (e, d) => {
+                svg.attr("transform", e.transform);
+            })
+        );
+        */
 
         svg.selectAll("g").remove();
+
+        // Add a legend.
+        const legend = d3.select("#legend")
+            .attr("width", this.width)
+            .attr("height", 80);
+
+        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
+            "Employee", "Unknown"];
+        for (var i = 0; i < jobs.length; i++) {
+            legend.append("circle").attr("cx", 20 + (i % 5) * 160).attr("cy", 30 + (i % 2) * 35 - 6).attr("r", 6).style("fill", this.nodeColor(jobs[i]))
+            legend.append("text").attr("x", 30 + (i % 5) * 160).attr("y", 30 + (i % 2) * 35).text(jobs[i]).style("font-size", "15px").attr("alignment-baseline", "middle")
+        }
+
+        var edgeStyle = "line"
+        if (this.showIndividualLinks) {
+            edgeStyle = "path"
+        }
 
         //adds visuals of the links
         const link = svg.append("g")        //"g" is an element of SVG used to group other SVG elements
             .attr("stroke-opacity", 0.6)
-            .selectAll("path")
+            .selectAll(edgeStyle)
             .data(links)
-            .join("path")
-            .attr("stroke-width", 2)
-            //.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.value), 8))
+            .join(edgeStyle)
             .attr("stroke", (d: any) => this.linkColor(d.sentiment))
             .on("click", function (d, i) {
                 linkGUI(i);                                     //To display info about link
-            });
+            })
 
+
+        if (this.showIndividualLinks) {
+            link.attr("stroke-width", 2)
+        } else {
+            link.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.sentiment.length), 8))
+        }
         const node = svg.append("g")
             .attr("stroke", "#fff")
             .attr("stroke-width", 1)
@@ -183,34 +214,41 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                 nodeclicked(this);                              //Small animation of node
                 nodeGUI(i);                                     //To display info about node
 
+            })
+
+        // Displays some useful info if you hover over a node.
+        node.append("title")
+            .text((d: any) => {
+                return "id: " + d.id + "\n" +
+                    "e-mail: " + d.address + "\n" +
+                    "function: " + d.job;
             });
 
-        node.append("title")
-            .text((d: any) => d.id);                            //gives each node element in the svg a title (its id). Visible when hovering over node.
 
         //function that updates position of nodes and links
         simulation.on("tick", () => {
-            /*link
-                .attr("x1", (d: any) => d.source.x)
-                .attr("y1", (d: any) => d.source.y)
-                .attr("x2", (d: any) => d.target.x)
-                .attr("y2", (d: any) => d.target.y);
-            */
-            link.attr("d", (d: any) => {
-                var dx = d.target.x - d.source.x,
-                    dy = d.target.y - d.source.y,
-                    dr = Math.sqrt(dx * dx + dy * dy);
-                // get the total link numbers between source and target node
-                var lTotalLinkNum = mLinkNum[d.target.id + "," + d.source.id] || mLinkNum[d.source.id + "," + d.target.id];
-                if (lTotalLinkNum > 1) {
-                    // if there are multiple links between these two nodes, we need generate different dr for each path
-                    dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 1));
-                }
-                // generate svg path
-                return "M" + d.source.x + "," + d.source.y +
-                    "A" + dr + "," + dr + " 0 0 1," + d.target.x + "," + d.target.y +
-                    "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y;
-            });
+            if (this.showIndividualLinks) {
+                link.attr("d", (d: any) => {
+                    var dx = d.target.x - d.source.x,
+                        dy = d.target.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy);
+                    // get the total link numbers between source and target node
+                    var lTotalLinkNum = mLinkNum[d.target.id + "," + d.source.id] || mLinkNum[d.source.id + "," + d.target.id];
+                    if (lTotalLinkNum > 1) {
+                        // if there are multiple links between these two nodes, we need generate different dr for each path
+                        dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 1));
+                    }
+                    // generate svg path
+                    return "M" + d.source.x + "," + d.source.y +
+                        "A" + dr + "," + dr + " 0 0 1," + d.target.x + "," + d.target.y +
+                        "A" + dr + "," + dr + " 0 0 0," + d.source.x + "," + d.source.y;
+                });
+            } else {
+                link.attr("x1", (d: any) => d.source.x)
+                    .attr("y1", (d: any) => d.source.y)
+                    .attr("x2", (d: any) => d.target.x)
+                    .attr("y2", (d: any) => d.target.y);
+            }
             node
                 .attr("cx", (d: any) => d.x)
                 .attr("cy", (d: any) => d.y);
@@ -257,7 +295,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
         // sort the links by source, then target
         function sortLinks() {
-            data.links.sort(function (a, b) {
+            links.sort(function (a, b) {
                 if (a.source > b.source) {
                     return 1;
                 }
@@ -280,21 +318,21 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
 
         //any links with duplicate source and target get an incremented 'linkindex'
         function setLinkIndexAndNum() {
-            for (var i = 0; i < data.links.length; i++) {
+            for (var i = 0; i < links.length; i++) {
                 if (i != 0 &&
-                    data.links[i].source == data.links[i - 1].source &&
-                    data.links[i].target == data.links[i - 1].target) {
-                    data.links[i].linkindex = data.links[i - 1].linkindex + 1;
+                    links[i].source == links[i - 1].source &&
+                    links[i].target == links[i - 1].target) {
+                    links[i].linkindex = links[i - 1].linkindex + 1;
                 }
                 else {
-                    data.links[i].linkindex = 1;
+                    links[i].linkindex = 1;
                 }
                 // save the total number of links between two nodes
-                if (mLinkNum[data.links[i].target + "," + data.links[i].source] !== undefined) {
-                    mLinkNum[data.links[i].target + "," + data.links[i].source]++;
+                if (mLinkNum[links[i].target + "," + links[i].source] !== undefined) {
+                    mLinkNum[links[i].target + "," + links[i].source]++;
                 }
                 else {
-                    mLinkNum[data.links[i].source + "," + data.links[i].target] = data.links[i].linkindex;
+                    mLinkNum[links[i].source + "," + links[i].target] = links[i].linkindex;
                 }
             }
             console.log(mLinkNum);
@@ -348,23 +386,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
     nodeColor(job): string {
         switch (job) {
             case "Employee":
-                return "#0000FF";
+                return "#68e256";
             case "Vice President":
-                return "#00FF00";
+                return "#56e2cf";
             case "Manager":
-                return "#00FFFF";
+                return "#56aee2";
             case "In House Lawyer":
-                return "#FFFF00";
+                return "#5668e2";
             case "Trader":
-                return "#FF00FF";
+                return "#cf56e2";
             case "Director":
-                return "#0808FF";
+                return "#e25668";
             case "Managing Director":
-                return "#0404FF";
+                return "#e28956";
             case "President":
-                return "#FF0707";
+                return "#e2cf56";
             case "CEO":
-                return "#FF0000"
+                return "#8a56e2"
             case "Unknown":
                 return "#555555";
 

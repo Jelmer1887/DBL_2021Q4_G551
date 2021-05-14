@@ -72,7 +72,6 @@ export class BarchartComponent implements OnInit, OnChanges {
             }                                           // See the console in the inspect menu on the webpage after loading dataset
 
             this.drawBars();
-
         }
 
         if (this.file != null) {

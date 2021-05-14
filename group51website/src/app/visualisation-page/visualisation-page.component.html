@@ -6,7 +6,7 @@
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph [file]="file"></app-force-graph>
+                    <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks"></app-force-graph>
                 </div>
             </div>
             <div class="column is-6 has-text-centered">
@@ -60,8 +60,8 @@
                 <div class="level-item">
                     <div class="notification">
                         <label class="checkbox">
-                            <input type="checkbox">
-                            Option 1
+                            <input (change)="checkLinksOption($event)" type="checkbox">
+                            Show Individual Links
                         </label>
                     </div>
                 </div>
@@ -113,6 +113,6 @@
 
             </div>
         </div>
-        
+
     </div>
 </div>
