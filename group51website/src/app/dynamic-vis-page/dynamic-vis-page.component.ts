@@ -13,9 +13,6 @@ export class DynamicVisPageComponent implements OnInit {
     //$("p").hide();
 }
 
- 
-  
-
   ngOnInit(): void {
   }
 

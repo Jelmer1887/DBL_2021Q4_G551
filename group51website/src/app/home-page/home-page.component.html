@@ -1,4 +1,22 @@
 
+<script>
+  $("document").ready(function(){
+    $("#pic1").on("click", whenMouseIsClicked);
+    $("#pic1").on("mouseleave", whenMouseLeaves);
+  
+    function whenMouseIsClicked(){
+      $("pic1").html("<h1>clicked</h1>");
+    }
+  
+    function whenMouseLeaves(){
+      $("pic1").html("<h1>you left</h1>");
+    }
+  
+  });
+  
+  
+  
+  </script>
 <section class="hero is-link is-medium">
     <div class="hero-body">
       <div class="container has-text-centered"> <!-- removing this uncenters the text -->
@@ -17,23 +35,24 @@
 <div class="columns mt-3 mx-3">
   <div class="column">
     <div class="container" style="text-align: center">
-      <img src="./assets/job.png" alt="job" style="width:200px;height:200px;">
+      <img src="./assets/job.png" alt="job" style="width:200px;height:200px;" id="pic1">
       <h1 class="is-size-4 pt-3">Test out the visualisation</h1>
       <button class="button is-primary mt-3 mb-3" routerLink="static-vis">Visualisations</button>
     </div>
   </div>
   <div class="column">
     <div class="container" style="text-align: center">
-      <img src="./assets/outgoing.png" alt="job" style="width:200px;height:200px;">
+      <img src="./assets/outgoing.png" alt="job" style="width:200px;height:200px;" id="pic2">
       <h1 class="is-size-4 pt-3">Upload your own csv</h1>
       <button class="button is-primary mt-3 mb-3" routerLink="static-vis">Upload</button>
     </div>
   </div>
   <div class="column">
     <div class="container" style="text-align: center">
-      <img src="./assets/recruitment.png" alt="job" style="width:200px;height:200px;">
+      <img src="./assets/recruitment.png" alt="job" style="width:200px;height:200px;" id="pic3">
       <h1 class="is-size-4 pt-3">Visit our about page</h1>
       <button class="button is-primary mt-3 mb-3" routerLink="about">About</button>
     </div>
   </div>
 </div>
+

@@ -9,7 +9,8 @@ import { BarchartComponent } from './barchart/barchart.component';
 import { ForceGraphComponent } from './force-graph/force-graph.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { FooterComponent } from './footer/footer.component';
-import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.component'
+import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.component';
+import { AboutPageComponent } from './about-page/about-page.component'
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.com
     ForceGraphComponent,
     HomePageComponent,
     FooterComponent,
-    DynamicVisPageComponent
+    DynamicVisPageComponent,
+    AboutPageComponent
   ],
   imports: [
     BrowserModule,
