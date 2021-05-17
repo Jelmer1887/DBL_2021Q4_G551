@@ -1,3 +1,4 @@
+import { ThrowStmt } from '@angular/compiler';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import * as d3 from 'd3';
 
@@ -94,11 +95,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                 for (var n of this.nodes) {
                     if (n.id === source) {
                         srcFound = true;
+                        n.mailCount += 1;
                         break;
                     }
                 }
                 if (!srcFound) {
-                    this.nodes.push({ "id": source, "job": columns[3], "address": columns[2] });
+                    this.nodes.push({ "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 });
                 }
 
                 // Add the target if we can't find it in the array of nodes.
@@ -106,11 +108,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                 for (var n of this.nodes) {
                     if (n.id === target) {
                         tarFound = true;
+                        n.mailCount += 1;
                         break;
                     }
                 }
                 if (!tarFound) {
-                    this.nodes.push({ "id": target, "job": columns[6], "address": columns[5] });
+                    this.nodes.push({ "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 });
                 }
 
                 // Create the link between the source and target
@@ -207,13 +210,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
             .selectAll("circle")
             .data(nodes)
             .join("circle")
-            .attr("r", 5)
+            .attr("r", (d: any) => Math.max(Math.min(Math.sqrt(d.mailCount), 20), 5))
             .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
             .call(this.drag(simulation))                        //makes sure you can drag nodes
             .on("click", function (d, i) {
-                nodeclicked(this);                              //Small animation of node
+                nodeclicked(this, i);                              //Small animation of node
                 nodeGUI(i);                                     //To display info about node
-
             })
 
         // Displays some useful info if you hover over a node.
@@ -254,17 +256,18 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
                 .attr("cy", (d: any) => d.y);
         });
 
-        function nodeclicked(node) {
+        function nodeclicked(node, data) {
+            var nodeRadius = Math.max(Math.min(Math.sqrt(data.mailCount), 20), 5)
             d3.select(node)
                 .transition()
                 .attr("stroke", "black")
                 .attr("stroke-width", 2)
-                .attr("r", 4 * 2)
+                .attr("r", nodeRadius * 2)
 
                 .transition()
                 .attr("stroke", "#fff")
                 .attr("stroke-width", 1)
-                .attr("r", 4);
+                .attr("r", nodeRadius);
         }
 
         function nodeGUI(i) {
