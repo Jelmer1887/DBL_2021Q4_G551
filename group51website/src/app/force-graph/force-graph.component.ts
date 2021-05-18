@@ -38,7 +38,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private mLinkNum = []
 
     private width;
-    private height = 800;
+    private height = 700;
 
     @Input() showIndividualLinks;
 

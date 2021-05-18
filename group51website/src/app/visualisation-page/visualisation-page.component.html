@@ -1,4 +1,4 @@
-<div class="block mt-5">
+<div class="block mt-0">
     <div class="block mt-1 mr-3 ml-3">
 
         <!--Area for Vis Controls bar-->
@@ -89,23 +89,130 @@
             </div>
         </div>
 
-        <!--Area for Visualisations-->
-        <div class="columns is-mobile is-centered">
-            <div class="column is-6 has-text-centered">
-                <div class="box">
-                    <h1 class="title">Force Directed Graph</h1>
-                    <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks"></app-force-graph>
+        <!-- Area for visualisations -->
+        <section class="hero">
+            <div class="hero-body">
+
+                <div class="columns">
+                    <div class="column is-7">
+                        <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks"></app-force-graph>
+                    </div>
+                    <div class="column">
+        
+                        <div class="tiles is-ancestor">
+                            <div class="tile is-vertical is-8 is-parent">
+                                <div class="tile is-child card" style="background-color: transparent;">
+                                    <header class="card-header">
+                                        <p class="card-header-title">Node Information</p>
+                                        <span class="card-header-icon" style="cursor:unset">
+                                            <i class="fas fa-info-circle"></i>
+                                        </span>
+                                    </header>
+                                
+                                    <!--First value-->
+                                    <div class="card-content has-text">
+                                        <div class="columns">
+                                            <div class="column is-8">
+                                                showcase value:
+                                            </div>
+                                            <div class="column">
+                                                42
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                    <!--Second value-->
+                                    <div class="card-content has-text">
+                                        <div class="columns">
+                                            <div class="column is-8">
+                                                showcase value:
+                                            </div>
+                                            <div class="column">
+                                                42
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                </div>
+                                
+                            </div>
+
+                            <div class="tile is-vertical is-parent">
+                                <h1 class="title is-1">Force Directed Graph</h1>
+                                <h2 class="sub-title is-2">A super cool kinda graph that is kinda true</h2>
+                                    
+                                
+                            </div>
+                        </div>
+        
+                    </div>
                 </div>
+
             </div>
-            <div class="column is-6 has-text-centered">
-                <div class="box">
-                    <h1 class="title">Barchart</h1>
-                    <h2 class="subtitle is-6">A barchart for the emails</h2>
-                    <app-barchart [file]="file"></app-barchart>
+        </section>
+
+        <section class="hero is-medium">
+            <div class="hero-body">
+
+                <div class="columns">
+
+                    <div class="column">
+        
+                        <div class="tiles is-ancestor is-pulled-right">
+                            <div class="tile is-vertical is-8 is-parent is-pulled-right">
+                                <div class="tile is-child card is-pulled-right" style="background-color: transparent;">
+                                    <header class="card-header">
+                                        <p class="card-header-title">Node Information</p>
+                                        <span class="card-header-icon" style="cursor:unset">
+                                            <i class="fas fa-info-circle"></i>
+                                        </span>
+                                    </header>
+                                
+                                    <!--First value-->
+                                    <div class="card-content has-text">
+                                        <div class="columns">
+                                            <div class="column is-8">
+                                                showcase value:
+                                            </div>
+                                            <div class="column">
+                                                42
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                    <!--Second value-->
+                                    <div class="card-content has-text">
+                                        <div class="columns">
+                                            <div class="column is-8">
+                                                showcase value:
+                                            </div>
+                                            <div class="column">
+                                                42
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                </div>
+                                
+                            </div>
+
+                            <div class="tile is-vertical is-parent is-pulled-right has-text-right">
+                                <h1 class="title is-1">Barchart</h1>
+                                <h2 class="sub-title is-2">Showing the number of emails per month</h2>
+                            </div>
+                            
+                        </div>
+        
+                    </div>
+
+                    <div class="column is-7">
+                        <app-barchart [file]="file"></app-barchart>
+                    </div>
+
                 </div>
+
             </div>
-        </div>
+        </section>
 
     </div>
 </div>
