@@ -12,7 +12,62 @@
     </style>
 </head>
 
-<div #container>
+<!--Position is weird to compute:
+
+goal: be as far left as possible
+translate(x, y) takes percentages as size relative to the original element size (so translate 100% means move 100% of component size)
+The box has the same size as the parent...
+So to move the box to the far left, we move it 100%...
+But this translation is relative to the origin of the object, which is the top left corner of the container...
+So now the entire container is outside the parent... we'll fix this later
+
+As the component should only take up a quarter of the space, I'll give it a width of 25% (auto relative to parent)
+
+But now the translation (distance relative to itself) is also only 25% of the intended rotation...
+So we have to get this back to 100% by multiplying our translation by 100/25 = 4, giving us a translation of 400%.
+
+Then, to account for the fact that we are still outside the parent, we'll reduce the translation by our own size,
+giving a translation of 300%
+
+In short formula for translation: percentage = ([desired offset %]/[component_size %]) - 100%
+
+-->
+
+<div class="card is-pulled-right is-relative" style="background-color: transparent;">
+    <header class="card-header">
+        <p class="card-header-title">Node Information</p>
+        <span class="card-header-icon" style="cursor:unset">
+            <i class="fas fa-info-circle"></i>
+        </span>
+    </header>
+
+    <!--First value-->
+    <div class="card-content has-text">
+        <div class="columns">
+            <div class="column is-8">
+                showcase value:
+            </div>
+            <div class="column">
+                42
+            </div>
+        </div>
+    </div>
+
+    <!--Second value-->
+    <div class="card-content has-text">
+        <div class="columns">
+            <div class="column is-8">
+                showcase value:
+            </div>
+            <div class="column">
+                42
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="container" #container>
     <svg id="force-graph"></svg>
 </div>
 

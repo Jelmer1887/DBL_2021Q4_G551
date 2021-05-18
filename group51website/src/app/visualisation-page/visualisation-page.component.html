@@ -1,5 +1,94 @@
 <div class="block mt-5">
     <div class="block mt-1 mr-3 ml-3">
+
+        <!--Area for Vis Controls bar-->
+        <div class="level">
+            <div class="level-left">
+
+                <div class="level-item">
+                    <div class="control has-icons-left is-normal">
+                        <div class="select is-normal">
+                            <select>
+                                <option selected>Select visuals</option>
+                                <option>To Be Implemented</option>
+                                <option>To Be Implemented</option>
+                            </select>
+                        </div>
+                        <div class="icon is-small is-left">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!--<div class="level-item">
+                    <button class="button is-rounded is-normal">PlaceHolder Button</button>
+                </div>-->
+
+                <!--<div class="level-item">
+                    <div class="notification">
+                        <div class="control">
+                            <label class="radio">
+                                <input type="radio" name="foobar">
+                                Use this
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="foobar" checked>
+                                Or that
+                            </label>
+                        </div>
+                    </div>
+                </div>-->
+
+
+                <div class="level-item">
+                    <div class="notification">
+                        <label class="checkbox">
+                            <input (change)="checkLinksOption($event)" type="checkbox">
+                            Show Individual Links
+                        </label>
+                    </div>
+                </div>
+
+                <!--<div class="level-item">
+                    <div class="notification">
+                        <label class="checkbox">
+                            <input type="checkbox">
+                            Option 2
+                        </label>
+                    </div>
+                </div>-->
+
+            </div>
+
+            <div class="level-right">
+
+                <div class="level-item">
+                    <button class="button is-rounded is-danger is-normal" disabled>
+                        <span class="icon is-left">
+                            <i class="far fa-trash-alt"></i>
+                        </span>
+                        <span>Reset all filters</span>
+                    </button>
+                </div>
+
+                <div class="level-item">
+                    <div class="control has-icons-left is-normal">
+                        <div class="select is-normal">
+                            <select>
+                                <option selected>Select visuals</option>
+                                <option>To Be Implemented</option>
+                                <option>To Be Implemented</option>
+                            </select>
+                        </div>
+                        <div class="icon is-small is-left">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <!--Area for Visualisations-->
         <div class="columns is-mobile is-centered">
             <div class="column is-6 has-text-centered">
@@ -15,102 +104,6 @@
                     <h2 class="subtitle is-6">A barchart for the emails</h2>
                     <app-barchart [file]="file"></app-barchart>
                 </div>
-            </div>
-        </div>
-
-        <!--Area for Vis Controls bar-->
-        <div class="level">
-            <div class="level-left">
-
-                <div class="level-item">
-                    <div class="control has-icons-left is-normal">
-                        <div class="select is-normal">
-                            <select>
-                                <option selected>Select visuals</option>
-                                <option>Force Directed Graph</option>
-                                <option>Bar Chart</option>
-                            </select>
-                        </div>
-                        <div class="icon is-small is-left">
-                            <i class="fas fa-search"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="level-item">
-                    <button class="button is-rounded is-normal">PlaceHolder Button</button>
-                </div>
-
-                <div class="level-item">
-                    <div class="notification">
-                        <div class="control">
-                            <label class="radio">
-                                <input type="radio" name="foobar">
-                                Use this
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="foobar" checked>
-                                Or that
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="level-item">
-                    <div class="notification">
-                        <label class="checkbox">
-                            <input (change)="checkLinksOption($event)" type="checkbox">
-                            Show Individual Links
-                        </label>
-                    </div>
-                </div>
-
-                <div class="level-item">
-                    <div class="notification">
-                        <label class="checkbox">
-                            <input type="checkbox">
-                            Option 2
-                        </label>
-                    </div>
-                </div>
-
-                <div class="level-item">
-                    <div class="notification">
-                        <label class="checkbox">
-                            <input type="checkbox">
-                            Option 3
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="level-right">
-
-                <div class="level-item">
-                    <button class="button is-rounded is-danger is-normal">
-                        <span class="icon is-left">
-                            <i class="far fa-trash-alt"></i>
-                        </span>
-                        <span>Reset all filters</span>
-                    </button>
-                </div>
-
-                <div class="level-item">
-                    <div class="control has-icons-left is-normal">
-                        <div class="select is-normal">
-                            <select>
-                                <option selected>Select visuals</option>
-                                <option>Force Directed Graph</option>
-                                <option>Bar Chart</option>
-                            </select>
-                        </div>
-                        <div class="icon is-small is-left">
-                            <i class="fas fa-search"></i>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 

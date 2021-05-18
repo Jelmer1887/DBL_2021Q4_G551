@@ -1,5 +1,6 @@
+import { ForceGraphDataShareService } from './../force-graph-data-share.service';
 import { ThrowStmt } from '@angular/compiler';
-import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 
 @Component({
@@ -8,7 +9,7 @@ import * as d3 from 'd3';
     styles: [
     ]
 })
-export class ForceGraphComponent implements AfterViewInit, OnChanges {
+export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     @Input() file;
 
@@ -45,7 +46,15 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges {
     private startDate = 20011201;
     private endDate = 20011231;
 
-    constructor() { }
+    // variable holding information of clicked node
+    private nodeInfo: Array<string>
+
+    constructor(private shareService: ForceGraphDataShareService) { }
+
+    ngOnInit() {
+        // subscribe to the data-sharing service (if some other component updates the info of the selected node, this var gets updated)
+        this.shareService.currentNodeSelect.subscribe(newInfo => this.nodeInfo = newInfo);
+    }
 
     ngOnChanges(changes: SimpleChanges): void {
         console.log(this.showIndividualLinks);

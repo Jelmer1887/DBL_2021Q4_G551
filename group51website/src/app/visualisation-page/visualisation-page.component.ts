@@ -1,3 +1,4 @@
+import { ForceGraphDataShareService } from './../force-graph-data-share.service';
 import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
 import { UploadService } from './../upload.service';
 
@@ -13,7 +14,7 @@ export class VisualisationPageComponent implements OnInit {
 
     @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
 
-    constructor(private uploadService: UploadService) { }
+    constructor(private uploadService: UploadService, private FGshareService: ForceGraphDataShareService) { }
     ngOnInit(): void {
         this.uploadService.currentFile.subscribe(newfile => this.file = newfile);
     }
