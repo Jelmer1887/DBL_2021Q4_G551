@@ -166,16 +166,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .force("center", d3.forceCenter(this.width / 2, this.height / 2));  // nodes get pulled towards the centre of svg
 
         const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
-            .attr("width", this.width)
-            .attr("height", this.height)
-        /*
-        .call(d3.zoom()
-            .scaleExtent([1, 10])
-            .on("zoom", (e, d) => {
-                svg.attr("transform", e.transform);
-            })
-        );
-        */
+            .attr("width", 1000)
+            .attr("height", 1000)
+            .call(d3.zoom()
+                .scaleExtent([1, 10])
+                .on("zoom", (e, d) => {
+                    svg.attr("transform", e.transform);
+                })
+            );
 
         svg.selectAll("g").remove();
 
