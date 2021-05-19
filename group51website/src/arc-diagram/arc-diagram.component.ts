@@ -145,6 +145,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
     
     runDiagram(links, nodes, mLinkNum): void{
+        sortNodes();
+        nodes.shift();//remove NaNs.
+        nodes.shift();
         const svg = d3.select("#arc-diagram")
             //.append("svg")
             .attr("width", this.width)
@@ -152,42 +155,99 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             //.append("g")
             //.attr("transform", "translate(0,50)");
         
-        svg.selectAll("g").remove();
+        svg.selectAll("g").remove();        
         
+        function sortNodes() {
+            nodes.sort(function(a,b) {
+            if (a.id > b.id) {
+                return 1;
+            } else if (a.id < b.id) {
+                return -1
+            }
+            })
+       }        
+        //console.log(nodes);
         var nodeID = [];
-        for(var key in nodes) {
-            nodeID.push(key);
+        for (var i = 0; i< nodes.length; i++) {
+            //nodeID.push(Object.values(Object.values(Object.values(nodes))[i]));
+            nodeID.push(Object.values(nodes[i])[0]);
         }
+        
+    
         console.log(nodeID);
-
-        //linear scale for spacing nodes on x-axis
         var x = d3.scalePoint()
             .range([0, this.height])
+            .padding(0.5)
             .domain(nodeID);
-        
+    
+        var nodeRadius = 2;
         //add circles for the nodes
-        svg.selectAll("mynodes")
+        svg.append("style").text(`
+
+.hover path {
+  stroke: #ccc;
+}
+
+.hover text {
+  fill: #ccc;
+} 
+
+.hover mylabels.primary text {
+  fill: black;
+  font-weight: bold;
+}
+
+.hover mylabels.secondary text {
+  fill: #333;
+}
+
+.hover path.primary {
+  stroke: #333;
+  stroke-opacity: 1;
+}
+
+`);
+        const node = svg.selectAll("mynodes")
             .data(nodes)
             .enter()
             .append("circle")
                 .attr("cy", function(d) {return(x(d.id))})
-                .attr("cx", 10)
-                .attr("r", 2)
+                .attr("cx", 30)
+                .attr("r", nodeRadius)
                 .style("fill", "#69b3a2");
         //function(d){ return(x(d.name))}
         //add labels for nodes 
-        svg.selectAll("mylabels")
+        const label = svg.selectAll("mylabels")
             .data(nodes)
             .enter()
             .append("text")
-            .attr("y", function(d){ return(x(d.id))})
-            .attr("x", 30)
-            .attr("transform", "scale(0.5)")
+                .attr("font-size", "8")
+                .attr("font-family", "sans-serif")
+                .attr("x", 12)
+                .attr("transform", d => `translate(${0},${d.y = x(d.id) + nodeRadius+1})`)
             .text(function(d){ return(d.id)})
-            .style("text-anchor", "middle");
+            .style("text-anchor", "end")
+            //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
+            .on("mouseover", function(event,d) {
+                label.style('fill', "#ccc")
+                d3.select(this).style('fill', '#69b3b2')
+                link.style('stroke', a=> a.source === d.id || a.target === d.id ? '#69b3b2' : '#ccc')   
+                .style('stroke-width', a=>a.source === d.id || a.target === d.id ? 2 : 1)
+            })
+            .on("mouseout", function(event, d) {
+                label.style('fill', "#000")
+                d3.select(this).style('fill', '#000')
+                link.style('stroke', "#000")
+                .style('stroke-width', 1)                                         
+            }) 
+                .call(mylabels => mylabels.append("text")
+                .attr("x", -6)
+                .attr("dy", "0.35em")
+                .attr("fill", "#008000") //d3.lab(color(d.group)).darker(2)
+                .text(d => d.id));
         
         //add the links
-        svg.selectAll('mylinks')
+        const link = svg.selectAll('mylinks')
             .data(links)
             .enter()
             .append('path')
@@ -195,11 +255,11 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             var start = x(d.source)    // X position of start node on the X axis
             //console.log(start);
             var end = x(d.target)      // X position of end node
-            return ['M', 15, start,    // the arc starts at the coordinate x=start, y=height-30 (where the starting node is)
+            return ['M', 30, start,    // the arc starts at the coordinate x=start, y=height-30 (where the starting node is)
                 'A',                            // This means we're gonna build an elliptical arc
                 (start - end)/2, ',',    // Next 2 lines are the coordinates of the inflexion point. Height of this point is proportional with start - end distance
                 (start - end)/2, 0, 0, ',',
-                start < end ? 1 : 0, 15, ',', end] // We always want the arc on top. So if end is before start, putting 0 here turn the arc upside down.
+                start < end ? 1 : 0, 30, ',', end] // We always want the arc on top. So if end is before start, putting 0 here turn the arc upside down. Final numerical value of this line determines x coordinate of endpoints of arc.
                 .join(' ');
             })
             .style("fill", "none")
