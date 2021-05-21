@@ -68,6 +68,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
             // Array of strings with every string being a line.
             var lines = fileReader.result.toString().split('\n');
+            lines.shift();
 
             // Empty the nodes and links so we can read the new ones.
             this.nodes = [];
@@ -109,6 +110,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     }
                 }
                 if (!srcFound) {
+                    console.log(source);
                     this.nodes.push({ "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 });
                 }
 
@@ -122,6 +124,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     }
                 }
                 if (!tarFound) {
+                    console.log(target);
                     this.nodes.push({ "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 });
                 }
 
@@ -208,6 +211,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
         if (this.showIndividualLinks) {
             link.attr("stroke-width", 2)
+            link.append("title")
+                .text((d: any) => {
+                    return "from: " + d.source.address + "\n" +
+                        "to: " + d.target.address + "\n" +
+                        "sentiment: " + d.sentiment[0];
+                })
         } else {
             link.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.sentiment.length), 8))
         }
@@ -245,7 +254,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     var lTotalLinkNum = mLinkNum[d.target.id + "," + d.source.id] || mLinkNum[d.source.id + "," + d.target.id];
                     if (lTotalLinkNum > 1) {
                         // if there are multiple links between these two nodes, we need generate different dr for each path
-                        dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 1));
+                        dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 0.5));
                     }
                     // generate svg path
                     return "M" + d.source.x + "," + d.source.y +
