@@ -19,6 +19,10 @@ export class VisualisationPageComponent implements OnInit {
         this.uploadService.currentFile.subscribe(newfile => this.file = newfile);
     }
 
+    setNewDate(event): void{
+        console.log(event);
+      }
+
     checkLinksOption(event): void {
         console.log(event);
         this.showIndividualLinks = event.target.checked;
