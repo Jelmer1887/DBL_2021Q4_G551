@@ -292,13 +292,15 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
             .on("mouseover", function(event,d) {
                 label.style('fill', "#ccc")
-                d3.select(this).style('font-weight', '')
+                d3.select(this).style('font-weight', 'bold')
+                d3.select(this).style('fill', "#000")
                 link.style('stroke', a=> a.source === d.id || a.target === d.id ? nodeColor(d.job) : '#ccc')   
                 .style('stroke-width', a=>a.source === d.id || a.target === d.id ? 2 : 1)
             })
             .on("mouseout", function(event, d) {
                 label.style('fill', "#000")
                 d3.select(this).style('fill', '#000')
+                d3.select(this).style('font-weight', 'normal')
                 link.style('stroke', a=> a.sentiment < -0.1 ? "#EE5555" : a.sentiment > 0.1? "#55EE55" : "#999999") 
                 .style('stroke-width', 1)                                         
             }) 
