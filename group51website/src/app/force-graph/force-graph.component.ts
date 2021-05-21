@@ -46,7 +46,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private startDate = 20011201;
     private endDate = 20011231;
 
-<<<<<<< Updated upstream
     // variable holding information of clicked node
     private nodeInfo: Array<string>
 
@@ -56,14 +55,11 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         // subscribe to the data-sharing service (if some other component updates the info of the selected node, this var gets updated)
         this.shareService.currentNodeSelect.subscribe(newInfo => this.nodeInfo = newInfo);
     }
-=======
     private minDate = Math.min();
     private maxDate = Math.max();
 
     private dateRange;
 
-    constructor() { }
->>>>>>> Stashed changes
 
     ngOnChanges(changes: SimpleChanges): void {
         console.log(this.showIndividualLinks);
