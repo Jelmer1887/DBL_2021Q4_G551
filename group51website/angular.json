@@ -66,11 +66,13 @@
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
-                        "browserTarget": "group51website:build"
+                        "browserTarget": "group51website:build",
+                        "port": 8080
                     },
                     "configurations": {
                         "production": {
-                            "browserTarget": "group51website:build:production"
+                            "browserTarget": "group51website:build:production",
+                            "port": 8080
                         }
                     }
                 },
