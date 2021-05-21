@@ -67,19 +67,21 @@
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
                         "browserTarget": "group51website:build",
-                        "port": 8080
+                        "port": 8080,
+                        "host": "0.0.0.0"
                     },
                     "configurations": {
                         "production": {
                             "browserTarget": "group51website:build:production",
-                            "port": 8080
+                            "port": 8080,
+                            "host": "0.0.0.0"
                         }
                     }
                 },
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",
                     "options": {
-                        "browserTarget": "group51website:build"
+                        "browserTarget": "group51website:build",
                     }
                 },
                 "test": {
