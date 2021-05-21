@@ -46,6 +46,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private startDate = 20011201;
     private endDate = 20011231;
 
+<<<<<<< Updated upstream
     // variable holding information of clicked node
     private nodeInfo: Array<string>
 
@@ -55,6 +56,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         // subscribe to the data-sharing service (if some other component updates the info of the selected node, this var gets updated)
         this.shareService.currentNodeSelect.subscribe(newInfo => this.nodeInfo = newInfo);
     }
+=======
+    private minDate = Math.min();
+    private maxDate = Math.max();
+
+    private dateRange;
+
+    constructor() { }
+>>>>>>> Stashed changes
 
     ngOnChanges(changes: SimpleChanges): void {
         console.log(this.showIndividualLinks);
@@ -77,6 +86,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
             // Loop through all the lines, but skip the first since that one never contains data.
             for (var line of lines) {
+
                 // Get the different columns by splitting on the "," .
                 var columns = line.split(',');
 
@@ -90,6 +100,15 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 var dateString = columns[0].split('-').join('');
                 // Turn it into an integer
                 var dateInt = parseInt(dateString);
+
+                //Set minimum and maximum date for the slider range
+                if(dateInt > this.maxDate){
+                    this.maxDate = dateInt;
+                }
+                if(dateInt < this.minDate){
+                    this.minDate = dateInt;
+                }
+
                 // This comparison works because the format is YY-MM-DD,
                 // So the bigger number will always be later in time.
                 if (dateInt < this.startDate || dateInt > this.endDate) {
@@ -162,6 +181,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         // var data = { "nodes": nodes, "links": links };
         sortLinks();
         setLinkIndexAndNum();
+
+        this.setSliderRange(this.minDate,this.maxDate);
 
         const simulation = d3.forceSimulation(nodes)                            //automatically runs simulation
             .force("link", d3.forceLink(links).id((d: any) => d.id))            //Adds forces between nodes, depending on if they're linked
@@ -356,7 +377,16 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             }
             console.log(mLinkNum);
         }
+    }
 
+    setSliderRange(minDate,maxDate){
+
+        //YYYY-MM-DDTHH:MM:SS
+        minDate = new Date(minDate.toString().slice(0,4) + "-" + minDate.toString().slice(4,6) + "-" + minDate.toString().slice(6,8) + "T00:00:00+0000")
+        maxDate = new Date(maxDate.toString().slice(0,4) + "-" + maxDate.toString().slice(4,6) + "-" + maxDate.toString().slice(6,8) + "T00:00:00+0000")
+
+        //number of days between the two days
+        this.dateRange = (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
     }
 
     //to drag nodes around
