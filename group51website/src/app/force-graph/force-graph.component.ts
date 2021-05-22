@@ -1,6 +1,6 @@
 import { ForceGraphDataShareService } from './../force-graph-data-share.service';
 import { ThrowStmt } from '@angular/compiler';
-import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
 
 @Component({
@@ -55,14 +55,19 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         // subscribe to the data-sharing service (if some other component updates the info of the selected node, this var gets updated)
         this.shareService.currentNodeSelect.subscribe(newInfo => this.nodeInfo = newInfo);
     }
+
+    //Variables for setting the slider
     private minDate = Math.min();
     private maxDate = Math.max();
-
-    private dateRange;
-
+    public dateRange;
+    @Output() uploaded = new EventEmitter<string>();
 
     ngOnChanges(changes: SimpleChanges): void {
-        console.log(this.showIndividualLinks);
+        this.runGraph();
+    }
+
+    runGraph(){
+        //console.log(this.showIndividualLinks);
         if (this.container) {
             this.width = this.container.nativeElement.offsetWidth;
         }
@@ -139,7 +144,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     }
                 }
                 if (!tarFound) {
-                    console.log(target);
+                    //console.log(target);
                     this.nodes.push({ "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 });
                 }
 
@@ -174,11 +179,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     runSimulation(links, nodes, mLinkNum): void {
 
-        // var data = { "nodes": nodes, "links": links };
+        
         sortLinks();
         setLinkIndexAndNum();
 
-        this.setSliderRange(this.minDate,this.maxDate);
+        //set slider information
+        this.setSliderRange();
 
         const simulation = d3.forceSimulation(nodes)                            //automatically runs simulation
             .force("link", d3.forceLink(links).id((d: any) => d.id))            //Adds forces between nodes, depending on if they're linked
@@ -320,13 +326,18 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function linkGUI(i) {
-            var fromNode = nodes.filter(function (e) {
-                return e.id == i.source.id;      //Finds from node
-            })
-            var toNode = nodes.filter(function (e) {
-                return e.id == i.target.id;      //Finds to node
-            })
-            console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
+            if(this.showIndividualLinks){
+                var fromNode = nodes.filter(function (e) {
+                    return e.id == i.source.id;      //Finds from node
+                })
+                var toNode = nodes.filter(function (e) {
+                    return e.id == i.target.id;      //Finds to node
+                })
+                console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
+            } else {
+                console.log("Email transfers between " + fromNode[0]['id'] + " and " + toNode[0]['id'])
+            }
+            
         }
 
         // sort the links by source, then target
@@ -371,18 +382,40 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     mLinkNum[links[i].source + "," + links[i].target] = links[i].linkindex;
                 }
             }
-            console.log(mLinkNum);
+            //console.log(mLinkNum);
         }
     }
 
-    setSliderRange(minDate,maxDate){
+    setNewDate(event): void {
+        //set newStartDate as the minimum date
+        var newStartDate = new Date(this.minDate.toString().slice(0,4) + "-" + this.minDate.toString().slice(4,6) + "-" + this.minDate.toString().slice(6,8) + "T00:00:00+0000")
+
+        //set the date to be mindate
+        newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
+
+        //Set newEndDate as 30 days after newStartDate
+        var newEndDate = new Date(newStartDate);
+        newEndDate.setDate(newEndDate.getDate() + 30);
+
+        this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
+        this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
+
+        console.log(this.startDate)
+        console.log(this.endDate)
+        this.runGraph()
+    }
+
+    setSliderRange(){
 
         //YYYY-MM-DDTHH:MM:SS
-        minDate = new Date(minDate.toString().slice(0,4) + "-" + minDate.toString().slice(4,6) + "-" + minDate.toString().slice(6,8) + "T00:00:00+0000")
-        maxDate = new Date(maxDate.toString().slice(0,4) + "-" + maxDate.toString().slice(4,6) + "-" + maxDate.toString().slice(6,8) + "T00:00:00+0000")
-
+        var minDate = new Date(this.minDate.toString().slice(0,4) + "-" + this.minDate.toString().slice(4,6) + "-" + this.minDate.toString().slice(6,8) + "T00:00:00+0000")
+        var maxDate = new Date(this.maxDate.toString().slice(0,4) + "-" + this.maxDate.toString().slice(4,6) + "-" + this.maxDate.toString().slice(6,8) + "T00:00:00+0000")
+        
         //number of days between the two days
         this.dateRange = (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
+        
+        //Emit signal that the daterange has been changed 
+        this.uploaded.emit('complete');
     }
 
     //to drag nodes around
@@ -452,7 +485,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 return "#555555";
 
             default:
-                console.log(job);
+                //console.log(job);
                 return "#000000";
         }
     }

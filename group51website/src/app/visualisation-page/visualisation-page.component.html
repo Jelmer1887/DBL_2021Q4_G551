@@ -96,7 +96,7 @@
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks"></app-force-graph>
+                    <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks" (uploaded)="setMaxDate($event)"></app-force-graph>
                 </div>
             </div>
             <div class="column is-6 has-text-centered">
@@ -108,7 +108,7 @@
             </div>
         </div>
 
-    <input class="slider is-info is-medium mt-5 ml-5" (change)="setNewDate($event)" step="1" min="0" max="100" value="50" type="range" id="myRange"
+    <input class="slider is-info is-medium mt-5 ml-5" (change)="forcegraph.setNewDate($event)" step="1" min="1" [max]="max" value="1" type="range" id="myRange"
         style="width:1100px">
     </div>
 </div>
