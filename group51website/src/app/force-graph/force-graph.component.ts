@@ -66,7 +66,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         this.runGraph();
     }
 
-    runGraph(){
+    runGraph() {
         //console.log(this.showIndividualLinks);
         if (this.container) {
             this.width = this.container.nativeElement.offsetWidth;
@@ -103,10 +103,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 var dateInt = parseInt(dateString);
 
                 //Set minimum and maximum date for the slider range
-                if(dateInt > this.maxDate){
+                if (dateInt > this.maxDate) {
                     this.maxDate = dateInt;
                 }
-                if(dateInt < this.minDate){
+                if (dateInt < this.minDate) {
                     this.minDate = dateInt;
                 }
 
@@ -130,7 +130,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     }
                 }
                 if (!srcFound) {
-                    console.log(source);
+                    // console.log(source);
                     this.nodes.push({ "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 });
                 }
 
@@ -178,8 +178,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     runSimulation(links, nodes, mLinkNum): void {
-
-        
         sortLinks();
         setLinkIndexAndNum();
 
@@ -326,7 +324,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function linkGUI(i) {
-            if(this.showIndividualLinks){
+            if (this.showIndividualLinks) {
                 var fromNode = nodes.filter(function (e) {
                     return e.id == i.source.id;      //Finds from node
                 })
@@ -337,7 +335,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             } else {
                 console.log("Email transfers between " + fromNode[0]['id'] + " and " + toNode[0]['id'])
             }
-            
+
         }
 
         // sort the links by source, then target
@@ -388,7 +386,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     setNewDate(event): void {
         //set newStartDate as the minimum date
-        var newStartDate = new Date(this.minDate.toString().slice(0,4) + "-" + this.minDate.toString().slice(4,6) + "-" + this.minDate.toString().slice(6,8) + "T00:00:00+0000")
+        var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
 
         //set the date to be mindate
         newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
@@ -405,15 +403,15 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         this.runGraph()
     }
 
-    setSliderRange(){
+    setSliderRange() {
 
         //YYYY-MM-DDTHH:MM:SS
-        var minDate = new Date(this.minDate.toString().slice(0,4) + "-" + this.minDate.toString().slice(4,6) + "-" + this.minDate.toString().slice(6,8) + "T00:00:00+0000")
-        var maxDate = new Date(this.maxDate.toString().slice(0,4) + "-" + this.maxDate.toString().slice(4,6) + "-" + this.maxDate.toString().slice(6,8) + "T00:00:00+0000")
-        
+        var minDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
+        var maxDate = new Date(this.maxDate.toString().slice(0, 4) + "-" + this.maxDate.toString().slice(4, 6) + "-" + this.maxDate.toString().slice(6, 8) + "T00:00:00+0000")
+
         //number of days between the two days
         this.dateRange = (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
-        
+
         //Emit signal that the daterange has been changed 
         this.uploaded.emit('complete');
     }
