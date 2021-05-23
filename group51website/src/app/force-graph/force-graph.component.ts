@@ -12,6 +12,10 @@ import * as d3 from 'd3';
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     @Input() file;
+    @Input() showIndividualLinks;
+
+    @Output() uploaded = new EventEmitter<string>();
+    @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     private nodes = [
         /*
@@ -40,27 +44,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private width;
     private height = 800;
 
-    @Input() showIndividualLinks;
 
     // Filter start and end date.
     private startDate = 20011201;
     private endDate = 20011231;
 
     // variable holding information of clicked node
-    private nodeInfo: Array<string>
+    nodeinfo = {"id": 0, "sendto":[],"receivedfrom":[]};
 
     constructor(private shareService: ForceGraphDataShareService) { }
 
     ngOnInit() {
-        // subscribe to the data-sharing service (if some other component updates the info of the selected node, this var gets updated)
-        this.shareService.currentNodeSelect.subscribe(newInfo => this.nodeInfo = newInfo);
     }
 
     //Variables for setting the slider
     private minDate = Math.min();
     private maxDate = Math.max();
     public dateRange;
-    @Output() uploaded = new EventEmitter<string>();
 
     ngOnChanges(changes: SimpleChanges): void {
         this.runGraph();
@@ -241,6 +241,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         } else {
             link.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.sentiment.length), 8))
         }
+
+        var inst = this; // crude fix to store instance info
         const node = svg.append("g")
             .attr("stroke", "#fff")
             .attr("stroke-width", 1)
@@ -252,7 +254,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .call(this.drag(simulation))                        //makes sure you can drag nodes
             .on("click", function (d, i) {
                 nodeclicked(this, i);                              //Small animation of node
-                nodeGUI(i);                                     //To display info about node
+                nodeGUI(inst, i);                                  //To display info about node
             })
 
         // Displays some useful info if you hover over a node.
@@ -307,7 +309,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("r", nodeRadius);
         }
 
-        function nodeGUI(i) {
+        function nodeGUI(ints, i) {
+            var linklist = {"id":i.id, "sendto":[],"receivedfrom":[]};
+
             var sentLinks = links.filter(function (e) {
                 return e.source.id == i.id;      //Finds emails sent
             })
@@ -315,12 +319,19 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 return e.target.id == i.id;      //Finds emails received
             })
             for (var link in sentLinks) {
-                console.log("Sent an email to " + sentLinks[link]['target']['id']);
+                linklist["sendto"].push(sentLinks[link]['target']['id'])
+                console.log("adding to sendto... now: ")
+                console.log(linklist)
+                //console.log("Sent an email to " + sentLinks[link]['target']['id']);
             }
             for (var link in receivedLinks) {
-                console.log("Received an email from " + receivedLinks[link]['source']['id']);
+                linklist["receivedfrom"].push(sentLinks[link]['target']['id'])
+                console.log("adding to receivedfrom... now: ")
+                console.log(linklist)
+                //console.log("Received an email from " + receivedLinks[link]['source']['id']);
             }
-
+            ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
+            ints.nodeinfo = linklist;       // set local version
         }
 
         function linkGUI(i) {

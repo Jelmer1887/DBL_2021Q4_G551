@@ -96,7 +96,7 @@
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks" (uploaded)="setMaxDate($event)"></app-force-graph>
+                    <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks" (uploaded)="setMaxDate($event)" (nodeEmailsEvent) = "setNodeInfo($event)"></app-force-graph>
                 </div>
             </div>
             <div class="column is-6 has-text-centered">

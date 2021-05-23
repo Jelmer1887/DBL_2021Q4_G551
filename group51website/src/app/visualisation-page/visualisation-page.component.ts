@@ -13,6 +13,7 @@ export class VisualisationPageComponent implements OnInit {
     file;
     showIndividualLinks = false;
     max;
+    selectedNodeInfo;   // holds array of all emails send and received.
 
     @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
@@ -20,6 +21,7 @@ export class VisualisationPageComponent implements OnInit {
     constructor(private uploadService: UploadService, private FGshareService: ForceGraphDataShareService) { }
     ngOnInit(): void {
         this.uploadService.currentFile.subscribe(newfile => this.file = newfile);
+        this.FGshareService.currentNodeSelect.subscribe(newNode => this.selectedNodeInfo = newNode);
     }
 
     setMaxDate(event): void {
@@ -27,7 +29,10 @@ export class VisualisationPageComponent implements OnInit {
         this.max = this.forcegraph.dateRange;
       }
 
-    
+    // setter for selectedNode, used to update info-card, triggered through html event
+    setNodeInfo(node): void {
+        this.selectedNodeInfo = node;
+    }
 
     checkLinksOption(event): void {
         //console.log(event);
