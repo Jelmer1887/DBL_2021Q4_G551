@@ -43,7 +43,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     private width;
     private height = 800;
-    private graphSize = 1500;
 
     // Filter start and end date.
     private startDate = 20011201;
@@ -190,16 +189,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .force("center", d3.forceCenter(this.width / 2, this.height / 2));  // nodes get pulled towards the centre of svg
 
         const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
-            .attr("viewBox", [0, 0, this.graphSize, this.graphSize])
-            .attr("width", this.graphSize)
-            .attr("height", this.graphSize)
-            .call(d3.zoom()
-                .extent([[0, 0], [this.graphSize, this.graphSize]])
-                .scaleExtent([1, 10])
-                .on("zoom", function ({ transform }) {
-                    svg.attr("transform", transform);
-                })
-            );
+            .attr("viewBox", [0, 0, this.width, this.height])
+            .attr("width", this.width)
+            .attr("height", this.height)
+
 
         svg.selectAll("g").remove();
 
@@ -267,6 +260,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     "function: " + d.job;
             });
 
+        svg.call(d3.zoom()
+            .extent([[0, 0], [this.width, this.height]])
+            .scaleExtent([0.5, 10])
+            .on("zoom", function ({ transform }) {
+                node.attr("transform", transform);
+                link.attr("transform", transform);
+            })
+        );
 
         //function that updates position of nodes and links
         simulation.on("tick", () => {
