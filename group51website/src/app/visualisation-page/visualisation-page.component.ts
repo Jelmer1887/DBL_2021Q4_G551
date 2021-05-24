@@ -11,6 +11,7 @@ import { ForceGraphComponent } from './../force-graph/force-graph.component';
 export class VisualisationPageComponent implements OnInit {
 
     file;
+    arcSort = "id";
     showIndividualLinks = false;
     max;
     selectedNodeInfo;   // holds array of all emails send and received.
@@ -27,7 +28,7 @@ export class VisualisationPageComponent implements OnInit {
     setMaxDate(event): void {
         //change the maximum value on the slider when signal comes from forcegraph
         this.max = this.forcegraph.dateRange;
-      }
+    }
 
     // setter for selectedNode, used to update info-card, triggered through html event
     setNodeInfo(node): void {
@@ -37,6 +38,11 @@ export class VisualisationPageComponent implements OnInit {
     checkLinksOption(event): void {
         //console.log(event);
         this.showIndividualLinks = event.target.checked;
+    }
+
+    checkSortOption(event): void {
+        // console.log(event.target);
+        this.arcSort = event.target.value
     }
 
 }

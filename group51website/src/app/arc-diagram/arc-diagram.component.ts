@@ -12,7 +12,9 @@ import * as d3 from 'd3';
 })
 export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
+    // Input variables.
     @Input() file;
+    @Input() sort;
 
     private nodes = [
         /*
@@ -150,10 +152,16 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     runDiagram(links, nodes, mLinkNum): void {
-        sortNodesID();
-        nodes.shift();//remove NaNs.
-        nodes.shift();
-        //sortNodesJob();
+        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
+            "Employee", "Unknown"];
+
+        if (this.sort == "id") {
+            sortNodesID();
+        } else if (this.sort == "job") {
+            sortNodesJob();
+        } else if (this.sort == "amount") {
+            sortNodesAmount();
+        }
         //console.log(nodes);
         const svg = d3.select("#arc-diagram")
             //.append("svg")
@@ -162,10 +170,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         //.append("g")
         //.attr("transform", "translate(0,50)");
 
-        svg.selectAll("g").remove();
+        svg.selectAll("*").remove()
 
-        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-            "Employee", "Unknown"];
 
         // Add a legend.
         const legend = d3.select("#arc-legend")
@@ -180,7 +186,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         function sortNodesJob() {
             nodes.sort(function (a, b) {
                 if (a.job == b.job) {
-                    return a.id.localCompare(b.id);
+                    return (a.id < b.id ? -1 : 1);
                 } else { //broky
                     return jobs.indexOf(a.job) - jobs.indexOf(b.job); //either positive or negative, sorted accordingly
                 }
@@ -196,6 +202,17 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 }
             })
         }
+
+        function sortNodesAmount() {
+            nodes.sort(function (a, b) {
+                if (a.mailCount == b.mailCount) {
+                    return (a.id < b.id ? -1 : 1);
+                } else {
+                    return (a.mailCount > b.mailCount ? -1 : 1);
+                }
+            })
+        }
+
         //console.log(nodes);
         var nodeID = [];
         for (var i = 0; i < nodes.length; i++) {
@@ -364,13 +381,14 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .attr("stroke-opacity", 0.6)
             .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
     }
+
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
         this.runDiagram(this.links, this.nodes, this.mLinkNum);
     }
+
     @ViewChild('container')
     container: ElementRef;
-
 
     //link colour based on sentiment of message
     linkColor(sentiment): string {
