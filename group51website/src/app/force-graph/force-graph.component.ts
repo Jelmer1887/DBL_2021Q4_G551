@@ -43,14 +43,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     private width;
     private height = 800;
-
+    private graphSize = 1500;
 
     // Filter start and end date.
     private startDate = 20011201;
     private endDate = 20011231;
 
     // variable holding information of clicked node
-    nodeinfo = {"id": 0, "sendto":[],"receivedfrom":[]};
+    nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
 
     constructor(private shareService: ForceGraphDataShareService) { }
 
@@ -190,19 +190,21 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .force("center", d3.forceCenter(this.width / 2, this.height / 2));  // nodes get pulled towards the centre of svg
 
         const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
-            .attr("width", 1000)
-            .attr("height", 1000)
+            .attr("viewBox", [0, 0, this.graphSize, this.graphSize])
+            .attr("width", this.graphSize)
+            .attr("height", this.graphSize)
             .call(d3.zoom()
+                .extent([[0, 0], [this.graphSize, this.graphSize]])
                 .scaleExtent([1, 10])
-                .on("zoom", (e, d) => {
-                    svg.attr("transform", e.transform);
+                .on("zoom", function ({ transform }) {
+                    svg.attr("transform", transform);
                 })
             );
 
         svg.selectAll("g").remove();
 
         // Add a legend.
-        const legend = d3.select("#legend")
+        const legend = d3.select("#force-legend")
             .attr("width", this.width)
             .attr("height", 80);
 
@@ -310,7 +312,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function nodeGUI(ints, i) {
-            var linklist = {"id":i.id, "sendto":[],"receivedfrom":[]};
+            var linklist = { "id": i.id, "sendto": [], "receivedfrom": [] };
 
             var sentLinks = links.filter(function (e) {
                 return e.source.id == i.id;      //Finds emails sent

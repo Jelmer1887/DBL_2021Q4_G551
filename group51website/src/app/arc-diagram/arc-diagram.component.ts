@@ -164,9 +164,18 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
         svg.selectAll("g").remove();
 
-        var jobs = ["CEO", "President", "Vice President", "Managing Director", "Director", "Manager", "In House Lawyer", "Trader",
+        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
             "Employee", "Unknown"];
 
+        // Add a legend.
+        const legend = d3.select("#arc-legend")
+            .attr("width", this.width)
+            .attr("height", 80);
+
+        for (var i = 0; i < jobs.length; i++) {
+            legend.append("circle").attr("cx", 20 + (i % 5) * 160).attr("cy", 30 + (i % 2) * 35 - 6).attr("r", 6).style("fill", nodeColor(jobs[i]))
+            legend.append("text").attr("x", 30 + (i % 5) * 160).attr("y", 30 + (i % 2) * 35).text(jobs[i]).style("font-size", "15px").attr("alignment-baseline", "middle")
+        }
         //CEO, President, Vice President, Managing Director, Director, In House Lawyer, Trader, Employee, Unknown.
         function sortNodesJob() {
             nodes.sort(function (a, b) {
