@@ -1,4 +1,5 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Renderer2, NgModule} from '@angular/core';
+
 
 @Component({
   selector: 'app-dynamic-vis-page',
@@ -6,19 +7,31 @@ import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
   styleUrls: ['./dynamic-vis-page.component.css']
 })
 export class DynamicVisPageComponent implements OnInit, AfterViewInit {
-  @ViewChild('para1') p1;
+  @ViewChild('col1') c1;
+  @ViewChild('col2') c2;
+  private fullscreen: boolean = false;
 
-  constructor() {
+  constructor(private renderer: Renderer2) {
     var slider = document.getElementById("myRange");
     var output = document.getElementById("demo");
     //$("p").hide();
 }
 
-  ngOnInit(): void {
+  ngOnInit(){
+
+}
+  
+
+  OnSwitch(){
+
   }
 
   ngAfterViewInit() {
-      console.log(this.p1.nativeElement);
+    this.renderer.setStyle(
+      this.c2.nativeElement,
+      'display',
+      'none'
+    );
   }
 
 }
