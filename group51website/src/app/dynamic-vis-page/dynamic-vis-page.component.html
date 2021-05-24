@@ -1,7 +1,16 @@
 <div class="box mx-3 my-3">
 
-  <div class="block" style="height:500px">
-    <!--Vis will go here-->
+  <div class="columns is-centered">
+    <div #col1 class="column">
+      <div class="box" style="height: 500px;">
+        <app-force-graph></app-force-graph>
+      </div>
+    </div>
+    <div #col2 class="column">
+      <div class="box" style="height: 500px;">
+        <app-force-graph></app-force-graph>
+      </div>
+    </div>
   </div>
 
   <div class="box" style="background-color: lightgray; padding: 0">
@@ -31,9 +40,15 @@
       </div>
       <input class="slider is-info is-medium mt-5 ml-5" step="1" min="0" max="100" value="50" type="range" id="myRange"
         style="width:1100px">
-        <!--<p>{{output}}</p>-->
+        <div class="checkbox">
+          <form>
+          <label>
+              <input #fullscreen [(ngModel)]="fullscreen.selected" type="checkbox" data-toggle="toggle">Toggle fullscreen
+          </label>
+        </form>
+          </div>
+        
+      <!--<p>{{output}}</p>-->
     </div>
   </div>
 </div>
-
-<p #para1>test</p>

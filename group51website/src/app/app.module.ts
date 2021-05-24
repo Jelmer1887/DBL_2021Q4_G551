@@ -12,6 +12,7 @@ import { HomePageComponent } from './home-page/home-page.component';
 import { FooterComponent } from './footer/footer.component';
 import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.component';
 import { AboutPageComponent } from './about-page/about-page.component'
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { AboutPageComponent } from './about-page/about-page.component'
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
