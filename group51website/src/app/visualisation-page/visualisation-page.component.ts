@@ -2,6 +2,7 @@ import { ForceGraphDataShareService } from './../force-graph-data-share.service'
 import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
 import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
+import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 
 @Component({
     selector: 'app-visualisation-page',
@@ -21,6 +22,7 @@ export class VisualisationPageComponent implements OnInit {
 
     @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
+    @ViewChild(ArcDiagramComponent) arcdiagram;
 
     constructor(private uploadService: UploadService, private FGshareService: ForceGraphDataShareService) { }
     ngOnInit(): void {

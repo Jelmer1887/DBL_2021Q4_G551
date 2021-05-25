@@ -16,6 +16,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     @Input() file;
     @Input() sort;
 
+    //Slider variables
+    private minDate = Math.min();
+
     private nodes = [
         /*
         { "id": 0, "job": "Employee" },
@@ -50,6 +53,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     constructor() { }
 
     ngOnChanges(changes: SimpleChanges): void {
+        this.initiateDiagram()
+    }
+
+    initiateDiagram(){
         if (this.container) {
             this.width = this.container.nativeElement.offsetWidth;
         }
@@ -75,6 +82,11 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 // Make sure it's not an empty line.
                 if (columns.length <= 4) {
                     continue;
+                }
+
+                //Find min date for the slider
+                if (dateInt < this.minDate) {
+                    this.minDate = dateInt;
                 }
 
                 /// Filter to a specific month for more clarity.
@@ -389,6 +401,25 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     @ViewChild('container')
     container: ElementRef;
+
+    //Set the data to be shown
+    setNewDate(event): void {
+        //set newStartDate as the minimum date
+        var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
+
+        //set the date to be mindate
+        newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
+
+        //Set newEndDate as 30 days after newStartDate
+        var newEndDate = new Date(newStartDate);
+        newEndDate.setDate(newEndDate.getDate() + 30);
+
+        this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
+        this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
+
+        this.initiateDiagram()
+    }
+
 
     //link colour based on sentiment of message
     linkColor(sentiment): string {

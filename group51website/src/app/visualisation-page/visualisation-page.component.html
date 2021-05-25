@@ -181,7 +181,7 @@
             </div>
         </div>
 
-        <input class="slider is-info is-medium mt-5 ml-5" (change)="forcegraph.setNewDate($event)" step="1" min="1"
+        <input class="slider is-info is-medium mt-5 ml-5" (change)="forcegraph.setNewDate($event); arcdiagram.setNewDate($event)" step="1" min="1"
             [max]="max" value="1" type="range" id="myRange" style="width:1100px">
     </div>
 </div>

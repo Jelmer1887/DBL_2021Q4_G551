@@ -62,10 +62,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     public dateRange;
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.runGraph();
+        this.initiateGraph();
     }
 
-    runGraph() {
+    initiateGraph() {
         //console.log(this.showIndividualLinks);
         if (this.container) {
             this.width = this.container.nativeElement.offsetWidth;
@@ -325,7 +325,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 linklist["sendto"].push(sentLinks[link]['target']['id'])
             }
             for (var link in receivedLinks) {
-                //console.log(receivedLinks)
                 linklist["receivedfrom"].push(receivedLinks[link]['source']['id'])
             }
             ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
@@ -409,7 +408,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
         console.log(this.startDate)
         console.log(this.endDate)
-        this.runGraph()
+        this.initiateGraph()
     }
 
     setSliderRange() {
