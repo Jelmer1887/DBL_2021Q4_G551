@@ -325,7 +325,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 linklist["sendto"].push(sentLinks[link]['target']['id'])
             }
             for (var link in receivedLinks) {
-                linklist["receivedfrom"].push(sentLinks[link]['target']['id'])
+                //console.log(receivedLinks)
+                linklist["receivedfrom"].push(receivedLinks[link]['source']['id'])
             }
             ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             ints.nodeinfo = linklist;       // set local version
