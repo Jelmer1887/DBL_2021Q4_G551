@@ -45,6 +45,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private width;
     private height = 800;
 
+    private beginPosX = 0;
+    private beginPosY = 0;
+    private beginScale = 1;
+
     // Filter start and end date.
     private startDate = 20011201;
     private endDate = 20011231;
@@ -53,6 +57,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
 
     constructor(private shareService: ForceGraphDataShareService) { }
+
+    private zoom = d3.zoom()
+        .scaleExtent([0.5, 10])
 
     ngOnInit() {
     }
@@ -222,7 +229,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .join(edgeStyle)
             .attr("stroke", (d: any) => this.linkColor(d.sentiment))
             .on("click", (d, i) => {
-                linkGUI(i,this.showIndividualLinks);                                     //To display info about link
+                linkGUI(i, this.showIndividualLinks);                                     //To display info about link
             })
 
 
@@ -262,9 +269,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     "function: " + d.job;
             });
 
-        svg.call(d3.zoom()
+        svg.call(this.zoom
             .extent([[0, 0], [this.width, this.height]])
-            .scaleExtent([0.5, 10])
             .on("zoom", function ({ transform }) {
                 node.attr("transform", transform);
                 link.attr("transform", transform);
@@ -295,9 +301,26 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     .attr("x2", (d: any) => d.target.x)
                     .attr("y2", (d: any) => d.target.y);
             }
+
+            /*
+            var left = Number.MAX_VALUE;
+            var right = Number.MIN_VALUE;
+            var top = Number.MAX_VALUE;
+            var bottom = Number.MIN_VALUE;
+            */
+
             node
-                .attr("cx", (d: any) => d.x)
-                .attr("cy", (d: any) => d.y);
+                .attr("cx", (d: any) => {
+                    // left = Math.min(left, d.x);
+                    // right = Math.max(right, d.x);
+                    return d.x;
+                })
+                .attr("cy", (d: any) => {
+                    // top = Math.min(top, d.y);
+                    // bottom = Math.max(bottom, d.y);
+                    return d.y;
+                });
+            // console.log(right);
         });
 
         function nodeclicked(node, data) {
@@ -333,7 +356,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             ints.nodeinfo = linklist;       // set local version
         }
 
-        function linkGUI(i,showIndividualLinks) {
+        function linkGUI(i, showIndividualLinks) {
             if (showIndividualLinks) {
                 var fromNode = nodes.filter(function (e) {
                     return e.id == i.source.id;      //Finds from node
@@ -418,7 +441,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         console.log(this.startDate)
         console.log(this.endDate)
 
-        this.getDate.emit({newStartDate,newEndDate});
+        this.getDate.emit({ newStartDate, newEndDate });
 
         this.initiateGraph()
     }
@@ -506,6 +529,17 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 //console.log(job);
                 return "#000000";
         }
+    }
+
+    checkZoomReset(): void {
+        console.log("Reset zoom!");
+        const svg = d3.select("#force-graph");
+        svg.selectAll("circle")
+            .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
+        svg.selectAll("line")
+            .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
+
+        svg.call(this.zoom.transform, d3.zoomIdentity.translate(this.beginPosX, this.beginPosY).scale(this.beginScale))
     }
 
     ngAfterViewInit(): void {
