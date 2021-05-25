@@ -29,41 +29,6 @@ giving a translation of 300%
 In short formula for translation: percentage = ([desired offset %]/[component_size %]) - 100%
 
 -->
-
-<div class="card is-pulled-right is-relative" style="background-color: transparent;">
-    <header class="card-header">
-        <p class="card-header-title">Node Information</p>
-        <span class="card-header-icon" style="cursor:unset">
-            <i class="fas fa-info-circle"></i>
-        </span>
-    </header>
-
-    <!--First value-->
-    <div class="card-content has-text">
-        <div class="columns">
-            <div class="column is-8">
-                received emails from:
-            </div>
-            <div class="column">
-                {{nodeinfo["receivedfrom"]}}
-            </div>
-        </div>
-    </div>
-
-    <!--Second value-->
-    <div class="card-content has-text">
-        <div class="columns">
-            <div class="column is-8">
-                send emails to:
-            </div>
-            <div class="column">
-                {{nodeinfo["sendto"]}}
-            </div>
-        </div>
-    </div>
-
-</div>
-
 <div class="container" #container style="
     overflow: hidden; 
     width: 100%;

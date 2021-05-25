@@ -107,7 +107,7 @@
 
         <!--Area for Visualisations-->
         <div class="columns is-mobile is-centered">
-            <div class="column is-6 has-text-centered">
+            <div class="column is-5 has-text-centered">
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
@@ -115,7 +115,64 @@
                         (uploaded)="setMaxDate($event)" (nodeEmailsEvent)="setNodeInfo($event)"></app-force-graph>
                 </div>
             </div>
-            <div class="column is-6 has-text-centered">
+
+            <div class="column is-2 has-text-centered">
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">Node Information</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+
+                    <!--ID value :: using a table to get consistant spacing with the lists of values below-->
+                    <div class="card-content">
+                        <table class="table is-narrow is-hoverable is-fullwidth">
+                            <tbody>
+                                <tr>
+                                    <td>Node unique id</td>
+                                    <td>{{selectedNodeInfo["id"]}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- emails received header-->
+                    <header class="card-header">
+                        <p class="card-header-title">Received emails from (id)</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+                
+                    <!--received emals value-->
+                    <div class="card-content has-text">
+                        <table id="nodeinfo_table_received" class="table is-narrow is-hoverable is-fullwidth">
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                    <!-- emails send header-->
+                    <header class="card-header">
+                        <p class="card-header-title">Send emails to (id)</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+                
+                    <!--send emails value-->
+                    <div class="card-content has-text">
+                        <table id="nodeinfo_table_send" class="table is narrow is-hoverable is-fullwidth">
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                </div>
+            </div>
+
+            <div class="column is-5 has-text-centered">
                 <div class="box">
                     <h1 class="title">Arc Diagram</h1>
                     <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
