@@ -14,6 +14,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     @Input() file;
     @Input() showIndividualLinks;
 
+    @Output() getDate = new EventEmitter<any>();
     @Output() uploaded = new EventEmitter<string>();
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
@@ -220,8 +221,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .data(links)
             .join(edgeStyle)
             .attr("stroke", (d: any) => this.linkColor(d.sentiment))
-            .on("click", function (d, i) {
-                linkGUI(i);                                     //To display info about link
+            .on("click", (d, i) => {
+                linkGUI(i,this.showIndividualLinks);                                     //To display info about link
             })
 
 
@@ -250,6 +251,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .on("click", function (d, i) {
                 nodeclicked(this, i);                              //Small animation of node
                 nodeGUI(inst, i);                                  //To display info about node
+                nodeHighlight(i);                                  //Highlight node and neighbours
             })
 
         // Displays some useful info if you hover over a node.
@@ -331,8 +333,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             ints.nodeinfo = linklist;       // set local version
         }
 
-        function linkGUI(i) {
-            if (this.showIndividualLinks) {
+        function linkGUI(i,showIndividualLinks) {
+            if (showIndividualLinks) {
                 var fromNode = nodes.filter(function (e) {
                     return e.id == i.source.id;      //Finds from node
                 })
@@ -344,6 +346,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 console.log("Email transfers between " + fromNode[0]['id'] + " and " + toNode[0]['id'])
             }
 
+        }
+
+        function nodeHighlight(i) {
+            var allLinks = links.filter(function (e) {
+                return e.source.id == i.id || e.target.id == i.id;      //Finds emails sent and received
+            })
+            //TODO
         }
 
         // sort the links by source, then target
@@ -408,6 +417,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
         console.log(this.startDate)
         console.log(this.endDate)
+
+        this.getDate.emit({newStartDate,newEndDate});
+
         this.initiateGraph()
     }
 

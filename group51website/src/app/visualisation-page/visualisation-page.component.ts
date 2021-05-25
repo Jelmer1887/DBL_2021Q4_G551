@@ -35,6 +35,19 @@ export class VisualisationPageComponent implements OnInit {
         this.max = this.forcegraph.dateRange;
     }
 
+    showDate(dates){
+        var startDay = dates['newStartDate'].getDate()
+        var startMonth = dates['newStartDate'].toLocaleString('default', { month: 'long' })
+        var startYear = dates['newStartDate'].getFullYear()
+
+        var endDay = dates['newEndDate'].getDate()
+        var endMonth = dates['newEndDate'].toLocaleString('default', { month: 'long' })
+        var endYear = dates['newEndDate'].getFullYear()
+
+        console.log('Data showing from '+startDay+' '+startMonth+', '+startYear)
+        console.log('Data showing until '+endDay+' '+endMonth+', '+endYear)
+    }
+
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
 
