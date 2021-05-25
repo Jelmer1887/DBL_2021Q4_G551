@@ -1,14 +1,3 @@
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <style>
-        #container {
-
-            margin: 2rem 1rem;
-        }
-    </style>
-</head>
-
 <!--Position is weird to compute:
 
 goal: be as far left as possible
@@ -37,5 +26,8 @@ In short formula for translation: percentage = ([desired offset %]/[component_si
 </div>
 
 <div>
+    <button class="button is-rounded is-danger is-normal" (click)="checkZoomReset()">
+        <span>Reset zoom</span>
+    </button>
     <svg id="force-legend"></svg>
 </div>
