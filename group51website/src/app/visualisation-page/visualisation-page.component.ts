@@ -12,7 +12,7 @@ import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 export class VisualisationPageComponent implements OnInit {
 
     // configurables
-    INFOCARD_COLUMNS = 5;
+    INFOCARD_COLUMNS = 4;
 
     file;
     arcSort = "id";
@@ -53,9 +53,60 @@ export class VisualisationPageComponent implements OnInit {
 
         // function to add rows to a table
         function createRow(table: any, attribute: string, component: any): void {
-            let i = 0;                                                                  // column index for a row
-            let r = 0;                                                                  // nr of finished rows
 
+            // repetition detection
+            let repeatdict = {};
+            for (let i = 0; i <  component.selectedNodeInfo[attribute].length; i++){
+                let p = component.selectedNodeInfo[attribute][i]
+                if (repeatdict.hasOwnProperty(p) == false){
+                    repeatdict[p] = 1;
+                } else {
+                    repeatdict[p] += 1;
+                }
+            }
+            console.log(repeatdict);
+
+
+            // create the table in array form
+            let structure = [];
+            let newRow = [];
+            for (const elm in repeatdict){
+                let text = elm;
+                if (repeatdict[elm] > 1){text = text + "(x"+repeatdict[elm]+")"}
+                if (newRow.length < component.INFOCARD_COLUMNS-1){
+                    newRow.push(text)
+                } else {
+                    newRow.push(text)
+                    structure.push(newRow);
+                    newRow = [];
+                }
+            }
+            if (newRow.length != 0){structure.push(newRow)}
+
+            // make the array square, by filling the possibly incomplete last row with empty strings.
+            if (structure.length > 0){
+                if (structure[structure.length-1].length < component.INFOCARD_COLUMNS){
+                    for (let i = structure[structure.length-1].length-1; i < component.INFOCARD_COLUMNS-1; i++){
+                        structure[structure.length-1].push("");
+                    }
+                }
+            }
+
+            // -- Converting structured array to HTML table on website -- \\
+            for (const r in structure){
+                let rowElement = document.createElement('tr');
+
+                for (const c in structure[r]){
+                    let cellElement = document.createElement('td');
+                    cellElement.innerText = structure[r][c]
+
+                    rowElement.append(cellElement);
+                }
+
+                table.append(rowElement);
+            }
+
+            /*
             while (true){                                                               // make rows untill there are no elements left...
                 let newRow = document.createElement('tr');                                // create a new row element
                 
@@ -84,7 +135,7 @@ export class VisualisationPageComponent implements OnInit {
                 if ((r*component.INFOCARD_COLUMNS + i) >= component.selectedNodeInfo["receivedfrom"].length){break;}
                 i = 0;                                                                  // reset column counter
                 r++;                                                                    // increment the row counter
-            }
+            } */
         }
 
         this.selectedNodeInfo = node;
