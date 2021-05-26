@@ -227,7 +227,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .selectAll(edgeStyle)
             .data(links)
             .join(edgeStyle)
-            .attr("stroke", (d: any) => this.linkColor(d.sentiment))
+            .attr("stroke", (d: any) => this.linkColor(d.sentiment,0))  // 0 is just to show it is not highlighted so color is lighter
             .on("click", (d, i) => {
                 linkGUI(i, this.showIndividualLinks);                                     //To display info about link
             })
@@ -258,8 +258,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .on("click", function (d, i) {
                 nodeclicked(this, i);                              //Small animation of node
                 nodeGUI(inst, i);                                  //To display info about node
-                nodeHighlight(i);                                  //Highlight node and neighbours
             })
+            .on("mouseover", function (event, d: any) {
+                d3.select(this).style('font-weight', 'bold')
+                    //.style('fill', "#000")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 2);
+                link.style('stroke', (a: any) => a.source.id === d.id || a.target.id === d.id ? inst.linkColor(a.sentiment,1) : '#ccc')      
+            })
+            .on("mouseout", function (event, d) {
+                d3.select(this).style('fill', (d: any) => inst.nodeColor(d.job))
+                    .style('font-weight', 'normal')
+                    .attr("stroke", "#fff")
+                    .attr("stroke-width", 1)
+                link.style('stroke', (a: any) => a.sentiment < -0.1 ? "#EE5555" : a.sentiment > 0.1 ? "#55EE55" : "#999999")
+                
+            })
+
 
         // Displays some useful info if you hover over a node.
         node.append("title")
@@ -371,13 +386,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
         }
 
-        function nodeHighlight(i) {
-            var allLinks = links.filter(function (e) {
-                return e.source.id == i.id || e.target.id == i.id;      //Finds emails sent and received
-            })
-            //TODO
-        }
-
         // sort the links by source, then target
         function sortLinks() {
             links.sort(function (a, b) {
@@ -486,7 +494,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     //link colour based on sentiment of message
-    linkColor(sentiment): string {
+    linkColor(sentiment,highlighted): string {
         // console.log(sentiment);
         for (var s of sentiment) {
             if (s > 0.1) {
@@ -497,7 +505,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 return "#EE5555";
             }
         }
-
+        if(highlighted){
+            return "#404040"
+        }
         return "#999999";
     }
 
@@ -539,7 +549,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         svg.selectAll("line")
             .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
 
-        svg.call(this.zoom.transform, d3.zoomIdentity.translate(this.beginPosX, this.beginPosY).scale(this.beginScale))
+        svg.call(this.zoom.transform as any, d3.zoomIdentity.translate(this.beginPosX, this.beginPosY).scale(this.beginScale))
     }
 
     ngAfterViewInit(): void {
