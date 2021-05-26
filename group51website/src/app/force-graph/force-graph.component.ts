@@ -1,4 +1,3 @@
-import { ForceGraphDataShareService } from './../force-graph-data-share.service';
 import { ThrowStmt } from '@angular/compiler';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
@@ -56,7 +55,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     // variable holding information of clicked node
     nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
 
-    constructor(private shareService: ForceGraphDataShareService) { }
+    constructor() { }
 
     private zoom = d3.zoom()
         .scaleExtent([0.5, 10])

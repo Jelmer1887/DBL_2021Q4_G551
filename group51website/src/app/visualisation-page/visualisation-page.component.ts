@@ -105,37 +105,6 @@ export class VisualisationPageComponent implements OnInit {
 
                 table.append(rowElement);
             }
-
-            /*
-            while (true){                                                               // make rows untill there are no elements left...
-                let newRow = document.createElement('tr');                                // create a new row element
-                
-                // fill the row
-                while (i < component.INFOCARD_COLUMNS){                                   // add INFOCARD_COLUMNS nr of cells to the current row
-                    let i_id = i + r*component.INFOCARD_COLUMNS                           // compute what element should be in the cell
-                    let newCell = document.createElement('td');                           // create cell element
-
-                    // fill the cell
-                    if (i_id >= component.selectedNodeInfo[attribute].length){
-                        newCell.innerText = "";                                           // make cell empty is there are no elements left to put in.
-                    } else {
-                        newCell.innerText = component.selectedNodeInfo[attribute][i_id]   // set text to current element's id value
-                    }
-                    
-                    // add cell to row
-                    newRow.append(newCell)                                                // add new cell to the row that's being made
-                    i++;                                                                  // increment i to keep track of nr of cells in row.
-                }
-
-                // append the row
-                table.append(newRow);                                                   // add new row to the table
-                                                                                        
-
-                // check if enough rows / cells have been made to cover all elements
-                if ((r*component.INFOCARD_COLUMNS + i) >= component.selectedNodeInfo["receivedfrom"].length){break;}
-                i = 0;                                                                  // reset column counter
-                r++;                                                                    // increment the row counter
-            } */
         }
 
         this.selectedNodeInfo = node;
