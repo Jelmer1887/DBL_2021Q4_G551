@@ -271,7 +271,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     .style('font-weight', 'normal')
                     .attr("stroke", "#fff")
                     .attr("stroke-width", 1)
-                link.style('stroke', (a: any) => a.sentiment < -0.1 ? "#EE5555" : a.sentiment > 0.1 ? "#55EE55" : "#999999")
+                link.style('stroke',(a: any) => inst.linkColor(a.sentiment,0))
                 
             })
 
