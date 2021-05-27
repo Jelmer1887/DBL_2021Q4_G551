@@ -292,6 +292,21 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     return "#000000";
             }
         }
+          //link colour based on sentiment of message
+    function linkColor(sentiment): string {
+        // console.log(sentiment);
+        for (var s of sentiment) {
+            if (s > 0.1) {
+                return "#55EE55";
+            }
+
+            if (s < -0.1) {
+                return "#EE5555";
+            }
+        }
+
+        return "#999999";
+    }
         //This is the ugliest solution ever. It makes the text boxes longer, making it easier to interact with them with mouse-events
         function makeText(d) {
             if (d.id.length == 3) {
@@ -342,7 +357,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 label.style('fill', "#000")
                 d3.select(this).style('fill', '#000')
                 d3.select(this).style('font-weight', 'normal')
-                link.style('stroke', (a: any) => a.sentiment < -0.1 ? "#EE5555" : a.sentiment > 0.1 ? "#55EE55" : "#999999")
+                link.style('stroke', (a: any) => linkColor(a.sentiment))
                 //.style('stroke-width', 1)
             })
             .call(mylabels => mylabels.append("text")
@@ -389,7 +404,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     .join(' ');
             })
             .style("fill", "none")
-            .attr("stroke", (d: any) => this.linkColor(d.sentiment))
+            .attr("stroke", (d: any) => linkColor(d.sentiment))
             .attr("stroke-opacity", 0.6)
             .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
     }
@@ -420,22 +435,6 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         this.initiateDiagram()
     }
 
-
-    //link colour based on sentiment of message
-    linkColor(sentiment): string {
-        // console.log(sentiment);
-        for (var s of sentiment) {
-            if (s > 0.1) {
-                return "#55EE55";
-            }
-
-            if (s < -0.1) {
-                return "#EE5555";
-            }
-        }
-
-        return "#999999";
-    }
 }
 
 
