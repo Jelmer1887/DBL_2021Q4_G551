@@ -28,15 +28,18 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         */
     ];
 
+    /*
     private links = [
-        /*
         { "source": 0, "target": 1, "value": 1, "sentiment": [0.0] },
         { "source": 0, "target": 5, "value": 1, "sentiment": [0.4] },
         { "source": 2, "target": 1, "value": 1, "sentiment": [0.9] },
         { "source": 3, "target": 5, "value": 1, "sentiment": [-0.5] },
         { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
-        */
     ]
+    */
+
+    private groupedLinks = []
+    private individualLinks = []
 
     //This will hold the number of links every node has
     private mLinkNum = []
@@ -88,7 +91,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
             // Empty the nodes and links so we can read the new ones.
             this.nodes = [];
-            this.links = [];
+            this.individualLinks = [];
+            this.groupedLinks = [];
             this.mLinkNum = [];
 
             // Loop through all the lines, but skip the first since that one never contains data.
@@ -126,18 +130,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 var source = parseInt(columns[1]);
                 var target = parseInt(columns[4]);
 
+                var sourceNode;
+                var targetNode;
+
                 // Add the source if we can't find it in the array of nodes.
                 var srcFound = false;
                 for (var n of this.nodes) {
                     if (n.id === source) {
                         srcFound = true;
+                        sourceNode = n;
                         n.mailCount += 1;
                         break;
                     }
                 }
                 if (!srcFound) {
                     // console.log(source);
-                    this.nodes.push({ "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 });
+                    sourceNode = { "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 };
+                    this.nodes.push(sourceNode);
                 }
 
                 // Add the target if we can't find it in the array of nodes.
@@ -145,37 +154,47 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 for (var n of this.nodes) {
                     if (n.id === target) {
                         tarFound = true;
+                        targetNode = n;
                         n.mailCount += 1;
                         break;
                     }
                 }
                 if (!tarFound) {
                     //console.log(target);
-                    this.nodes.push({ "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 });
+                    targetNode = { "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 };
+                    this.nodes.push(targetNode);
                 }
 
                 // Create the link between the source and target
                 var linkFound = false;
-                for (var l of this.links) {
-                    if ((l.source === source && l.target === target) ||
-                        (l.source === target && l.target === source)) {
+                for (var l of this.groupedLinks) {
+                    if ((l.source.id === source && l.target.id === target) ||
+                        (l.source.id === target && l.target.id === source)) {
                         linkFound = true;
                         //l.value += 1;
                         l.sentiment.push(parseFloat(columns[8]));
                         break;
                     }
                 }
-                if (!linkFound || this.showIndividualLinks) {
-                    this.links.push({
-                        "source": source,
-                        "target": target,
+
+                if (!linkFound) {
+                    this.groupedLinks.push({
+                        "source": sourceNode,
+                        "target": targetNode,
                         "sentiment": [parseFloat(columns[8])]
                     });
                 }
+
+                this.individualLinks.push({
+                    "source": sourceNode,
+                    "target": targetNode,
+                    "sentiment": [parseFloat(columns[8])]
+                });
+
             }
 
             // Start the simulation with the new links and nodes.
-            this.runSimulation(this.links, this.nodes, this.mLinkNum);
+            this.runSimulation(this.individualLinks, this.groupedLinks, this.nodes, this.mLinkNum);
         };
 
         if (this.file) {
@@ -183,7 +202,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
     }
 
-    runSimulation(links, nodes, mLinkNum): void {
+    runSimulation(individualLinks, groupedLinks, nodes, mLinkNum): void {
+        var links = (this.showIndividualLinks) ? this.individualLinks : this.groupedLinks;
+
+
         sortLinks();
         setLinkIndexAndNum();
 
@@ -220,13 +242,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             edgeStyle = "path"
         }
 
+
         //adds visuals of the links
         const link = svg.append("g")        //"g" is an element of SVG used to group other SVG elements
             .attr("stroke-opacity", 0.6)
             .selectAll(edgeStyle)
             .data(links)
             .join(edgeStyle)
-            .attr("stroke", (d: any) => this.linkColor(d.sentiment,0))  // 0 is just to show it is not highlighted so color is lighter
+            .attr("stroke", (d: any) => this.linkColor(d.sentiment, 0))  // 0 is just to show it is not highlighted so color is lighter
             .on("click", (d, i) => {
                 linkGUI(i, this.showIndividualLinks);                                     //To display info about link
             })
@@ -263,15 +286,15 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     //.style('fill', "#000")
                     .attr("stroke", "black")
                     .attr("stroke-width", 2);
-                link.style('stroke', (a: any) => a.source.id === d.id || a.target.id === d.id ? inst.linkColor(a.sentiment,1) : '#ccc')      
+                link.style('stroke', (a: any) => a.source.id === d.id || a.target.id === d.id ? inst.linkColor(a.sentiment, 1) : '#ccc')
             })
             .on("mouseout", function (event, d) {
                 d3.select(this).style('fill', (d: any) => inst.nodeColor(d.job))
                     .style('font-weight', 'normal')
                     .attr("stroke", "#fff")
                     .attr("stroke-width", 1)
-                link.style('stroke',(a: any) => inst.linkColor(a.sentiment,0))
-                
+                link.style('stroke', (a: any) => inst.linkColor(a.sentiment, 0))
+
             })
 
 
@@ -354,18 +377,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         function nodeGUI(ints, i) {
             var linklist = { "id": i.id, "sendto": [], "receivedfrom": [] };
 
-            var sentLinks = links.filter(function (e) {
+            // console.log(individualLinks);
+            var sentLinks = individualLinks.filter(function (e) {
                 return e.source.id == i.id;      //Finds emails sent
             })
-            var receivedLinks = links.filter(function (e) {
+
+            var receivedLinks = individualLinks.filter(function (e) {
                 return e.target.id == i.id;      //Finds emails received
             })
+
             for (var link in sentLinks) {
                 linklist["sendto"].push(sentLinks[link]['target']['id'])
             }
             for (var link in receivedLinks) {
                 linklist["receivedfrom"].push(receivedLinks[link]['source']['id'])
             }
+
+            console.log(linklist);
             ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             ints.nodeinfo = linklist;       // set local version
         }
@@ -493,7 +521,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     //link colour based on sentiment of message
-    linkColor(sentiment,highlighted): string {
+    linkColor(sentiment, highlighted): string {
         // console.log(sentiment);
         for (var s of sentiment) {
             if (s > 0.1) {
@@ -504,7 +532,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 return "#EE5555";
             }
         }
-        if(highlighted){
+        if (highlighted) {
             return "#404040"
         }
         return "#999999";
@@ -553,7 +581,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
-        this.runSimulation(this.links, this.nodes, this.mLinkNum);
+        this.runSimulation(this.individualLinks, this.groupedLinks, this.nodes, this.mLinkNum);
     }
 
     @ViewChild('container')
