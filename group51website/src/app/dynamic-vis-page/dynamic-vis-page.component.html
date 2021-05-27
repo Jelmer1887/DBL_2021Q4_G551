@@ -3,12 +3,14 @@
   <div class="columns is-centered">
     <div #col1 class="column">
       <div class="box" style="height: 500px;">
-        <app-force-graph></app-force-graph>
+        <a [routerLink] = "[{outlets: {vis1: ['force']}}]" >force vis</a>
+        <router-outlet name='vis'></router-outlet>
       </div>
     </div>
     <div #col2 class="column">
       <div class="box" style="height: 500px;">
-        <app-force-graph></app-force-graph>
+        <a [routerLink] = "[{outlets: {vis2: ['force']}}]" >force vis</a>
+        <router-outlet name='vis'></router-outlet>
       </div>
     </div>
   </div>
@@ -43,7 +45,8 @@
         <div class="checkbox">
           <form>
           <label>
-              <input #fullscreen [(ngModel)]="fullscreen.selected" type="checkbox" data-toggle="toggle">Toggle fullscreen
+              <button (click)="vis1()">1vis</button>
+              <button (click)="vis2()">2vis</button>
           </label>
         </form>
           </div>

@@ -1,4 +1,11 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Renderer2, NgModule} from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ViewChild,
+  Renderer2,
+  NgModule
+} from '@angular/core';
 
 
 @Component({
@@ -15,14 +22,28 @@ export class DynamicVisPageComponent implements OnInit, AfterViewInit {
     var slider = document.getElementById("myRange");
     var output = document.getElementById("demo");
     //$("p").hide();
-}
+  }
 
-  ngOnInit(){
+  ngOnInit() {
 
-}
-  
+  }
 
-  OnSwitch(){
+  vis1() {
+    this.renderer.setStyle(
+      this.c2.nativeElement,
+      'display',
+      'none'
+    );
+  }
+  vis2() {
+    this.renderer.setStyle(
+      this.c2.nativeElement,
+      'display',
+      'inline'
+    );
+  }
+
+  OnSwitch() {
 
   }
 
@@ -34,5 +55,5 @@ export class DynamicVisPageComponent implements OnInit, AfterViewInit {
     );
   }
 
-}
 
+}

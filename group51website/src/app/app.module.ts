@@ -25,7 +25,7 @@ import { FormsModule } from '@angular/forms';
         HomePageComponent,
         FooterComponent,
         DynamicVisPageComponent,
-        AboutPageComponent
+        AboutPageComponent,
     ],
     imports: [
         BrowserModule,
