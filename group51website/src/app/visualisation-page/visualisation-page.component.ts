@@ -18,6 +18,7 @@ export class VisualisationPageComponent implements OnInit {
     arcSort = "id";
     showIndividualLinks = false;
     max;
+    selectedNode;
     selectedNodeInfo;   // holds array of all emails send and received.
 
     @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
@@ -46,6 +47,14 @@ export class VisualisationPageComponent implements OnInit {
 
         console.log('Data showing from '+startDay+' '+startMonth+', '+startYear)
         console.log('Data showing until '+endDay+' '+endMonth+', '+endYear)
+    }
+
+    nodeToParent(nodeID): void{
+        if(nodeID === this.selectedNode){
+            this.selectedNode = undefined;
+        } else {
+            this.selectedNode = nodeID;
+        }
     }
 
     // setter for selectedNode, used to update info-card, triggered through html event

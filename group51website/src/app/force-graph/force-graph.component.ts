@@ -12,10 +12,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     @Input() file;
     @Input() showIndividualLinks;
+    @Input() selectedNode;  //id of the node last clicked
 
-    @Output() getDate = new EventEmitter<any>();
-    @Output() uploaded = new EventEmitter<string>();
+    @Output() getDate = new EventEmitter<any>();    //event that sends new dates to parent to display on screen.
+    @Output() uploaded = new EventEmitter<string>();    //custom event that gives signal to parent that data has been uploaded to set slider parameters
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
+    @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
 
     private nodes = [
         /*
@@ -72,7 +74,11 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     public dateRange;
 
     ngOnChanges(changes: SimpleChanges): void {
-        this.initiateGraph();
+        if('selectedNode' in changes){  //if a new node is selected then no need to refresh the whole graph
+            console.log("forcediagram: The node selected is " + this.selectedNode)      
+        } else{
+            this.initiateGraph();
+        }   
     }
 
     initiateGraph() {
@@ -251,7 +257,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .join(edgeStyle)
             .attr("stroke", (d: any) => this.linkColor(d.sentiment, 0))  // 0 is just to show it is not highlighted so color is lighter
             .on("click", (d, i) => {
-                linkGUI(i, this.showIndividualLinks);                                     //To display info about link
+                linkGUI(i, this.showIndividualLinks);                                //To display info about link
             })
 
 
@@ -277,24 +283,22 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("r", (d: any) => Math.max(Math.min(Math.sqrt(d.mailCount), 20), 5))
             .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
             .call(this.drag(simulation))                        //makes sure you can drag nodes
-            .on("click", function (d, i) {
+            .on("click", function (d, i: any) {
+                inst.nodeToParent.emit(i.id);
                 nodeclicked(this, i);                              //Small animation of node
                 nodeGUI(inst, i);                                  //To display info about node
             })
             .on("mouseover", function (event, d: any) {
-                d3.select(this).style('font-weight', 'bold')
-                    //.style('fill', "#000")
+                d3.select(this)
                     .attr("stroke", "black")
                     .attr("stroke-width", 2);
                 link.style('stroke', (a: any) => a.source.id === d.id || a.target.id === d.id ? inst.linkColor(a.sentiment, 1) : '#ccc')
             })
-            .on("mouseout", function (event, d) {
-                d3.select(this).style('fill', (d: any) => inst.nodeColor(d.job))
-                    .style('font-weight', 'normal')
-                    .attr("stroke", "#fff")
-                    .attr("stroke-width", 1)
-                link.style('stroke', (a: any) => inst.linkColor(a.sentiment, 0))
-
+            .on("mouseout", function (event, d: any) {
+                d3.select(this)
+                    .attr("stroke", d.id === inst.selectedNode ? 'black' : "#fff")
+                    .attr("stroke-width", d.id === inst.selectedNode ? 2 : 1)
+                link.style('stroke', (a: any) => inst.selectedNode != undefined ? (a.source.id === inst.selectedNode || a.target.id === inst.selectedNode ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
             })
 
 
@@ -360,18 +364,18 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             // console.log(right);
         });
 
-        function nodeclicked(node, data) {
-            var nodeRadius = Math.max(Math.min(Math.sqrt(data.mailCount), 20), 5)
-            d3.select(node)
+        function nodeclicked(d, i) {
+            var nodeRadius = Math.max(Math.min(Math.sqrt(i.mailCount), 20), 5)
+            d3.select(d)
                 .transition()
                 .attr("stroke", "black")
                 .attr("stroke-width", 2)
                 .attr("r", nodeRadius * 2)
 
                 .transition()
-                .attr("stroke", "#fff")
-                .attr("stroke-width", 1)
-                .attr("r", nodeRadius);
+                .attr("r", nodeRadius)
+                .attr("stroke", 'black')
+                .attr("stroke-width", 2)
         }
 
         function nodeGUI(ints, i) {

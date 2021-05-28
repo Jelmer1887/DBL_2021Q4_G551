@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
 //we need to import this component in the app.module.ts
 //we need to add the line below to visualisation-page.component.html:
@@ -15,6 +15,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     // Input variables.
     @Input() file;
     @Input() sort;
+    @Input() selectedNode;
+
+    @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
+
 
     //Slider variables
     private minDate = Math.min();
@@ -53,6 +57,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     constructor() { }
 
     ngOnChanges(changes: SimpleChanges): void {
+        console.log("arcdiagram: NODE SELECTED IS " + this.selectedNode)
         this.initiateDiagram()
     }
 
@@ -164,6 +169,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     runDiagram(links, nodes, mLinkNum): void {
+        var inst = this; // crude fix to store instance info
+
         var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
             "Employee", "Unknown"];
 
@@ -345,6 +352,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .attr("transform", (d: any) => `translate(${0},${d.y = x(d.id) + nodeRadius + 1})`)
             .text(d => makeText(d))
             .style("text-anchor", "middle")
+            .on("click",(event, d: any) => {
+                inst.nodeToParent.emit(d.id)
+            })
             //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
             .on("mouseover", function (event, d: any) {
                 label.style('fill', "#ccc")
