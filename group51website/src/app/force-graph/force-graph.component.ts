@@ -1,6 +1,7 @@
 import { ThrowStmt } from '@angular/compiler';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
+import { emptyData } from '../upload.service';
 
 @Component({
     selector: 'app-force-graph',
@@ -10,7 +11,7 @@ import * as d3 from 'd3';
 })
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
-    @Input() file;
+    @Input() data = emptyData();
     @Input() showIndividualLinks;
     @Input() selectedNode;  //id of the node last clicked
 
@@ -18,17 +19,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     @Output() uploaded = new EventEmitter<string>();    //custom event that gives signal to parent that data has been uploaded to set slider parameters
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
     @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
-
-    private nodes = [
-        /*
-        { "id": 0, "job": "Employee" },
-        { "id": 1, "job": "Unknown" },
-        { "id": 2, "job": "Employee" },
-        { "id": 3, "job": "Employee" },
-        { "id": 4, "job": "Vice President" },
-        { "id": 5, "job": "Manager" },
-        */
-    ];
 
     /*
     private links = [
@@ -39,12 +29,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
     ]
     */
-
-    private groupedLinks = []
-    private individualLinks = []
-
-    //This will hold the number of links every node has
-    private mLinkNum = []
 
     private width;
     private height = 800;
@@ -74,11 +58,11 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     public dateRange;
 
     ngOnChanges(changes: SimpleChanges): void {
-        if('selectedNode' in changes){  //if a new node is selected then no need to refresh the whole graph
-            console.log("forcediagram: The node selected is " + this.selectedNode)      
-        } else{
+        if ('selectedNode' in changes) {  //if a new node is selected then no need to refresh the whole graph
+            console.log("forcediagram: The node selected is " + this.selectedNode)
+        } else {
             this.initiateGraph();
-        }   
+        }
     }
 
     initiateGraph() {
@@ -87,138 +71,18 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             this.width = this.container.nativeElement.offsetWidth;
         }
 
-        let fileReader = new FileReader();
-
-        fileReader.onload = (e) => {
-
-            // Array of strings with every string being a line.
-            var lines = fileReader.result.toString().split('\n');
-            lines.shift();
-
-            // Empty the nodes and links so we can read the new ones.
-            this.nodes = [];
-            this.individualLinks = [];
-            this.groupedLinks = [];
-            this.mLinkNum = [];
-
-            // Loop through all the lines, but skip the first since that one never contains data.
-            for (var line of lines) {
-
-                // Get the different columns by splitting on the "," .
-                var columns = line.split(',');
-
-                // Make sure it's not an empty line.
-                if (columns.length <= 4) {
-                    continue;
-                }
-
-                // Filter to a specific month for more clarity.
-                // Remove the '-' from the date
-                var dateString = columns[0].split('-').join('');
-                // Turn it into an integer
-                var dateInt = parseInt(dateString);
-
-                //Set minimum and maximum date for the slider range
-                if (dateInt > this.maxDate) {
-                    this.maxDate = dateInt;
-                }
-                if (dateInt < this.minDate) {
-                    this.minDate = dateInt;
-                }
-
-                // This comparison works because the format is YY-MM-DD,
-                // So the bigger number will always be later in time.
-                if (dateInt < this.startDate || dateInt > this.endDate) {
-                    continue;
-                }
-
-                // Convert the source and target to an integer.
-                var source = parseInt(columns[1]);
-                var target = parseInt(columns[4]);
-
-                var sourceNode;
-                var targetNode;
-
-                // Add the source if we can't find it in the array of nodes.
-                var srcFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === source) {
-                        srcFound = true;
-                        sourceNode = n;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!srcFound) {
-                    // console.log(source);
-                    sourceNode = { "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 };
-                    this.nodes.push(sourceNode);
-                }
-
-                // Add the target if we can't find it in the array of nodes.
-                var tarFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === target) {
-                        tarFound = true;
-                        targetNode = n;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!tarFound) {
-                    //console.log(target);
-                    targetNode = { "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 };
-                    this.nodes.push(targetNode);
-                }
-
-                // Create the link between the source and target
-                var linkFound = false;
-                for (var l of this.groupedLinks) {
-                    if ((l.source.id === source && l.target.id === target) ||
-                        (l.source.id === target && l.target.id === source)) {
-                        linkFound = true;
-                        //l.value += 1;
-                        l.sentiment.push(parseFloat(columns[8]));
-                        break;
-                    }
-                }
-
-                if (!linkFound) {
-                    this.groupedLinks.push({
-                        "source": sourceNode,
-                        "target": targetNode,
-                        "sentiment": [parseFloat(columns[8])]
-                    });
-                }
-
-                this.individualLinks.push({
-                    "source": sourceNode,
-                    "target": targetNode,
-                    "sentiment": [parseFloat(columns[8])]
-                });
-
-            }
-
-            // Start the simulation with the new links and nodes.
-            this.runSimulation(this.individualLinks, this.groupedLinks, this.nodes, this.mLinkNum);
-        };
-
-        if (this.file) {
-            fileReader.readAsText(this.file);
-        }
+        this.runSimulation(this.data);
     }
 
-    runSimulation(individualLinks, groupedLinks, nodes, mLinkNum): void {
-        var links = (this.showIndividualLinks) ? this.individualLinks : this.groupedLinks;
-
+    runSimulation(data): void {
+        var links = (this.showIndividualLinks) ? data.individualLinks : data.groupedLinks;
 
         sortLinks();
-        setLinkIndexAndNum();
 
         //set slider information
         this.setSliderRange();
 
-        const simulation = d3.forceSimulation(nodes)                            //automatically runs simulation
+        const simulation = d3.forceSimulation(data.nodes)                            //automatically runs simulation
             .force("link", d3.forceLink(links).id((d: any) => d.id))            //Adds forces between nodes, depending on if they're linked
             .force("charge", d3.forceManyBody())                                // nodes repel each other
             .force("center", d3.forceCenter(this.width / 2, this.height / 2));  // nodes get pulled towards the centre of svg
@@ -278,7 +142,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("stroke", "#fff")
             .attr("stroke-width", 1)
             .selectAll("circle")
-            .data(nodes)
+            .data(data.nodes)
             .join("circle")
             .attr("r", (d: any) => Math.max(Math.min(Math.sqrt(d.mailCount), 20), 5))
             .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
@@ -326,7 +190,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         dy = d.target.y - d.source.y,
                         dr = Math.sqrt(dx * dx + dy * dy);
                     // get the total link numbers between source and target node
-                    var lTotalLinkNum = mLinkNum[d.target.id + "," + d.source.id] || mLinkNum[d.source.id + "," + d.target.id];
+                    var lTotalLinkNum = data.adjacencyMatrix[d.source.id][d.target.id] + data.adjacencyMatrix[d.target.id][d.source.id];
                     if (lTotalLinkNum > 1) {
                         // if there are multiple links between these two nodes, we need generate different dr for each path
                         dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 0.5));
@@ -381,6 +245,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         function nodeGUI(ints, i) {
             var linklist = { "id": i.id, "sendto": [], "receivedfrom": [] };
 
+            /*
             // console.log(individualLinks);
             var sentLinks = individualLinks.filter(function (e) {
                 return e.source.id == i.id;      //Finds emails sent
@@ -396,6 +261,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             for (var link in receivedLinks) {
                 linklist["receivedfrom"].push(receivedLinks[link]['source']['id'])
             }
+            */
+
+            linklist["sendto"] = i.sendTo;
+            linklist["receivedFrom"] = i.receivedFrom;
 
             console.log(linklist);
             ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
@@ -404,10 +273,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
         function linkGUI(i, showIndividualLinks) {
             if (showIndividualLinks) {
-                var fromNode = nodes.filter(function (e) {
+                var fromNode = data.nodes.filter(function (e) {
                     return e.id == i.source.id;      //Finds from node
                 })
-                var toNode = nodes.filter(function (e) {
+                var toNode = data.nodes.filter(function (e) {
                     return e.id == i.target.id;      //Finds to node
                 })
                 console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
@@ -440,27 +309,29 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             });
         }
 
+        /* 
         //any links with duplicate source and target get an incremented 'linkindex'
         function setLinkIndexAndNum() {
             for (var i = 0; i < links.length; i++) {
                 if (i != 0 &&
                     links[i].source == links[i - 1].source &&
                     links[i].target == links[i - 1].target) {
-                    links[i].linkindex = links[i - 1].linkindex + 1;
+                        links[i].linkindex = links[i - 1].linkindex + 1;
+                    }
+                    else {
+                        links[i].linkindex = 1;
+                    }
+                    // save the total number of links between two nodes
+                    if (mLinkNum[links[i].target + "," + links[i].source] !== undefined) {
+                        mLinkNum[links[i].target + "," + links[i].source]++;
+                    }
+                    else {
+                        mLinkNum[links[i].source + "," + links[i].target] = links[i].linkindex;
+                    }
                 }
-                else {
-                    links[i].linkindex = 1;
-                }
-                // save the total number of links between two nodes
-                if (mLinkNum[links[i].target + "," + links[i].source] !== undefined) {
-                    mLinkNum[links[i].target + "," + links[i].source]++;
-                }
-                else {
-                    mLinkNum[links[i].source + "," + links[i].target] = links[i].linkindex;
-                }
+                //console.log(mLinkNum);
             }
-            //console.log(mLinkNum);
-        }
+            */
     }
 
     setNewDate(event): void {
@@ -585,7 +456,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
-        this.runSimulation(this.individualLinks, this.groupedLinks, this.nodes, this.mLinkNum);
+        this.runSimulation(this.data);
     }
 
     @ViewChild('container')

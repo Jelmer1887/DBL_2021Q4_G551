@@ -1,23 +1,62 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 
+declare global {
+    type MailNode = {
+        id: number;
+        job: string;
+        address: string;
+        mailCount: number;
+    }
+
+    type GroupedLink = {
+        date: number;
+        source: MailNode;
+        target: MailNode;
+        sentiment: number[];
+    }
+
+    type IndividualLink = {
+        date: number;
+        source: MailNode;
+        target: MailNode;
+        sentiment: number;
+    }
+
+    type Data = {
+        nodes: MailNode[];
+        groupedLinks: GroupedLink[];
+        individualLinks: IndividualLink[];
+        adjacencyMatrix: number[][];
+    }
+
+}
+
+export function emptyData(): Data {
+    return {
+        nodes: [],
+        groupedLinks: [],
+        individualLinks: [],
+        adjacencyMatrix: [[]]
+    };
+}
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class UploadService {
 
-  private fileSource = new BehaviorSubject(new File([],'no file'))
-  currentFile = this.fileSource.asObservable();
+    private dataSource = new BehaviorSubject(emptyData())
+    currentData = this.dataSource.asObservable();
 
-  constructor() { }
+    constructor() { }
 
-  // returns a observable file to be used by consumer
+    // returns a observable file to be used by consumer
 
-  changeFile(newfile : File){
-    console.log("service: got new file!");
-    console.log(newfile);
-    this.fileSource.next(newfile);
-  }
+    changeData(newData: Data) {
+        console.log("service: got new file!");
+        console.log(newData);
+        this.dataSource.next(newData);
+    }
 
 }
