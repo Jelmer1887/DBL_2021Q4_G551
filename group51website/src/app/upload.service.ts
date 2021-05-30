@@ -11,15 +11,15 @@ declare global {
 
     type GroupedLink = {
         date: number;
-        source: MailNode;
-        target: MailNode;
+        source: number;
+        target: number;
         sentiment: number[];
     }
 
     type IndividualLink = {
         date: number;
-        source: MailNode;
-        target: MailNode;
+        source: number;
+        target: number;
         sentiment: number;
     }
 

@@ -278,7 +278,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 */
         //add the links
         const link = svg.selectAll('mylinks')
-            .data(data.links)
+            .data(data.groupedLinks)
             .enter()
             .append('path')
             .attr('d', function (d: any) {

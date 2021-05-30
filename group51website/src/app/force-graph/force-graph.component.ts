@@ -15,8 +15,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     @Input() showIndividualLinks;
     @Input() selectedNode;  //id of the node last clicked
 
-    @Output() getDate = new EventEmitter<any>();    //event that sends new dates to parent to display on screen.
-    @Output() uploaded = new EventEmitter<string>();    //custom event that gives signal to parent that data has been uploaded to set slider parameters
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
     @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
 
@@ -36,10 +34,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private beginPosX = 0;
     private beginPosY = 0;
     private beginScale = 1;
-
-    // Filter start and end date.
-    private startDate = 20011201;
-    private endDate = 20011231;
 
     // variable holding information of clicked node
     nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
@@ -61,6 +55,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         if ('selectedNode' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNode)
         } else {
+            console.log("New data!");
+            console.log(this.data);
             this.initiateGraph();
         }
     }
@@ -79,8 +75,11 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
         sortLinks();
 
+        console.log(links);
+        console.log(data.nodes);
+
         //set slider information
-        this.setSliderRange();
+        // this.setSliderRange();
 
         const simulation = d3.forceSimulation(data.nodes)                            //automatically runs simulation
             .force("link", d3.forceLink(links).id((d: any) => d.id))            //Adds forces between nodes, depending on if they're linked
@@ -111,7 +110,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         if (this.showIndividualLinks) {
             edgeStyle = "path"
         }
-
 
         //adds visuals of the links
         const link = svg.append("g")        //"g" is an element of SVG used to group other SVG elements
@@ -190,7 +188,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         dy = d.target.y - d.source.y,
                         dr = Math.sqrt(dx * dx + dy * dy);
                     // get the total link numbers between source and target node
-                    var lTotalLinkNum = data.adjacencyMatrix[d.source.id][d.target.id] + data.adjacencyMatrix[d.target.id][d.source.id];
+                    var lTotalLinkNum = data.adjacencyMatrix[d.source][d.target] + data.adjacencyMatrix[d.target][d.source];
                     if (lTotalLinkNum > 1) {
                         // if there are multiple links between these two nodes, we need generate different dr for each path
                         dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 0.5));
@@ -261,23 +259,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             for (var link in receivedLinks) {
                 linklist["receivedfrom"].push(receivedLinks[link]['source']['id'])
             }
-            */
-
+            
             linklist["sendto"] = i.sendTo;
             linklist["receivedFrom"] = i.receivedFrom;
-
+            
             console.log(linklist);
             ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             ints.nodeinfo = linklist;       // set local version
+            */
         }
 
         function linkGUI(i, showIndividualLinks) {
             if (showIndividualLinks) {
                 var fromNode = data.nodes.filter(function (e) {
-                    return e.id == i.source.id;      //Finds from node
+                    return e.id == i.sourceId;      //Finds from node
                 })
                 var toNode = data.nodes.filter(function (e) {
-                    return e.id == i.target.id;      //Finds to node
+                    return e.id == i.targetId;      //Finds to node
                 })
                 console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
             } else {
@@ -289,17 +287,17 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         // sort the links by source, then target
         function sortLinks() {
             links.sort(function (a, b) {
-                if (a.source > b.source) {
+                if (a.sourceId > b.sourceId) {
                     return 1;
                 }
-                else if (a.source < b.source) {
+                else if (a.sourceId < b.sourceId) {
                     return -1;
                 }
                 else {
-                    if (a.target > b.target) {
+                    if (a.targetId > b.targetId) {
                         return 1;
                     }
-                    if (a.target < b.target) {
+                    if (a.targetId < b.targetId) {
                         return -1;
                     }
                     else {
@@ -334,40 +332,42 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             */
     }
 
+    /*
     setNewDate(event): void {
         //set newStartDate as the minimum date
         var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
-
+        
         //set the date to be mindate
         newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
-
+        
         //Set newEndDate as 30 days after newStartDate
         var newEndDate = new Date(newStartDate);
         newEndDate.setDate(newEndDate.getDate() + 30);
-
+        
         this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
         this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
-
+        
         console.log(this.startDate)
         console.log(this.endDate)
-
+        
         this.getDate.emit({ newStartDate, newEndDate });
-
+        
         this.initiateGraph()
     }
-
+    
     setSliderRange() {
-
+        
         //YYYY-MM-DDTHH:MM:SS
         var minDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
         var maxDate = new Date(this.maxDate.toString().slice(0, 4) + "-" + this.maxDate.toString().slice(4, 6) + "-" + this.maxDate.toString().slice(6, 8) + "T00:00:00+0000")
-
+        
         //number of days between the two days
         this.dateRange = (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
-
+        
         //Emit signal that the daterange has been changed 
         this.uploaded.emit('complete');
     }
+    */
 
     //to drag nodes around
     //for a better understanding of alphaTarget (and alphaMin) check API or https://stackoverflow.com/questions/46426072/what-is-the-difference-between-alphatarget-and-alphamin

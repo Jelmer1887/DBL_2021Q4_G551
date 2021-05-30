@@ -28,7 +28,7 @@ export class NavBarComponent implements OnInit {
         }
 
         let fileReader = new FileReader();
-        this.data;
+        this.data = emptyData();
 
         fileReader.onload = (e) => {
 
@@ -95,8 +95,8 @@ export class NavBarComponent implements OnInit {
                 // Create the link between the source and target
                 var linkFound = false;
                 for (var l of this.data.groupedLinks) {
-                    if ((l.source.id === source && l.target.id === target) ||
-                        (l.source.id === target && l.target.id === source)) {
+                    if ((l.source === source && l.target === target) ||
+                        (l.source === target && l.target === source)) {
                         linkFound = true;
                         //l.value += 1;
                         l.sentiment.push(parseFloat(columns[8]));
@@ -107,27 +107,28 @@ export class NavBarComponent implements OnInit {
                 if (!linkFound) {
                     this.data.groupedLinks.push({
                         date: dateInt,
-                        source: sourceNode,
-                        target: targetNode,
+                        source: source,
+                        target: target,
                         sentiment: [parseFloat(columns[8])]
                     });
                 }
 
                 this.data.individualLinks.push({
                     date: dateInt,
-                    source: sourceNode,
-                    target: targetNode,
+                    source: source,
+                    target: target,
                     sentiment: parseFloat(columns[8])
                 });
             }
 
-            // Initialize the adjecency matrix with all zeroes.
+            // Initialize the adjecency matrix with all zeroes. https://stackoverflow.com/a/52727729
+            const zeros = (m, n) => [...Array(m)].map(e => Array(n).fill(0));
             var num = this.data.nodes.length;
-            this.data.adjacencyMatrix = new Array(num).fill(new Array(num).fill(0));
+            this.data.adjacencyMatrix = zeros(num + 1, num + 1);
 
             // Fill the matrix with the data.
             for (var link of this.data.individualLinks) {
-                this.data.adjacencyMatrix[link.source.id][link.target.id]++;
+                this.data.adjacencyMatrix[link.source][link.target]++
             }
         };
 
