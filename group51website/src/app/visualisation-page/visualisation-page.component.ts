@@ -61,7 +61,7 @@ export class VisualisationPageComponent implements OnInit {
     updateNodeInfo(node): void {
 
         // function to add rows to a table
-        function createRow(table: any, attribute: string, component: any): void {
+        function createRow(table: HTMLTableElement, attribute: string, component: any): void {
 
             // repetition detection
             let repeatdict = {};
@@ -79,15 +79,23 @@ export class VisualisationPageComponent implements OnInit {
             // create the table in array form
             let structure = [];
             let newRow = [];
+            let charslen: number = 0;
             for (const elm in repeatdict){
                 let text = elm;
                 if (repeatdict[elm] > 1){text = text + "(x"+repeatdict[elm]+")"}
+                charslen += text.length;
                 if (newRow.length < component.INFOCARD_COLUMNS-1){
                     newRow.push(text)
                 } else {
                     newRow.push(text)
                     structure.push(newRow);
+                    //console.log("nr of characters detected in row: "+charslen);
+                    if (charslen >= 22){
+                        table.className = "table is narrow is-hoverable is-fullwidth is-size-7";
+                        //console.log("table ("+table.id+") is possibly too big, reducing text size...")
+                    }
                     newRow = [];
+                    charslen = 0;
                 }
             }
             if (newRow.length != 0){structure.push(newRow)}
@@ -119,7 +127,7 @@ export class VisualisationPageComponent implements OnInit {
         this.selectedNodeInfo = node;
         for (let i = 0; i < this.selectedNodeInfo["receivedfrom"].length; i++){
             var id = this.selectedNodeInfo["receivedfrom"][i]
-            this.selectedNodeInfo["receivedfrom"][i] = " " + id.toString(); // I need to hvae a space between every element
+            this.selectedNodeInfo["receivedfrom"][i] = id.toString() + " "; // I need to hvae a space between every element
         }
         for (let i = 0; i < this.selectedNodeInfo["sendto"].length; i++){
             var id = this.selectedNodeInfo["sendto"][i]
@@ -136,8 +144,8 @@ export class VisualisationPageComponent implements OnInit {
         }
 
         // get the tables in the infocard
-        let receivedTable = document.getElementById('nodeinfo_table_received');     // table containing rows of received email id's
-        let sendTable = document.getElementById('nodeinfo_table_send');             // table containing rows of send     email id's
+        let receivedTable = (document.getElementById('nodeinfo_table_received') as HTMLTableElement);     // table containing rows of received email id's
+        let sendTable = (document.getElementById('nodeinfo_table_send') as HTMLTableElement);             // table containing rows of send     email id's
 
         // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
         createRow(receivedTable,"receivedfrom", this);
