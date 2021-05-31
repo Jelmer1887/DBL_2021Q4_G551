@@ -9,24 +9,17 @@ declare global {
         mailCount: number;
     }
 
-    type GroupedLink = {
+    type Link = {
         date: number;
         source: number;
         target: number;
         sentiment: number[];
     }
 
-    type IndividualLink = {
-        date: number;
-        source: number;
-        target: number;
-        sentiment: number;
-    }
-
     type Data = {
         nodes: MailNode[];
-        groupedLinks: GroupedLink[];
-        individualLinks: IndividualLink[];
+        groupedLinks: Link[];
+        individualLinks: Link[];
         adjacencyMatrix: number[][];
     }
 

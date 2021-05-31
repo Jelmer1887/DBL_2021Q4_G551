@@ -11,22 +11,12 @@ import { emptyData } from '../upload.service';
 })
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
-    @Input() data = emptyData();
+    @Input() data;
     @Input() showIndividualLinks;
     @Input() selectedNode;  //id of the node last clicked
 
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
     @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
-
-    /*
-    private links = [
-        { "source": 0, "target": 1, "value": 1, "sentiment": [0.0] },
-        { "source": 0, "target": 5, "value": 1, "sentiment": [0.4] },
-        { "source": 2, "target": 1, "value": 1, "sentiment": [0.9] },
-        { "source": 3, "target": 5, "value": 1, "sentiment": [-0.5] },
-        { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
-    ]
-    */
 
     private width;
     private height = 800;
@@ -46,17 +36,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     ngOnInit() {
     }
 
-    //Variables for setting the slider
-    private minDate = Math.min();
-    private maxDate = Math.max();
-    public dateRange;
-
     ngOnChanges(changes: SimpleChanges): void {
         if ('selectedNode' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNode)
         } else {
-            console.log("New data!");
-            console.log(this.data);
             this.initiateGraph();
         }
     }
@@ -71,17 +54,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     runSimulation(data): void {
-        var links = (this.showIndividualLinks) ? data.individualLinks : data.groupedLinks;
+        var correctLinks = (this.showIndividualLinks) ? data.individualLinks : data.groupedLinks;
+        var links = correctLinks.map(d => Object.create(d));
+        var nodes = data.nodes.map(d => Object.create(d));
 
         sortLinks();
 
-        console.log(links);
-        console.log(data.nodes);
-
-        //set slider information
-        // this.setSliderRange();
-
-        const simulation = d3.forceSimulation(data.nodes)                            //automatically runs simulation
+        const simulation = d3.forceSimulation(nodes)                            //automatically runs simulation
             .force("link", d3.forceLink(links).id((d: any) => d.id))            //Adds forces between nodes, depending on if they're linked
             .force("charge", d3.forceManyBody())                                // nodes repel each other
             .force("center", d3.forceCenter(this.width / 2, this.height / 2));  // nodes get pulled towards the centre of svg
@@ -140,7 +119,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("stroke", "#fff")
             .attr("stroke-width", 1)
             .selectAll("circle")
-            .data(data.nodes)
+            .data(nodes)
             .join("circle")
             .attr("r", (d: any) => Math.max(Math.min(Math.sqrt(d.mailCount), 20), 5))
             .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
@@ -188,7 +167,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         dy = d.target.y - d.source.y,
                         dr = Math.sqrt(dx * dx + dy * dy);
                     // get the total link numbers between source and target node
-                    var lTotalLinkNum = data.adjacencyMatrix[d.source][d.target] + data.adjacencyMatrix[d.target][d.source];
+                    var lTotalLinkNum = data.adjacencyMatrix[d.source.id][d.target.id] || data.adjacencyMatrix[d.target.id][d.source.id];
                     if (lTotalLinkNum > 1) {
                         // if there are multiple links between these two nodes, we need generate different dr for each path
                         dr = dr / (1 + (1 / lTotalLinkNum) * (d.linkindex - 0.5));
@@ -205,25 +184,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     .attr("y2", (d: any) => d.target.y);
             }
 
-            /*
-            var left = Number.MAX_VALUE;
-            var right = Number.MIN_VALUE;
-            var top = Number.MAX_VALUE;
-            var bottom = Number.MIN_VALUE;
-            */
-
             node
                 .attr("cx", (d: any) => {
-                    // left = Math.min(left, d.x);
-                    // right = Math.max(right, d.x);
                     return d.x;
                 })
                 .attr("cy", (d: any) => {
-                    // top = Math.min(top, d.y);
-                    // bottom = Math.max(bottom, d.y);
                     return d.y;
                 });
-            // console.log(right);
         });
 
         function nodeclicked(d, i) {
@@ -243,38 +210,35 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         function nodeGUI(ints, i) {
             var linklist = { "id": i.id, "sendto": [], "receivedfrom": [] };
 
-            /*
             // console.log(individualLinks);
-            var sentLinks = individualLinks.filter(function (e) {
-                return e.source.id == i.id;      //Finds emails sent
+            var sentLinks = data.individualLinks.filter(function (e) {
+                return e.source == i.id;      //Finds emails sent
             })
 
-            var receivedLinks = individualLinks.filter(function (e) {
-                return e.target.id == i.id;      //Finds emails received
+            var receivedLinks = data.individualLinks.filter(function (e) {
+                return e.target == i.id;      //Finds emails received
             })
 
-            for (var link in sentLinks) {
-                linklist["sendto"].push(sentLinks[link]['target']['id'])
+            console.log(sentLinks);
+
+            for (var link of sentLinks) {
+                linklist["sendto"].push({})
             }
-            for (var link in receivedLinks) {
-                linklist["receivedfrom"].push(receivedLinks[link]['source']['id'])
+            for (var link of receivedLinks) {
+                linklist["receivedfrom"].push({})
             }
-            
-            linklist["sendto"] = i.sendTo;
-            linklist["receivedFrom"] = i.receivedFrom;
-            
+
             console.log(linklist);
             ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             ints.nodeinfo = linklist;       // set local version
-            */
         }
 
         function linkGUI(i, showIndividualLinks) {
             if (showIndividualLinks) {
-                var fromNode = data.nodes.filter(function (e) {
+                var fromNode = nodes.filter(function (e) {
                     return e.id == i.sourceId;      //Finds from node
                 })
-                var toNode = data.nodes.filter(function (e) {
+                var toNode = nodes.filter(function (e) {
                     return e.id == i.targetId;      //Finds to node
                 })
                 console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])

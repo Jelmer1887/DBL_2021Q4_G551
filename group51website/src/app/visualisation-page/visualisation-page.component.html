@@ -111,9 +111,8 @@
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph [data]="data" [showIndividualLinks]="showIndividualLinks"
-                        (uploaded)="setMaxDate($event)" (nodeEmailsEvent)="updateNodeInfo($event)"
-                        (getDate)="showDate($event)" (nodeToParent)="nodeToParent($event)"
+                    <app-force-graph [data]="filteredData" [showIndividualLinks]="showIndividualLinks"
+                        (nodeEmailsEvent)="updateNodeInfo($event)" (nodeToParent)="nodeToParent($event)"
                         [selectedNode]="selectedNode"></app-force-graph>
                 </div>
             </div>
@@ -178,7 +177,7 @@
                 <div class="box">
                     <h1 class="title">Arc Diagram</h1>
                     <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
-                    <app-arc-diagram [data]="data" [sort]="arcSort" (nodeToParent)="nodeToParent($event)"
+                    <app-arc-diagram [data]="filteredData" [sort]="arcSort" (nodeToParent)="nodeToParent($event)"
                         [selectedNode]="selectedNode"></app-arc-diagram>
                 </div>
             </div>

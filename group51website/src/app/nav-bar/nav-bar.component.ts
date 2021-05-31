@@ -117,7 +117,7 @@ export class NavBarComponent implements OnInit {
                     date: dateInt,
                     source: source,
                     target: target,
-                    sentiment: parseFloat(columns[8])
+                    sentiment: [parseFloat(columns[8])]
                 });
             }
 

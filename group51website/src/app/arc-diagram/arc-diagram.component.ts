@@ -26,10 +26,6 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     private width;
     private height = 800;
 
-    // Filter start and end date.
-    private startDate = 20011201;
-    private endDate = 20011231;
-
     constructor() { }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -52,6 +48,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
         var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
             "Employee", "Unknown"];
+
+        var links = data.groupedLinks.map(d => Object.create(d));
+        var nodes = data.nodes.map(d => Object.create(d));
 
         if (this.sort == "id") {
             sortNodesID();
@@ -82,7 +81,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         }
         //CEO, President, Vice President, Managing Director, Director, In House Lawyer, Trader, Employee, Unknown.
         function sortNodesJob() {
-            data.nodes.sort(function (a, b) {
+            nodes.sort(function (a, b) {
                 if (a.job == b.job) {
                     return (a.id < b.id ? -1 : 1);
                 } else { //broky
@@ -92,7 +91,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         }
 
         function sortNodesID() {
-            data.nodes.sort(function (a, b) {
+            nodes.sort(function (a, b) {
                 if (a.id > b.id) {
                     return 1;
                 } else if (a.id < b.id) {
@@ -102,7 +101,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         }
 
         function sortNodesAmount() {
-            data.nodes.sort(function (a, b) {
+            nodes.sort(function (a, b) {
                 if (a.mailCount == b.mailCount) {
                     return (a.id < b.id ? -1 : 1);
                 } else {
@@ -113,9 +112,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
         //console.log(nodes);
         var nodeID = [];
-        for (var i = 0; i < data.nodes.length; i++) {
+        for (var i = 0; i < nodes.length; i++) {
             //nodeID.push(Object.values(Object.values(Object.values(nodes))[i]));
-            nodeID.push(Object.values(data.nodes[i])[0]);
+            nodeID.push(nodes[i].id);
         }
 
         var x = d3.scalePoint()
@@ -205,7 +204,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         }
 
         const node = svg.selectAll("mynodes")
-            .data(data.nodes)
+            .data(nodes)
             .enter()
             .append("circle")
             .attr("cy", function (d: any) { return (x(d.id)) })
@@ -222,7 +221,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             });
 
         const label = svg.selectAll("mylabels")
-            .data(data.nodes)
+            .data(nodes)
             .enter()
             .append("text")
             .attr("font-size", "8")
@@ -278,7 +277,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 */
         //add the links
         const link = svg.selectAll('mylinks')
-            .data(data.groupedLinks)
+            .data(links)
             .enter()
             .append('path')
             .attr('d', function (d: any) {
@@ -305,24 +304,6 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     @ViewChild('container')
     container: ElementRef;
-
-    //Set the data to be shown
-    setNewDate(event): void {
-        //set newStartDate as the minimum date
-        var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
-
-        //set the date to be mindate
-        newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
-
-        //Set newEndDate as 30 days after newStartDate
-        var newEndDate = new Date(newStartDate);
-        newEndDate.setDate(newEndDate.getDate() + 30);
-
-        this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
-        this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
-
-        this.initiateDiagram()
-    }
 
 }
 

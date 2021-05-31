@@ -3,6 +3,7 @@ import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
 import { emptyData, UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
 import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
+import { emitDistinctChangesOnlyDefaultValue } from '@angular/compiler/src/core';
 
 @Component({
     selector: 'app-visualisation-page',
@@ -28,13 +29,54 @@ export class VisualisationPageComponent implements OnInit {
 
     constructor(private uploadService: UploadService, private FGshareService: ForceGraphDataShareService) { }
     ngOnInit(): void {
-        this.uploadService.currentData.subscribe(newData => this.data = newData);
-        this.FGshareService.currentNodeSelect.subscribe(newNode => this.selectedNodeInfo = newNode);
-    }
+        this.uploadService.currentData.subscribe(newData => {
+            this.data = newData
 
-    setMaxDate(event): void {
-        //change the maximum value on the slider when signal comes from forcegraph
-        this.max = this.forcegraph.dateRange;
+            var newFilteredData = emptyData();
+
+            // Create the filtered data.
+            var startDate = 20001100;
+            var endDate = 20001132;
+
+            // Filtered links
+            newFilteredData.groupedLinks = this.data.groupedLinks.filter(e => {
+                return e.date >= startDate && e.date <= endDate;
+            })
+
+            newFilteredData.individualLinks = this.data.individualLinks.filter(e => {
+                return e.date >= startDate && e.date <= endDate;
+            })
+
+            // Filtered nodes.
+            var nodeIds = [];
+            for (var link of newFilteredData.groupedLinks) {
+                if (!nodeIds.includes(link.source)) {
+                    nodeIds.push(link.source);
+                }
+
+                if (!nodeIds.includes(link.target)) {
+                    nodeIds.push(link.target);
+                }
+            }
+
+            newFilteredData.nodes = this.data.nodes.filter(e => {
+                return nodeIds.includes(e.id);
+            })
+
+            // Filtered adjecency matrix.
+            // Initialize the adjecency matrix with all zeroes. https://stackoverflow.com/a/52727729
+            const zeros = (m, n) => [...Array(m)].map(e => Array(n).fill(0));
+            var num = newFilteredData.nodes.length;
+            newFilteredData.adjacencyMatrix = zeros(num + 1, num + 1);
+
+            // Fill the matrix with the data.
+            for (var link of newFilteredData.individualLinks) {
+                newFilteredData.adjacencyMatrix[link.source][link.target]++
+            }
+
+            this.filteredData = newFilteredData;
+        });
+        this.FGshareService.currentNodeSelect.subscribe(newNode => this.selectedNodeInfo = newNode);
     }
 
     showDate(dates) {
