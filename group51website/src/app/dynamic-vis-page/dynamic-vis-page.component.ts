@@ -16,12 +16,8 @@ import {
 export class DynamicVisPageComponent implements OnInit, AfterViewInit {
   @ViewChild('col1') c1;
   @ViewChild('col2') c2;
-  private fullscreen: boolean = false;
 
   constructor(private renderer: Renderer2) {
-    var slider = document.getElementById("myRange");
-    var output = document.getElementById("demo");
-    //$("p").hide();
   }
 
   ngOnInit() {
