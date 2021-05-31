@@ -87,8 +87,8 @@ export class VisualisationPageComponent implements OnInit {
   // setter for selectedNode, used to update info-card, triggered through html event
   updateNodeInfo(node): void {
 
-    // function to add rows to a table
-    function createRow(table: HTMLTableElement, attribute: string, component: any): void {
+  // function to add rows to a table
+  function createRow(table: HTMLTableElement, attribute: string, component: any): void {
 
       // repetition detection
       let repeatdict = {};
@@ -161,23 +161,33 @@ export class VisualisationPageComponent implements OnInit {
       this.selectedNodeInfo["sendto"][i] = id.toString() + " "; // I need to hvae a space between every element
   }
 
-    // -- code to update the table of send id's -- \\
+  // -- code to update the table of send id's -- \\
 
-    // remove ALL rows in the page assuming no other tables are here
-    let rows = document.querySelectorAll('tr');
-    for (let i = 0; rows[i]; i++){
-        let row = (rows[i] as HTMLTableRowElement);
-        row.remove();
-    }
-
-    // get the tables in the infocard
-    let receivedTable = (document.getElementById('nodeinfo_table_received') as HTMLTableElement);     // table containing rows of received email id's
-    let sendTable = (document.getElementById('nodeinfo_table_send') as HTMLTableElement);             // table containing rows of send     email id's
-
-    // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
-    createRow(receivedTable,"receivedfrom", this);
-    createRow(sendTable, "sendto", this);
+  // remove ALL rows in the page assuming no other tables are here
+  let rows = document.querySelectorAll('tr');
+  for (let i = 0; rows[i]; i++){
+    let row = (rows[i] as HTMLTableRowElement);
+    row.remove();
   }
+
+  // get the tables in the infocard
+  let receivedTable = (document.getElementById('nodeinfo_table_received') as HTMLTableElement);     // table containing rows of received email id's
+  let sendTable = (document.getElementById('nodeinfo_table_send') as HTMLTableElement);             // table containing rows of send     email id's
+
+  // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
+  createRow(receivedTable,"receivedfrom", this);
+  createRow(sendTable, "sendto", this);
+
+  // -- code to update node id + other future info -- \\
+  let idcell = (document.getElementById("node_id") as HTMLTableCellElement);
+  console.log(idcell)
+  try{
+    idcell.innerText = node.id.toString();
+  } catch(e){
+    console.log(e.message);
+  }
+  
+}
 
   checkLinksOption(event): void {
     //console.log(event);
