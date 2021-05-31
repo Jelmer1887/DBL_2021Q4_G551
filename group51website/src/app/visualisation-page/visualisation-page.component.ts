@@ -127,24 +127,17 @@ export class VisualisationPageComponent implements OnInit {
         }
 
         // -- code to update the table of send id's -- \\
+
+        // remove ALL rows in the page assuming no other tables are here
+        let rows = document.querySelectorAll('tr');
+        for (let i = 0; rows[i]; i++){
+            let row = (rows[i] as HTMLTableRowElement);
+            row.remove();
+        }
+
         // get the tables in the infocard
         let receivedTable = document.getElementById('nodeinfo_table_received');     // table containing rows of received email id's
         let sendTable = document.getElementById('nodeinfo_table_send');             // table containing rows of send     email id's
-
-        // - remove old rows
-        let received_rows = receivedTable.getElementsByTagName('tr');               // list of rows in received table
-        let send_rows     = sendTable.getElementsByTagName('tr');                   // list of rows in send table
-        
-        if (received_rows.length > 0){                                              // remove all rows from received table (if any)
-            for (let i = 0; i < received_rows.length; i++){
-                receivedTable.removeChild(received_rows[i])
-            }
-        }
-        if (send_rows.length > 0){                                                  // remove all rows from send table (if any)
-            for (let i = 0; i < send_rows.length; i++){
-                sendTable.removeChild(send_rows[i])
-            }
-        }
 
         // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
         createRow(receivedTable,"receivedfrom", this);
