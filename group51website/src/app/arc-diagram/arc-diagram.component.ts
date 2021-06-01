@@ -56,6 +56,16 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     constructor() { }
 
+    // -- Button functions -- \\
+
+    checkSortOption(event): void {
+        // console.log(event.target);
+        this.sort = event.target.value;
+        this.initiateDiagram();
+    }
+
+    // -- --- -- \\
+
     ngOnChanges(changes: SimpleChanges): void {
         console.log("arcdiagram: NODE SELECTED IS " + this.selectedNode)
         this.initiateDiagram()

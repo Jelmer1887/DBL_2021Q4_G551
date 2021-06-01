@@ -73,6 +73,15 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private maxDate = Math.max();
     public dateRange;
 
+    // -- Funtions to deal with buttons and controls -- \\
+
+    checkLinksOption(event): void {
+        this.showIndividualLinks = event.target.checked;
+        this.initiateGraph();
+    }
+
+    // -- ---- - ---- -- \\
+
     ngOnChanges(changes: SimpleChanges): void {
         if('selectedNode' in changes){  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNode)      

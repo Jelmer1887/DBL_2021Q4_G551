@@ -20,71 +20,18 @@
           </div>
         </div>
 
-        <!--<div class="level-item">
-                    <button class="button is-rounded is-normal">PlaceHolder Button</button>
-                </div>-->
-
-        <!--<div class="level-item">
-                    <div class="notification">
-                        <div class="control">
-                            <label class="radio">
-                                <input type="radio" name="foobar">
-                                Use this
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="foobar" checked>
-                                Or that
-                            </label>
-                        </div>
-                    </div>
-                </div>-->
-
-
-        <div class="level-item">
-          <div class="notification">
-            <label class="checkbox">
-              <input (change)="checkLinksOption($event)" type="checkbox">
-              Show Individual Links
-            </label>
-          </div>
-        </div>
-
-        <!--<div class="level-item">
-                    <div class="notification">
-                        <label class="checkbox">
-                            <input type="checkbox">
-                            Option 2
-                        </label>
-                    </div>
-                </div>-->
-
       </div>
 
+      <div class="level-item">
+
+        <input class="slider is-info is-medium mt-5 ml-5"
+        (change)="forcegraph.setNewDate($event); arcdiagram.setNewDate($event)" step="1" min="1" [max]="max" value="1"
+        type="range" id="myRange" style="width:1100px">
+
+      </div>
+      
+
       <div class="level-right">
-
-        <div class="level-item">
-          <div class="control has-icons-left is-normal">
-            <div class="select is-normal">
-              <select (change)="checkSortOption($event)">
-                <option selected value="id">Sort by Id</option>
-                <option value="job">Sort by Job Function</option>
-                <option value="amount">Sort by Amount of Emails</option>
-              </select>
-            </div>
-            <div class="icon is-small is-left">
-              <i class="fas fa-search"></i>
-            </div>
-          </div>
-        </div>
-
-        <div class="level-item">
-          <button class="button is-rounded is-danger is-normal" disabled>
-            <span class="icon is-left">
-              <i class="far fa-trash-alt"></i>
-            </span>
-            <span>Reset all filters</span>
-          </button>
-        </div>
 
         <div class="level-item">
           <div class="control has-icons-left is-normal">
@@ -194,11 +141,8 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <input class="slider is-info is-medium mt-5 ml-5"
-      (change)="forcegraph.setNewDate($event); arcdiagram.setNewDate($event)" step="1" min="1" [max]="max" value="1"
-      type="range" id="myRange" style="width:1100px">
+    </div>
   </div>
 </div>
 

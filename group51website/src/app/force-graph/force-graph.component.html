@@ -25,9 +25,38 @@ In short formula for translation: percentage = ([desired offset %]/[component_si
     <svg id="force-graph" viewBox="0 0 1500 1500"></svg>
 </div>
 
-<div>
-    <button class="button is-rounded is-danger is-normal" (click)="checkZoomReset()">
-        <span>Reset zoom</span>
-    </button>
+<div class="container">
+
+    <!-- Controls -->
+    <div class="level">
+
+        <div class="level-right">
+
+            <!-- Controls - Show Individual Links -->
+            <div class="level-item">
+                <label class="checkbox">
+                    <input (change)="checkLinksOption($event)" type="checkbox">
+                    Show Individual Links
+                </label>
+            </div>
+
+        </div>
+
+        <div class="level-left">
+
+            <!-- Controls - Reset Zoom -->
+            <div class="level-item">
+                <button class="button is-rounded is-danger is-normal" (click)="checkZoomReset()">
+                    <span class="icon is-left">
+                        <i class="far fa-trash-alt"></i>
+                    </span>
+                    <span>Reset zoom</span>
+                </button>
+            </div>
+
+        </div>
+
+        
+    </div>
     <svg id="force-legend"></svg>
 </div>

@@ -1,22 +1,8 @@
-import {
-  ForceGraphDataShareService
-} from './../force-graph-data-share.service';
-import {
-  Component,
-  ElementRef,
-  ViewChild,
-  OnInit,
-  Renderer2
-} from '@angular/core';
-import {
-  UploadService
-} from './../upload.service';
-import {
-  ForceGraphComponent
-} from './../force-graph/force-graph.component';
-import {
-  ArcDiagramComponent
-} from '../arc-diagram/arc-diagram.component';
+import { ForceGraphDataShareService } from './../force-graph-data-share.service';
+import { Component, ElementRef, ViewChild, OnInit, Renderer2 } from '@angular/core';
+import { UploadService } from './../upload.service';
+import { ForceGraphComponent } from './../force-graph/force-graph.component';
+import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 
 @Component({
   selector: 'app-visualisation-page',
