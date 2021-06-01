@@ -86,6 +86,7 @@
           </button>
         </div>
 
+<<<<<<< Updated upstream
         <div class="level-item">
           <div class="control has-icons-left is-normal">
             <div class="select is-normal">
@@ -97,6 +98,16 @@
             </div>
             <div class="icon is-small is-left">
               <i class="fas fa-search"></i>
+=======
+        <!--Area for Visualisations--> <!-- <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks" (uploaded)="setMaxDate($event)" (nodeEmailsEvent) = "setNodeInfo($event)"></app-force-graph>-->
+        <div class="columns is-mobile is-centered">
+            <div class="column is-5 has-text-centered">
+                <div class="box">
+                    <h1 class="title">Force Directed Graph</h1>
+                    <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
+                    <app-force-graph [file]="file" [showIndividualLinks]="showIndividualLinks" (uploaded)="setMaxDate($event)"></app-force-graph> <!-- didn't include (nodeEmailsEvent) = "setNodeInfo($event)" because it gives me error-->
+                </div>
+>>>>>>> Stashed changes
             </div>
           </div>
         </div>
@@ -105,6 +116,7 @@
 
     </div>
 
+<<<<<<< Updated upstream
     <!--Area for Visualisations-->
     <div class="columns is-mobile is-centered">
       <div #vis1 class="column is-5 has-text-centered">
@@ -121,6 +133,15 @@
                   </span>
                 </button>
               </div>
+=======
+            <div class="column is-5 has-text-centered">
+                <div class="box">
+                    <h1 class="title">Arc Diagram</h1>
+                    <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
+                    <app-arc-diagram [file]="file" [sort]="arcSort"></app-arc-diagram>
+                </div>
+            </div>
+>>>>>>> Stashed changes
         </div>
       </div>
 
@@ -195,9 +216,24 @@
         </div>
       </div>
     </div>
+<<<<<<< Updated upstream
 
     <input class="slider is-info is-medium mt-5 ml-5"
       (change)="forcegraph.setNewDate($event); arcdiagram.setNewDate($event)" step="1" min="1" [max]="max" value="1"
       type="range" id="myRange" style="width:1100px">
   </div>
 </div>
+=======
+</div>
+
+<div class="columns is-mobile is-centered">
+    <div class="column is-5 has-text-centered">
+        <div class="box">
+            <h1 class="title">Adjacency Matrix</h1>
+            <h2 class="subtitle is-6">An Adjacency Matrix for the emails</h2>
+            <app-matrix [file]="file"></app-matrix>
+        </div>
+    </div>
+
+    
+>>>>>>> Stashed changes

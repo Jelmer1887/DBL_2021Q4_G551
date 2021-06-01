@@ -8,6 +8,7 @@ import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { BarchartComponent } from './barchart/barchart.component';
 import { ForceGraphComponent } from './force-graph/force-graph.component';
 import { ArcDiagramComponent } from 'src/app/arc-diagram/arc-diagram.component';
+import { MatrixComponent } from './matrix/matrix.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { FooterComponent } from './footer/footer.component';
 import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.component';
@@ -22,6 +23,7 @@ import { FormsModule } from '@angular/forms';
         BarchartComponent,
         ForceGraphComponent,
         ArcDiagramComponent,
+        MatrixComponent,
         HomePageComponent,
         FooterComponent,
         DynamicVisPageComponent,
