@@ -203,8 +203,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     runMatrix(links, nodes, mLinkNum) {
-        var xMargin = 15; //the amount of space in the matrix reserved for text
-        var yMargin = 7; // idem
+        var xMargin = 7; //the amount of space in the matrix reserved for text
+        var yMargin = 10; // idem
         console.log(links);
         function findMaxWeight() {
             var maxWeight= 0;
@@ -239,14 +239,14 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         sortLinksID();        
-        console.log(links);
+        //console.log(links);
         var maxWeight = findMaxWeight();
 
         const svg = d3.select('#matrix')
                         .attr("width", this.width)
-                        .attr("height", this.height);
+                        .attr("height", this.height); //800
         svg.selectAll("*").remove(); //what does this do exactly?
-
+        
         function sortNodesID() {
             nodes.sort(function (a, b) {
                 if (a.id > b.id) {
@@ -265,15 +265,16 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
         function rectColor(weight) {
             //using 12 differently saturated reds
+            //TODO: Use less color saturations
             var colors = ["#ffffff", "#ffebeb", "#ffd8d8","#ffc4c4", "#ffb1b1", "#ff9d9d", "#ff8989", "#ff7676", "#ff6262", "#ff4e4e", "#ff3b3b", "#ff2727", "#ff1414"];
-            var colorChooser = maxWeight/12;
+            var colorChooser = maxWeight/colors.length; 
             var index = Math.floor(weight/colorChooser); //integer division to determine saturation of red
             return colors[index];
         }
         
         function makeText(d) {
             if (d.id.length == 3) {
-                return " \u00A0" + d.id + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
+                return "\u00A0" + d.id + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
             } else if (d.id.length == 2) {
                 return " \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             } else {
@@ -293,12 +294,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         .padding(0.5)
         .domain(nodeID);
 
-        function makeGridArray() {
-
-        }
         var grid = svg.selectAll("grid");
         for (var i = 0; i<nodes.length; i++) {
-            var yloc = yMargin + (this.height/nodeID.length)*i; //might not need this...
             grid = svg.selectAll("grid") 
             .data(nodes) 
             .enter()
@@ -306,8 +303,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("stroke", "black")
             .attr('stroke-width', 0.3)
             .attr('stroke-opacity', 0.5)
-            .attr("width", this.width/nodeID.length)
-            .attr("height", this.height/nodeID.length)
+            .attr("width", (this.width-xMargin)/nodeID.length)
+            .attr("height", (this.height-yMargin)/nodeID.length)
             .attr("x", function (d : any) {return (x(d.id)+ xMargin) }) //x position depends on target ID
             .attr("y", function (d :any) {return y(nodes[i].id)}) //y postion depends on source ID
             .style("fill", "none");
@@ -318,8 +315,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .enter()
             .append("rect")
             .attr("stroke", "black")
-            .attr("width", this.width/nodeID.length)
-            .attr("height", this.height/nodeID.length)
+            .attr("width", (this.width-xMargin)/nodeID.length)
+            .attr("height", (this.height-yMargin)/nodeID.length)
             .attr("x", function (d : any) {return (x(d.target.id)+ xMargin) }) //x position depends on target ID
             .attr("y", function (d :any) {return (y(d.source.id))}) //y postion depends on source ID
             .style("fill", (d: any) => rectColor(d.weight)); //color depends on the weight of the link (directed links)
@@ -337,8 +334,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .append("text")
             .attr("font-size", "8")
             .attr("font-family", "sans-serif")
-            .attr("x", 12)
-            .attr("transform", (d: any) => `translate(${0},${d.y = y(d.id) + yMargin})`)
+            .attr("x", 1)
+            .attr("transform", (d: any) => `translate(${0},${d.y = y(d.id) + (this.height-yMargin)/nodeID.length})`)
             .text(d => makeText(d))
             .style("text-anchor", "middle")
             .on("click",(event, d: any) => {
@@ -349,15 +346,21 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .data(nodes)
             .enter()
             .append("text")
-            .attr("font-size", "8")
+            .attr("font-size", "5")
             .attr("font-family", "sans-serif")
-            .attr("y", 5)
-            .attr("transform", (d: any) => `translate(${d.x = x(d.id)},${0})`)
+            .attr("transform", (d: any) => `translate(${d.x = x(d.id) + xMargin},${0}) rotate(90)`)
             .text(d => makeText(d))
             .style("text-anchor", "middle")
             .on("click",(event, d: any) => {
                 //inst.nodeToParent.emit(d.id)
-            });
+            })/*
+            .on("mouseover", function (event, d: any) {
+                xAxisLabel.style('fill', '#ccc')
+                d3.select(this).attr("font-size", "10")
+                    .style('fill', '#000')
+                    .style('font-weight', 'bold')
+                    .attr("x")
+            })*/;
     }
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
