@@ -1,5 +1,6 @@
 import { ThrowStmt } from '@angular/compiler';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
+import { nodeColor } from '../app.component';
 import * as d3 from 'd3';
 
 @Component({
@@ -10,41 +11,12 @@ import * as d3 from 'd3';
 })
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
-    @Input() file;
+    @Input() data: Data;
     @Input() showIndividualLinks;
     @Input() selectedNode;  //id of the node last clicked
 
-    @Output() getDate = new EventEmitter<any>();    //event that sends new dates to parent to display on screen.
-    @Output() uploaded = new EventEmitter<string>();    //custom event that gives signal to parent that data has been uploaded to set slider parameters
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
     @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
-
-    private nodes = [
-        /*
-        { "id": 0, "job": "Employee" },
-        { "id": 1, "job": "Unknown" },
-        { "id": 2, "job": "Employee" },
-        { "id": 3, "job": "Employee" },
-        { "id": 4, "job": "Vice President" },
-        { "id": 5, "job": "Manager" },
-        */
-    ];
-
-    /*
-    private links = [
-        { "source": 0, "target": 1, "value": 1, "sentiment": [0.0] },
-        { "source": 0, "target": 5, "value": 1, "sentiment": [0.4] },
-        { "source": 2, "target": 1, "value": 1, "sentiment": [0.9] },
-        { "source": 3, "target": 5, "value": 1, "sentiment": [-0.5] },
-        { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
-    ]
-    */
-
-    private groupedLinks = []
-    private individualLinks = []
-
-    //This will hold the number of links every node has
-    private mLinkNum = []
 
     private width;
     private height = 800;
@@ -52,10 +24,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private beginPosX = 0;
     private beginPosY = 0;
     private beginScale = 1;
-
-    // Filter start and end date.
-    private startDate = 20011201;
-    private endDate = 20011231;
 
     // variable holding information of clicked node
     nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
@@ -68,13 +36,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     ngOnInit() {
     }
 
-    //Variables for setting the slider
-    private minDate = Math.min();
-    private maxDate = Math.max();
-    public dateRange;
-
     // -- Funtions to deal with buttons and controls -- \\
-
     checkLinksOption(event): void {
         this.showIndividualLinks = event.target.checked;
         this.initiateGraph();
@@ -83,11 +45,11 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     // -- ---- - ---- -- \\
 
     ngOnChanges(changes: SimpleChanges): void {
-        if('selectedNode' in changes){  //if a new node is selected then no need to refresh the whole graph
-            console.log("forcediagram: The node selected is " + this.selectedNode)      
-        } else{
+        if ('selectedNode' in changes) {  //if a new node is selected then no need to refresh the whole graph
+            console.log("forcediagram: The node selected is " + this.selectedNode)
+        } else {
             this.initiateGraph();
-        }   
+        }
     }
 
     initiateGraph() {
@@ -96,136 +58,17 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             this.width = this.container.nativeElement.offsetWidth;
         }
 
-        let fileReader = new FileReader();
-
-        fileReader.onload = (e) => {
-
-            // Array of strings with every string being a line.
-            var lines = fileReader.result.toString().split('\n');
-            lines.shift();
-
-            // Empty the nodes and links so we can read the new ones.
-            this.nodes = [];
-            this.individualLinks = [];
-            this.groupedLinks = [];
-            this.mLinkNum = [];
-
-            // Loop through all the lines, but skip the first since that one never contains data.
-            for (var line of lines) {
-
-                // Get the different columns by splitting on the "," .
-                var columns = line.split(',');
-
-                // Make sure it's not an empty line.
-                if (columns.length <= 4) {
-                    continue;
-                }
-
-                // Filter to a specific month for more clarity.
-                // Remove the '-' from the date
-                var dateString = columns[0].split('-').join('');
-                // Turn it into an integer
-                var dateInt = parseInt(dateString);
-
-                //Set minimum and maximum date for the slider range
-                if (dateInt > this.maxDate) {
-                    this.maxDate = dateInt;
-                }
-                if (dateInt < this.minDate) {
-                    this.minDate = dateInt;
-                }
-
-                // This comparison works because the format is YY-MM-DD,
-                // So the bigger number will always be later in time.
-                if (dateInt < this.startDate || dateInt > this.endDate) {
-                    continue;
-                }
-
-                // Convert the source and target to an integer.
-                var source = parseInt(columns[1]);
-                var target = parseInt(columns[4]);
-
-                var sourceNode;
-                var targetNode;
-
-                // Add the source if we can't find it in the array of nodes.
-                var srcFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === source) {
-                        srcFound = true;
-                        sourceNode = n;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!srcFound) {
-                    // console.log(source);
-                    sourceNode = { "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 };
-                    this.nodes.push(sourceNode);
-                }
-
-                // Add the target if we can't find it in the array of nodes.
-                var tarFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === target) {
-                        tarFound = true;
-                        targetNode = n;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!tarFound) {
-                    //console.log(target);
-                    targetNode = { "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 };
-                    this.nodes.push(targetNode);
-                }
-
-                // Create the link between the source and target
-                var linkFound = false;
-                for (var l of this.groupedLinks) {
-                    if ((l.source.id === source && l.target.id === target) ||
-                        (l.source.id === target && l.target.id === source)) {
-                        linkFound = true;
-                        //l.value += 1;
-                        l.sentiment.push(parseFloat(columns[8]));
-                        break;
-                    }
-                }
-
-                if (!linkFound) {
-                    this.groupedLinks.push({
-                        "source": sourceNode,
-                        "target": targetNode,
-                        "sentiment": [parseFloat(columns[8])]
-                    });
-                }
-
-                this.individualLinks.push({
-                    "source": sourceNode,
-                    "target": targetNode,
-                    "sentiment": [parseFloat(columns[8])]
-                });
-
-            }
-
-            // Start the simulation with the new links and nodes.
-            this.runSimulation(this.individualLinks, this.groupedLinks, this.nodes, this.mLinkNum);
-        };
-
-        if (this.file) {
-            fileReader.readAsText(this.file);
-        }
+        this.runSimulation(this.data);
     }
 
-    runSimulation(individualLinks, groupedLinks, nodes, mLinkNum): void {
-        var links = (this.showIndividualLinks) ? this.individualLinks : this.groupedLinks;
-
+    runSimulation(data): void {
+        var selectLinks = (this.showIndividualLinks) ? data.individualLinks : data.groupedLinks;
+        var links = JSON.parse(JSON.stringify(selectLinks))
+        var nodes = JSON.parse(JSON.stringify(data.nodes))
+        var mLinkNum = [];
 
         sortLinks();
         setLinkIndexAndNum();
-
-        //set slider information
-        this.setSliderRange();
 
         const simulation = d3.forceSimulation(nodes)                            //automatically runs simulation
             .force("link", d3.forceLink(links).id((d: any) => d.id))            //Adds forces between nodes, depending on if they're linked
@@ -237,26 +80,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("width", this.width)
             .attr("height", this.height)
 
-
         svg.selectAll("g").remove();
-
-        // Add a legend.
-        const legend = d3.select("#force-legend")
-            .attr("width", this.width)
-            .attr("height", 80);
-
-        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-            "Employee", "Unknown"];
-        for (var i = 0; i < jobs.length; i++) {
-            legend.append("circle").attr("cx", 20 + (i % 5) * 160).attr("cy", 30 + (i % 2) * 35 - 6).attr("r", 6).style("fill", this.nodeColor(jobs[i]))
-            legend.append("text").attr("x", 30 + (i % 5) * 160).attr("y", 30 + (i % 2) * 35).text(jobs[i]).style("font-size", "15px").attr("alignment-baseline", "middle")
-        }
 
         var edgeStyle = "line"
         if (this.showIndividualLinks) {
             edgeStyle = "path"
         }
-
 
         //adds visuals of the links
         const link = svg.append("g")        //"g" is an element of SVG used to group other SVG elements
@@ -290,7 +119,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .data(nodes)
             .join("circle")
             .attr("r", (d: any) => Math.max(Math.min(Math.sqrt(d.mailCount), 20), 5))
-            .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
+            .attr("fill", (d: any) => nodeColor(d.job))    //colour nodes depending on job title
             .call(this.drag(simulation))                        //makes sure you can drag nodes
             .on("click", function (d, i: any) {
                 inst.nodeToParent.emit(i.id);
@@ -352,25 +181,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     .attr("y2", (d: any) => d.target.y);
             }
 
-            /*
-            var left = Number.MAX_VALUE;
-            var right = Number.MIN_VALUE;
-            var top = Number.MAX_VALUE;
-            var bottom = Number.MIN_VALUE;
-            */
-
             node
                 .attr("cx", (d: any) => {
-                    // left = Math.min(left, d.x);
-                    // right = Math.max(right, d.x);
                     return d.x;
                 })
                 .attr("cy", (d: any) => {
-                    // top = Math.min(top, d.y);
-                    // bottom = Math.max(bottom, d.y);
                     return d.y;
                 });
-            // console.log(right);
         });
 
         function nodeclicked(d, i) {
@@ -391,19 +208,19 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             var linklist = { "id": i.id, "sendto": [], "receivedfrom": [] };
 
             // console.log(individualLinks);
-            var sentLinks = individualLinks.filter(function (e) {
-                return e.source.id == i.id;      //Finds emails sent
+            var sentLinks = data.individualLinks.filter(function (e) {
+                return e.source == i.id;      //Finds emails sent
             })
 
-            var receivedLinks = individualLinks.filter(function (e) {
-                return e.target.id == i.id;      //Finds emails received
+            var receivedLinks = data.individualLinks.filter(function (e) {
+                return e.target == i.id;      //Finds emails received
             })
 
             for (var link in sentLinks) {
-                linklist["sendto"].push(sentLinks[link]['target']['id'])
+                linklist["sendto"].push(sentLinks[link]['target'])
             }
             for (var link in receivedLinks) {
-                linklist["receivedfrom"].push(receivedLinks[link]['source']['id'])
+                linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
 
             console.log(linklist);
@@ -472,41 +289,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
     }
 
-    setNewDate(event): void {
-        //set newStartDate as the minimum date
-        var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
-
-        //set the date to be mindate
-        newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
-
-        //Set newEndDate as 30 days after newStartDate
-        var newEndDate = new Date(newStartDate);
-        newEndDate.setDate(newEndDate.getDate() + 30);
-
-        this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
-        this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
-
-        console.log(this.startDate)
-        console.log(this.endDate)
-
-        this.getDate.emit({ newStartDate, newEndDate });
-
-        this.initiateGraph()
-    }
-
-    setSliderRange() {
-
-        //YYYY-MM-DDTHH:MM:SS
-        var minDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
-        var maxDate = new Date(this.maxDate.toString().slice(0, 4) + "-" + this.maxDate.toString().slice(4, 6) + "-" + this.maxDate.toString().slice(6, 8) + "T00:00:00+0000")
-
-        //number of days between the two days
-        this.dateRange = (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
-
-        //Emit signal that the daterange has been changed 
-        this.uploaded.emit('complete');
-    }
-
     //to drag nodes around
     //for a better understanding of alphaTarget (and alphaMin) check API or https://stackoverflow.com/questions/46426072/what-is-the-difference-between-alphatarget-and-alphamin
     drag(simulation) {
@@ -551,36 +333,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         return "#999999";
     }
 
-    //node colour based on job title
-    nodeColor(job): string {
-        switch (job) {
-            case "Employee":
-                return "#68e256";
-            case "Vice President":
-                return "#56e2cf";
-            case "Manager":
-                return "#56aee2";
-            case "In House Lawyer":
-                return "#5668e2";
-            case "Trader":
-                return "#cf56e2";
-            case "Director":
-                return "#e25668";
-            case "Managing Director":
-                return "#e28956";
-            case "President":
-                return "#e2cf56";
-            case "CEO":
-                return "#8a56e2"
-            case "Unknown":
-                return "#555555";
-
-            default:
-                //console.log(job);
-                return "#000000";
-        }
-    }
-
     checkZoomReset(): void {
         console.log("Reset zoom!");
         const svg = d3.select("#force-graph");
@@ -594,7 +346,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
-        this.runSimulation(this.individualLinks, this.groupedLinks, this.nodes, this.mLinkNum);
+        this.runSimulation(this.data);
     }
 
     @ViewChild('container')

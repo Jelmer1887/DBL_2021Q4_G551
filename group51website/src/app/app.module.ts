@@ -13,6 +13,7 @@ import { HomePageComponent } from './home-page/home-page.component';
 import { FooterComponent } from './footer/footer.component';
 import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.component';
 import { AboutPageComponent } from './about-page/about-page.component'
+import { AngularResizedEventModule } from 'angular-resize-event';
 import { FormsModule } from '@angular/forms';
 
 @NgModule({
@@ -32,7 +33,8 @@ import { FormsModule } from '@angular/forms';
     imports: [
         BrowserModule,
         AppRoutingModule,
-        FormsModule
+        FormsModule,
+        AngularResizedEventModule
     ],
     providers: [],
     bootstrap: [AppComponent]

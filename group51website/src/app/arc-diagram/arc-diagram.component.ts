@@ -1,5 +1,6 @@
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
+import { nodeColor } from '../app.component';
 //we need to import this component in the app.module.ts
 //we need to add the line below to visualisation-page.component.html:
 //<app-arc-diagram [file]="file"></app-arc-diagram>
@@ -13,51 +14,18 @@ import * as d3 from 'd3';
 export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     // Input variables.
-    @Input() file;
+    @Input() data: Data;
     @Input() sort;
     @Input() selectedNode;
 
     @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
 
-
-    //Slider variables
-    private minDate = Math.min();
-
-    private nodes = [
-        /*
-        { "id": 0, "job": "Employee" },
-        { "id": 1, "job": "Unknown" },
-        { "id": 2, "job": "Employee" },
-        { "id": 3, "job": "Employee" },
-        { "id": 4, "job": "Vice President" },
-        { "id": 5, "job": "Manager" },
-        */
-    ];
-
-    private links = [
-        /*
-        { "source": 0, "target": 1, "value": 1, "sentiment": [0.0] },
-        { "source": 0, "target": 5, "value": 1, "sentiment": [0.4] },
-        { "source": 2, "target": 1, "value": 1, "sentiment": [0.9] },
-        { "source": 3, "target": 5, "value": 1, "sentiment": [-0.5] },
-        { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
-        */
-    ]
-
-    //This will hold the number of links every node has
-    private mLinkNum = []
-
     private width;
     private height = 800;
-
-    // Filter start and end date.
-    private startDate = 20011201;
-    private endDate = 20011231;
 
     constructor() { }
 
     // -- Button functions -- \\
-
     checkSortOption(event): void {
         // console.log(event.target);
         this.sort = event.target.value;
@@ -71,115 +39,19 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         this.initiateDiagram()
     }
 
-    initiateDiagram(){
+    initiateDiagram() {
         if (this.container) {
             this.width = this.container.nativeElement.offsetWidth;
         }
 
-        let fileReader = new FileReader();
-
-        fileReader.onload = (e) => {
-
-            // Array of strings with every string being a line.
-            var lines = fileReader.result.toString().split('\n');
-            lines.shift();
-
-            // Empty the nodes and links so we can read the new ones.
-            this.nodes = [];
-            this.links = [];
-            this.mLinkNum = [];
-
-            // Loop through all the lines, but skip the first since that one never contains data.
-            for (var line of lines) {
-                // Get the different columns by splitting on the "," .
-                var columns = line.split(',');
-
-                // Make sure it's not an empty line.
-                if (columns.length <= 4) {
-                    continue;
-                }
-
-                //Find min date for the slider
-                if (dateInt < this.minDate) {
-                    this.minDate = dateInt;
-                }
-
-                /// Filter to a specific month for more clarity.
-                // Remove the '-' from the date
-                var dateString = columns[0].split('-').join('');
-                // Turn it into an integer
-                var dateInt = parseInt(dateString);
-
-                // This comparison works because the format is YY-MM-DD,
-                // So the bigger number will always be later in time.
-                if (dateInt < this.startDate || dateInt > this.endDate) {
-                    continue;
-                }
-
-                // Convert the source and target to an integer.
-                var source = parseInt(columns[1]);
-                var target = parseInt(columns[4]);
-
-                // Add the source if we can't find it in the array of nodes.
-                var srcFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === source) {
-                        srcFound = true;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!srcFound) {
-                    //console.log(source);
-                    this.nodes.push({ "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 });
-                }
-
-                // Add the target if we can't find it in the array of nodes.
-                var tarFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === target) {
-                        tarFound = true;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!tarFound) {
-                    //console.log(target);
-                    this.nodes.push({ "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 });
-                }
-
-                // Create the link between the source and target
-                var linkFound = false;
-                for (var l of this.links) {
-                    if ((l.source === source && l.target === target) ||
-                        (l.source === target && l.target === source)) {
-                        linkFound = true;
-                        //l.value += 1;
-                        l.sentiment.push(parseFloat(columns[8]));
-                        break;
-                    }
-                }
-                if (!linkFound) {
-                    this.links.push({
-                        "source": source,
-                        "target": target,
-                        "sentiment": [parseFloat(columns[8])]
-                    });
-                }
-            }
-
-            // Start the simulation with the new links and nodes.
-            this.runDiagram(this.links, this.nodes, this.mLinkNum);
-            //console.log(this.nodes)
-        };
-
-        if (this.file) {
-            fileReader.readAsText(this.file);
-        }
+        this.runDiagram(this.data);
     }
 
-    runDiagram(links, nodes, mLinkNum): void {
+    runDiagram(data): void {
         var inst = this; // crude fix to store instance info
+
+        var links = JSON.parse(JSON.stringify(data.groupedLinks))
+        var nodes = JSON.parse(JSON.stringify(data.nodes))
 
         var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
             "Employee", "Unknown"];
@@ -201,16 +73,6 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
         svg.selectAll("*").remove()
 
-
-        // Add a legend.
-        const legend = d3.select("#arc-legend")
-            .attr("width", this.width)
-            .attr("height", 80);
-
-        for (var i = 0; i < jobs.length; i++) {
-            legend.append("circle").attr("cx", 20 + (i % 5) * 160).attr("cy", 30 + (i % 2) * 35 - 6).attr("r", 6).style("fill", nodeColor(jobs[i]))
-            legend.append("text").attr("x", 30 + (i % 5) * 160).attr("y", 30 + (i % 2) * 35).text(jobs[i]).style("font-size", "15px").attr("alignment-baseline", "middle")
-        }
         //CEO, President, Vice President, Managing Director, Director, In House Lawyer, Trader, Employee, Unknown.
         function sortNodesJob() {
             nodes.sort(function (a, b) {
@@ -281,49 +143,21 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 }
 
 `);
-        function nodeColor(job): string {
-            switch (job) {
-                case "Employee":
-                    return "#68e256";
-                case "Vice President":
-                    return "#56e2cf";
-                case "Manager":
-                    return "#56aee2";
-                case "In House Lawyer":
-                    return "#5668e2";
-                case "Trader":
-                    return "#cf56e2";
-                case "Director":
-                    return "#e25668";
-                case "Managing Director":
-                    return "#e28956";
-                case "President":
-                    return "#e2cf56";
-                case "CEO":
-                    return "#8a56e2"
-                case "Unknown":
-                    return "#555555";
+        //link colour based on sentiment of message
+        function linkColor(sentiment): string {
+            // console.log(sentiment);
+            for (var s of sentiment) {
+                if (s > 0.1) {
+                    return "#55EE55";
+                }
 
-                default:
-                    console.log(job);
-                    return "#000000";
+                if (s < -0.1) {
+                    return "#EE5555";
+                }
             }
+
+            return "#999999";
         }
-          //link colour based on sentiment of message
-    function linkColor(sentiment): string {
-        // console.log(sentiment);
-        for (var s of sentiment) {
-            if (s > 0.1) {
-                return "#55EE55";
-            }
-
-            if (s < -0.1) {
-                return "#EE5555";
-            }
-        }
-
-        return "#999999";
-    }
         //This is the ugliest solution ever. It makes the text boxes longer, making it easier to interact with them with mouse-events
         function makeText(d) {
             if (d.id.length == 3) {
@@ -362,7 +196,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .attr("transform", (d: any) => `translate(${0},${d.y = x(d.id) + nodeRadius + 1})`)
             .text(d => makeText(d))
             .style("text-anchor", "middle")
-            .on("click",(event, d: any) => {
+            .on("click", (event, d: any) => {
                 inst.nodeToParent.emit(d.id)
             })
             //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
@@ -408,6 +242,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 })
                 */
         //add the links
+
         const link = svg.selectAll('mylinks')
             .data(links)
             .enter()
@@ -431,29 +266,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
-        this.runDiagram(this.links, this.nodes, this.mLinkNum);
     }
 
     @ViewChild('container')
     container: ElementRef;
-
-    //Set the data to be shown
-    setNewDate(event): void {
-        //set newStartDate as the minimum date
-        var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
-
-        //set the date to be mindate
-        newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
-
-        //Set newEndDate as 30 days after newStartDate
-        var newEndDate = new Date(newStartDate);
-        newEndDate.setDate(newEndDate.getDate() + 30);
-
-        this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
-        this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
-
-        this.initiateDiagram()
-    }
 
 }
 
