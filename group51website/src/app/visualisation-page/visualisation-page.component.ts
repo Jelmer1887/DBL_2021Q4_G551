@@ -34,6 +34,8 @@ export class VisualisationPageComponent implements OnInit {
     max;
     selectedNode;
     selectedNodeInfo; // holds array of all emails send and received.
+    vis1Fullscreen = false;
+    vis2Fullscreen = false;
 
     //Variables for setting the slider
     private minDate: number = Math.min();
@@ -48,6 +50,7 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild(ArcDiagramComponent) arcdiagram;
 
     constructor(private uploadService: UploadService, private renderer: Renderer2) { }
+    
     ngOnInit(): void {
         this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
@@ -268,6 +271,23 @@ export class VisualisationPageComponent implements OnInit {
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
 
+        // function to add a row to the info section
+        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void{
+            // update ID
+            let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
+            
+            let text = document.createElement('td');                                // (re)create text
+            text.innerText = discr;
+            text.className = "has-text-right";
+            newRow.append(text);
+
+            text = document.createElement('td');                                    // set new value
+            text.innerText = value;
+            newRow.append(text);
+
+            table.append(newRow); 
+        }
+
         // function to add rows to a table
         function createRow(table: HTMLTableElement, attribute: string, component: any): void {
 
@@ -360,14 +380,16 @@ export class VisualisationPageComponent implements OnInit {
         createRow(sendTable, "sendto", this);
 
         // -- code to update node id + other future info -- \\
-        let idcell = (document.getElementById("node_id") as HTMLTableCellElement);
-        console.log(idcell)
-        try {
-            idcell.innerText = node.id.toString();
-        } catch (e) {
-            console.log(e.message);
-        }
 
+        // get table of info
+        let idTable = (document.getElementById("id_table") as HTMLTableElement);
+        console.log(idTable)
+
+        // update ID
+        createInfoRow(idTable,"ID:", node.id.toString());
+
+        // update job
+        createInfoRow(idTable, "Job:",node.job);
     }
 
     checkLinksOption(event): void {
@@ -379,9 +401,6 @@ export class VisualisationPageComponent implements OnInit {
         // console.log(event.target);
         this.arcSort = event.target.value
     }
-
-    vis1Fullscreen = false;
-    vis2Fullscreen = false;
 
     fullscreenVis1() {
         if (this.vis1Fullscreen) {

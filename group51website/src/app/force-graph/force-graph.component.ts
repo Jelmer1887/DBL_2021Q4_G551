@@ -205,7 +205,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function nodeGUI(ints, i) {
-            var linklist = { "id": i.id, "sendto": [], "receivedfrom": [] };
+            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [] };
 
             // console.log(individualLinks);
             var sentLinks = data.individualLinks.filter(function (e) {
