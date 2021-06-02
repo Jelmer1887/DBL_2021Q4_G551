@@ -130,7 +130,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             }
         }
-        //TODO: insert legend here...
 
         //boxes are distanced based on the number and order of the nodes in nodeID
         var x = d3.scalePoint()
