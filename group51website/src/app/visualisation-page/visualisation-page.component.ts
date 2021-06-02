@@ -18,6 +18,8 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild('infoCard') infoCard;
     @ViewChild('button1') button1;
     @ViewChild('button2') button2;
+    @ViewChild('dropdown1') dd1;
+    @ViewChild('dropdown2') dd2;
 
     // configurables
     INFOCARD_COLUMNS = 4;
@@ -413,6 +415,10 @@ export class VisualisationPageComponent implements OnInit {
                 this.vis2.nativeElement,
                 'display',
                 'inline');
+            this.renderer.setStyle(
+                this.dd2.nativeElement,
+                'display',
+                'inline');
             this.vis1Fullscreen = false;
         } else {
             this.renderer.setAttribute(
@@ -422,6 +428,10 @@ export class VisualisationPageComponent implements OnInit {
             )
             this.renderer.setStyle(
                 this.vis2.nativeElement,
+                'display',
+                'none');
+            this.renderer.setStyle(
+                this.dd2.nativeElement,
                 'display',
                 'none');
             this.vis1Fullscreen = true;

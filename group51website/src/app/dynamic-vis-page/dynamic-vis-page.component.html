@@ -3,15 +3,11 @@
   <div class="columns is-centered">
     <div #col1 class="column">
       <div class="box" style="height: 500px;">
-        <a [routerLink] = "[{outlets: {vis1: ['force']}}]" >force vis1</a>
-        <a [routerLink] = "[{outlets: {vis1: ['arc']}}]" >arc vis1</a>
         <router-outlet name='vis1'></router-outlet>
       </div>
     </div>
     <div #col2 class="column">
       <div class="box" style="height: 500px;">
-        <a [routerLink] = "[{outlets: {vis2: ['force']}}]" >force vis2</a>
-        <a [routerLink] = "[{outlets: {vis2: ['arc']}}]" >arc vis2</a>
         <router-outlet name='vis2'></router-outlet>
       </div>
     </div>
