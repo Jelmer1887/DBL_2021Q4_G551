@@ -229,13 +229,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function linkGUI(i, showIndividualLinks) {
+            var fromNode = nodes.filter(function (e) {
+                return e.id == i.source.id;      //Finds from node
+            })
+            var toNode = nodes.filter(function (e) {
+                return e.id == i.target.id;      //Finds to node
+            })
             if (showIndividualLinks) {
-                var fromNode = nodes.filter(function (e) {
-                    return e.id == i.source.id;      //Finds from node
-                })
-                var toNode = nodes.filter(function (e) {
-                    return e.id == i.target.id;      //Finds to node
-                })
                 console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
             } else {
                 console.log("Email transfers between " + fromNode[0]['id'] + " and " + toNode[0]['id'])
