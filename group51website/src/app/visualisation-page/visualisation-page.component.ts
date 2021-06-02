@@ -1,4 +1,3 @@
-import { ForceGraphDataShareService } from './../force-graph-data-share.service';
 import { Component, ElementRef, ViewChild, OnInit, Renderer2 } from '@angular/core';
 import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
@@ -23,7 +22,7 @@ export class VisualisationPageComponent implements OnInit {
     // configurables
     INFOCARD_COLUMNS = 4;
 
-    file;
+    file: File;
     data: Data = {
         nodes: [],
         groupedLinks: [],
@@ -37,26 +36,23 @@ export class VisualisationPageComponent implements OnInit {
     selectedNodeInfo; // holds array of all emails send and received.
 
     //Variables for setting the slider
-    private minDate = Math.min();
-    private maxDate = Math.max();
-    public dateRange;
+    private minDate: number = Math.min();
+    private maxDate: number = Math.max();
+    public dateRange: number;
 
-    startDate = 20011201;
-    endDate = 20011231;
+    startDate : number = 20011201;
+    endDate   : number = 20011231;
 
-    @ViewChild('fileInput', {
-        static: false
-    }) fileInput: ElementRef;
+    @ViewChild('fileInput', { static: false}) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
 
-    constructor(private uploadService: UploadService, private FGshareService: ForceGraphDataShareService, private renderer: Renderer2) { }
+    constructor(private uploadService: UploadService, private renderer: Renderer2) { }
     ngOnInit(): void {
         this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
             this.parseFile();
         });
-        this.FGshareService.currentNodeSelect.subscribe(newNode => this.selectedNodeInfo = newNode);
 
         //this.createLegend();
     }
@@ -67,7 +63,7 @@ export class VisualisationPageComponent implements OnInit {
         fileReader.onload = (e) => {
 
             // Array of strings with every string being a line.
-            var lines = fileReader.result.toString().split('\n');
+            var lines: string[] = fileReader.result.toString().split('\n');
             lines.shift();
 
             // Empty the nodes and links so we can read the new ones.
@@ -84,7 +80,7 @@ export class VisualisationPageComponent implements OnInit {
             for (var line of lines) {
 
                 // Get the different columns by splitting on the "," .
-                var columns = line.split(',');
+                var columns: string[] = line.split(',');
 
                 // Make sure it's not an empty line.
                 if (columns.length <= 4) {
