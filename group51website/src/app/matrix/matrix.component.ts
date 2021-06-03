@@ -7,9 +7,10 @@ import * as d3 from 'd3';
     styles: [
     ]
 })
-export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
+export class MatrixComponent implements AfterViewInit, OnChanges{
 
     @Input() data: Data;
+    @Input() sortM;
     //@Input() showIndividualLinks;
     //@Input() selectedNode;  //id of the node last clicked
 
@@ -52,10 +53,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     runMatrix(data: Data) {
         var links = JSON.parse(JSON.stringify(data.individualLinks))
         var nodes = JSON.parse(JSON.stringify(data.nodes))
-
         var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-            "Employee", "Unknown"];
-
+        "Employee", "Unknown"];
         var xMargin = 7; //the amount of space in the matrix reserved for text
         var yMargin = 10; // idem
 
@@ -132,8 +131,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             } else {
                 return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             }
-        }
-        //TODO: insert legend here...
+        } 
         const legend = d3.select("#matrix-legend")
         .attr("width", this.width)
         .attr("height", 80);
@@ -166,6 +164,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     return "#000000";
         }
     }
+
         //boxes are distanced based on the number and order of the nodes in nodeID
         var x = d3.scalePoint()
             .range([xMargin, this.width])

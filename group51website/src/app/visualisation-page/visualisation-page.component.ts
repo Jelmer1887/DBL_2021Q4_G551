@@ -5,6 +5,7 @@ import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 import * as d3 from 'd3';
 import { nodeColor } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
+import { MatrixComponent } from '../matrix/matrix.component';
 
 @Component({
     selector: 'app-visualisation-page',
@@ -32,6 +33,7 @@ export class VisualisationPageComponent implements OnInit {
         adjacencyMatrix: [[]]
     };
     arcSort = "id";
+    matrixSort = "id";
     showIndividualLinks = false;
     max;
     selectedNode;
@@ -50,7 +52,7 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild('fileInput', { static: false}) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
-
+    @ViewChild(MatrixComponent) matrix;
     constructor(private uploadService: UploadService, private renderer: Renderer2) { }
     
     ngOnInit(): void {
@@ -402,6 +404,10 @@ export class VisualisationPageComponent implements OnInit {
     checkSortOption(event): void {
         // console.log(event.target);
         this.arcSort = event.target.value
+    }
+
+    checkMatrixSortOption(event): void {
+        this.matrixSort = event.target.value
     }
 
     fullscreenVis1() {
