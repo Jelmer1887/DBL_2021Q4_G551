@@ -1,4 +1,3 @@
-import { ForceGraphDataShareService } from './../force-graph-data-share.service';
 import { Component, ElementRef, ViewChild, OnInit, Renderer2 } from '@angular/core';
 import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
@@ -19,11 +18,13 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild('infoCard') infoCard;
     @ViewChild('button1') button1;
     @ViewChild('button2') button2;
+    @ViewChild('dropdown1') dd1;
+    @ViewChild('dropdown2') dd2;
 
     // configurables
     INFOCARD_COLUMNS = 4;
 
-    file;
+    file: File;
     data: Data = {
         nodes: [],
         groupedLinks: [],
@@ -35,28 +36,28 @@ export class VisualisationPageComponent implements OnInit {
     max;
     selectedNode;
     selectedNodeInfo; // holds array of all emails send and received.
+    vis1Fullscreen = false;
+    vis2Fullscreen = false;
 
     //Variables for setting the slider
-    private minDate = Math.min();
-    private maxDate = Math.max();
-    public dateRange;
+    private minDate: number = Math.min();
+    private maxDate: number = Math.max();
+    public dateRange: number;
 
-    startDate = 20011201;
-    endDate = 20011231;
+    startDate : number = 20011201;
+    endDate   : number = 20011231;
 
-    @ViewChild('fileInput', {
-        static: false
-    }) fileInput: ElementRef;
+    @ViewChild('fileInput', { static: false}) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
 
-    constructor(private uploadService: UploadService, private FGshareService: ForceGraphDataShareService, private renderer: Renderer2) { }
+    constructor(private uploadService: UploadService, private renderer: Renderer2) { }
+    
     ngOnInit(): void {
         this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
             this.parseFile();
         });
-        this.FGshareService.currentNodeSelect.subscribe(newNode => this.selectedNodeInfo = newNode);
 
         //this.createLegend();
     }
@@ -67,7 +68,7 @@ export class VisualisationPageComponent implements OnInit {
         fileReader.onload = (e) => {
 
             // Array of strings with every string being a line.
-            var lines = fileReader.result.toString().split('\n');
+            var lines: string[] = fileReader.result.toString().split('\n');
             lines.shift();
 
             // Empty the nodes and links so we can read the new ones.
@@ -84,7 +85,7 @@ export class VisualisationPageComponent implements OnInit {
             for (var line of lines) {
 
                 // Get the different columns by splitting on the "," .
-                var columns = line.split(',');
+                var columns: string[] = line.split(',');
 
                 // Make sure it's not an empty line.
                 if (columns.length <= 4) {
@@ -272,6 +273,23 @@ export class VisualisationPageComponent implements OnInit {
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
 
+        // function to add a row to the info section
+        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void{
+            // update ID
+            let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
+            
+            let text = document.createElement('td');                                // (re)create text
+            text.innerText = discr;
+            text.className = "has-text-right";
+            newRow.append(text);
+
+            text = document.createElement('td');                                    // set new value
+            text.innerText = value;
+            newRow.append(text);
+
+            table.append(newRow); 
+        }
+
         // function to add rows to a table
         function createRow(table: HTMLTableElement, attribute: string, component: any): void {
 
@@ -364,14 +382,16 @@ export class VisualisationPageComponent implements OnInit {
         createRow(sendTable, "sendto", this);
 
         // -- code to update node id + other future info -- \\
-        let idcell = (document.getElementById("node_id") as HTMLTableCellElement);
-        console.log(idcell)
-        try {
-            idcell.innerText = node.id.toString();
-        } catch (e) {
-            console.log(e.message);
-        }
 
+        // get table of info
+        let idTable = (document.getElementById("id_table") as HTMLTableElement);
+        console.log(idTable)
+
+        // update ID
+        createInfoRow(idTable,"ID:", node.id.toString());
+
+        // update job
+        createInfoRow(idTable, "Job:",node.job);
     }
 
     checkLinksOption(event): void {
@@ -384,9 +404,6 @@ export class VisualisationPageComponent implements OnInit {
         this.arcSort = event.target.value
     }
 
-    vis1Fullscreen = false;
-    vis2Fullscreen = false;
-
     fullscreenVis1() {
         if (this.vis1Fullscreen) {
             this.renderer.setAttribute(
@@ -398,6 +415,10 @@ export class VisualisationPageComponent implements OnInit {
                 this.vis2.nativeElement,
                 'display',
                 'inline');
+            this.renderer.setStyle(
+                this.dd2.nativeElement,
+                'display',
+                'inline');
             this.vis1Fullscreen = false;
         } else {
             this.renderer.setAttribute(
@@ -407,6 +428,10 @@ export class VisualisationPageComponent implements OnInit {
             )
             this.renderer.setStyle(
                 this.vis2.nativeElement,
+                'display',
+                'none');
+            this.renderer.setStyle(
+                this.dd2.nativeElement,
                 'display',
                 'none');
             this.vis1Fullscreen = true;

@@ -2,6 +2,7 @@ import { ThrowStmt } from '@angular/compiler';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import { nodeColor } from '../app.component';
 import * as d3 from 'd3';
+import { ResizedEvent } from 'angular-resize-event';
 
 @Component({
     selector: 'app-force-graph',
@@ -205,7 +206,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function nodeGUI(ints, i) {
-            var linklist = { "id": i.id, "sendto": [], "receivedfrom": [] };
+            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [] };
 
             // console.log(individualLinks);
             var sentLinks = data.individualLinks.filter(function (e) {
@@ -331,6 +332,16 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             return "#404040"
         }
         return "#999999";
+    }
+
+    onResized(event: ResizedEvent) {
+        this.width = event.newWidth + 500;
+        this.height = event.newHeight;
+
+        const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
+            .attr("viewBox", `0 0 ${this.width} ${this.height}`)
+            .attr("width", this.width)
+            .attr("height", this.height)
     }
 
     checkZoomReset(): void {
