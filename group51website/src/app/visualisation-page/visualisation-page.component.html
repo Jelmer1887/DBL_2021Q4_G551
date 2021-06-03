@@ -34,14 +34,14 @@
         </div>
 
       </div>
-
+      <h3 id="myRangeStart"></h3>
       <div class="level-item">
-
+        <h3 id="myRangeMin"></h3>
         <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
           [max]="dateRange" value="1" type="range" id="myRange" style="width:90%">
-
+        <h3 id="myRangeMax"></h3>
       </div>
-
+      <h3 id="myRangeEnd"></h3>
 
       <div class="level-right">
         <div #dropdown2 class="level-item">
@@ -79,7 +79,7 @@
           <h1 class="title">Force Directed Graph</h1>
           <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
           <app-force-graph [data]="data" [showIndividualLinks]="showIndividualLinks"
-            (nodeEmailsEvent)="updateNodeInfo($event)" (getDate)="showDate($event)"
+            (nodeEmailsEvent)="updateNodeInfo($event)"
             (nodeToParent)="nodeToParent($event)" [selectedNode]="selectedNode"></app-force-graph>
           <div class="buttons is-right">
             <button #button1 (click)="fullscreenVis1()" class="button">

@@ -192,6 +192,19 @@ export class VisualisationPageComponent implements OnInit {
 
             //number of days between the two days
             this.dateRange = (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)
+
+            //Next few lines are there to display the dates on the slider
+            var minDay = minDate.getDate()
+            var minMonth = minDate.toLocaleString('default', { month: 'long' })
+            var minYear = minDate.getFullYear()
+
+            var maxDay = maxDate.getDate()
+            var maxMonth = maxDate.toLocaleString('default', { month: 'long' })
+            var maxYear = maxDate.getFullYear()
+
+            //document.getElementById('myRangeMax').innerText =  maxDay +' '+ maxMonth +', '+ maxYear;
+            //document.getElementById('myRangeMin').innerText =  minDay +' '+ minMonth +', '+ minYear
+      
         };
 
         if (this.file) {
@@ -244,24 +257,19 @@ export class VisualisationPageComponent implements OnInit {
         this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
         this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
 
+        var startDay = newStartDate.getDate()
+        var startMonth = newStartDate.toLocaleString('default', {month: 'long'})
+        var startYear = newStartDate.getFullYear()
+    
+        var endDay = newEndDate.getDate()
+        var endMonth = newEndDate.toLocaleString('default', {month: 'long'})
+        var endYear = newEndDate.getFullYear()
+        
+        //change HTML elements
+        //document.getElementById('myRangeStart').innerText = 'From: ' + startDay +' '+ startMonth +', '+ startYear
+        //document.getElementById('myRangeEnd').innerText ='Till: ' +  endDay +' '+ endMonth +', '+ endYear
+
         this.parseFile();
-    }
-
-    showDate(dates) {
-        var startDay = dates['newStartDate'].getDate()
-        var startMonth = dates['newStartDate'].toLocaleString('default', {
-            month: 'long'
-        })
-        var startYear = dates['newStartDate'].getFullYear()
-
-        var endDay = dates['newEndDate'].getDate()
-        var endMonth = dates['newEndDate'].toLocaleString('default', {
-            month: 'long'
-        })
-        var endYear = dates['newEndDate'].getFullYear()
-
-        console.log('Data showing from ' + startDay + ' ' + startMonth + ', ' + startYear)
-        console.log('Data showing until ' + endDay + ' ' + endMonth + ', ' + endYear)
     }
 
     nodeToParent(nodeID): void {
