@@ -20,7 +20,7 @@ declare global {
     type Link = {
         source: number, // Id of source
         target: number, // Id of target
-        date: number,
+        date: number[],
         sentiment: number[]
     }
 

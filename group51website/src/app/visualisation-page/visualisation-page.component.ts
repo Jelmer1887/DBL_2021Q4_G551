@@ -152,6 +152,7 @@ export class VisualisationPageComponent implements OnInit {
                     if ((l.source === source && l.target === target) ||
                         (l.source === target && l.target === source)) {
                         linkFound = true;
+                        l.date.push(dateInt);
                         l.sentiment.push(parseFloat(columns[8]));
                         break;
                     }
@@ -161,7 +162,7 @@ export class VisualisationPageComponent implements OnInit {
                     newData.groupedLinks.push({
                         source: source,
                         target: target,
-                        date: dateInt,
+                        date: [dateInt],
                         sentiment: [parseFloat(columns[8])]
                     });
                 }
@@ -169,7 +170,7 @@ export class VisualisationPageComponent implements OnInit {
                 newData.individualLinks.push({
                     source: source,
                     target: target,
-                    date: dateInt,
+                    date: [dateInt],
                     sentiment: [parseFloat(columns[8])]
                 });
 
