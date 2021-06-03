@@ -64,31 +64,11 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             }
             return maxWeight;
         }
-        function sortLinksSourceID() {
-            links.sort(function (a, b) {
-                if (a.source > b.source) {
-                    return 1;
-                } else if (a.source < b.source) {
-                    return -1
-                }
-            })
-        }
-        function sortLinksTargetID() {
-            links.sort(function (a, b) {
-                if (a.target > b.target) {
-                    return 1;
-                } else if (a.target < b.target) {
-                    return -1
-                }
-            })
-        }
-        function sortLinksID() { //sort links first by target, then by source
-            sortLinksTargetID();
-            sortLinksSourceID();
-        }
 
-        sortLinksID();
-        //console.log(links);
+        //sort links first by target, then by source
+        links.sort((a, b) => (a.source > b.source) ? 1 : -1)
+        links.sort((a, b) => (a.target > b.target) ? 1 : -1)
+
         var maxWeight = findMaxWeight();
 
         const svg = d3.select('#matrix')
@@ -96,16 +76,9 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("height", this.height); //800
         svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
 
-        function sortNodesID() {
-            nodes.sort(function (a, b) {
-                if (a.id > b.id) {
-                    return 1;
-                } else if (a.id < b.id) {
-                    return -1
-                }
-            })
-        }
-        sortNodesID();
+        // Sort nodes based on ID.
+        nodes.sort((a, b) => (a.id > b.id) ? 1 : -1)
+
         var nodeID = [];
         for (var i = 0; i < nodes.length; i++) {
             //nodeID.push(Object.values(Object.values(Object.values(nodes))[i]));
@@ -142,12 +115,12 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .padding(0.5)
             .domain(nodeID);
 
-        var grid = svg.selectAll("grid");
+        var grid = svg.selectAll("grid")
+            .data(nodes)
+            .enter()
+
         for (var i = 0; i < nodes.length; i++) {
-            grid = svg.selectAll("grid")
-                .data(nodes)
-                .enter()
-                .append("rect")
+            grid.append("rect")
                 .attr("stroke", "black")
                 .attr('stroke-width', 0.3)
                 .attr('stroke-opacity', 0.5)

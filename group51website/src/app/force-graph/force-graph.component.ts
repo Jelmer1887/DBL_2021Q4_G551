@@ -81,7 +81,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("width", this.width)
             .attr("height", this.height)
 
-        svg.selectAll("g").remove();
+        svg.selectAll("*").remove();
 
         var edgeStyle = "line"
         if (this.showIndividualLinks) {
@@ -205,7 +205,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("stroke-width", 2)
         }
 
-        function nodeGUI(ints, i) {
+        function nodeGUI(inst, i) {
             var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [] };
 
             // console.log(individualLinks);
@@ -225,8 +225,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             }
 
             console.log(linklist);
-            ints.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
-            ints.nodeinfo = linklist;       // set local version
+            inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
+            inst.nodeinfo = linklist;       // set local version
         }
 
         function linkGUI(i, showIndividualLinks) {
@@ -342,6 +342,48 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("viewBox", `0 0 ${this.width} ${this.height}`)
             .attr("width", this.width)
             .attr("height", this.height)
+    }
+
+    onKeyDown(event: KeyboardEvent) {
+        // Shift enters brushing mode. Only listen to the first shift press event, not the repeated events when shift is held down.
+        if (event.code == "KeyB" && !event.repeat) {
+            const svg = d3.select("#force-graph")
+            svg.on(".zoom", null);  // Disable zooming when in brush mode.
+
+            console.log(this.width)
+            svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
+                .extent([[0, 0], [this.width, this.height]])       // initialise the brush area, so the entire graph
+                .on("start end", function (e) {
+                    console.log(e);
+                })
+            )
+        }
+    }
+
+    onKeyUp(event: KeyboardEvent) {
+        // We exit brushing mode once shift goes back up.
+        if (event.code == "KeyB") {
+            const svg = d3.select("#force-graph")
+
+            // Disable the brush
+            // svg.on(".brush", null);
+            svg.call(d3.brush().extent([[0, 0], [0, 0]]))
+            svg.on(".brush", null);
+
+            var node = svg.selectAll("circle")
+            var link = svg.selectAll("line")
+
+            // Add the zoom and panning back
+            svg.call(this.zoom
+                .extent([[0, 0], [this.width, this.height]])
+                .on("zoom", function ({ transform }) {
+                    node.attr("transform", transform);
+                    link.attr("transform", transform);
+                })
+            )
+        }
+        /*
+        */
     }
 
     checkZoomReset(): void {

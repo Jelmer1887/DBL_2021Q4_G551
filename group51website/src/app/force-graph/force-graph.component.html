@@ -18,7 +18,8 @@ giving a translation of 300%
 In short formula for translation: percentage = ([desired offset %]/[component_size %]) - 100%
 
 -->
-<div class="container" (resized)="onResized($event)" #container style="
+<div class="container" (resized)="onResized($event)" (document:keydown)="onKeyDown($event)"
+    (document:keyup)="onKeyUp($event)" #container style="
     overflow: hidden; 
     width: 100%;
     height: 800px;">
