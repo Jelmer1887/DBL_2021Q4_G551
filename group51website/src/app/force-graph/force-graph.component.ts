@@ -335,7 +335,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     onResized(event: ResizedEvent) {
-        this.width = event.newWidth + 500;
+        this.width = event.newWidth;
         this.height = event.newHeight;
 
         const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
@@ -350,7 +350,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             const svg = d3.select("#force-graph")
             svg.on(".zoom", null);  // Disable zooming when in brush mode.
 
-            console.log(this.width)
             svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
                 .extent([[0, 0], [this.width, this.height]])       // initialise the brush area, so the entire graph
                 .on("start end", function (e) {

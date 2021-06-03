@@ -1,5 +1,6 @@
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
+import { nodeColor } from '../app.component';
 
 @Component({
     selector: 'app-matrix',
@@ -7,10 +8,9 @@ import * as d3 from 'd3';
     styles: [
     ]
 })
-export class MatrixComponent implements AfterViewInit, OnChanges{
+export class MatrixComponent implements AfterViewInit, OnChanges {
 
     @Input() data: Data;
-    @Input() sortM;
     //@Input() showIndividualLinks;
     //@Input() selectedNode;  //id of the node last clicked
 
@@ -20,6 +20,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges{
     private beginPosX = 0;
     private beginPosY = 0;
     private beginScale = 1;
+
+    private sort;
 
     // variable holding information of clicked node
     nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
@@ -54,7 +56,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges{
         var links = JSON.parse(JSON.stringify(data.individualLinks))
         var nodes = JSON.parse(JSON.stringify(data.nodes))
         var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-        "Employee", "Unknown"];
+            "Employee", "Unknown"];
         var xMargin = 7; //the amount of space in the matrix reserved for text
         var yMargin = 10; // idem
 
@@ -104,39 +106,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges{
             } else {
                 return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             }
-        } 
-        const legend = d3.select("#matrix-legend")
-        .attr("width", this.width)
-        .attr("height", 80);
-
-        function nodeColor(job): string {
-            switch (job) {
-                case "Employee":
-                    return "#68e256";
-                case "Vice President":
-                    return "#56e2cf";
-                case "Manager":
-                    return "#56aee2";
-                case "In House Lawyer":
-                    return "#5668e2";
-                case "Trader":
-                    return "#cf56e2";
-                case "Director":
-                    return "#e25668";
-                case "Managing Director":
-                    return "#e28956";
-                case "President":
-                    return "#e2cf56";
-                case "CEO":
-                    return "#8a56e2"
-                case "Unknown":
-                    return "#555555";
-
-                default:
-                    console.log(job);
-                    return "#000000";
         }
-    }
 
         //boxes are distanced based on the number and order of the nodes in nodeID
         var x = d3.scalePoint()
@@ -222,6 +192,11 @@ export class MatrixComponent implements AfterViewInit, OnChanges{
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
+    }
+
+    checkSortOption(event) {
+        this.sort = event.target.value;
+        this.initiateGraph();
     }
 
     @ViewChild('container')

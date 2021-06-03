@@ -46,15 +46,15 @@ export class VisualisationPageComponent implements OnInit {
     private maxDate: number = Math.max();
     public dateRange: number;
 
-    startDate : number = 20011201;
-    endDate   : number = 20011231;
+    startDate: number = 20011201;
+    endDate: number = 20011231;
 
-    @ViewChild('fileInput', { static: false}) fileInput: ElementRef;
+    @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
     @ViewChild(MatrixComponent) matrix;
     constructor(private uploadService: UploadService, private renderer: Renderer2) { }
-    
+
     ngOnInit(): void {
         this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
@@ -204,7 +204,7 @@ export class VisualisationPageComponent implements OnInit {
 
             //document.getElementById('myRangeMax').innerText =  maxDay +' '+ maxMonth +', '+ maxYear;
             //document.getElementById('myRangeMin').innerText =  minDay +' '+ minMonth +', '+ minYear
-      
+
         };
 
         if (this.file) {
@@ -258,13 +258,13 @@ export class VisualisationPageComponent implements OnInit {
         this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
 
         var startDay = newStartDate.getDate()
-        var startMonth = newStartDate.toLocaleString('default', {month: 'long'})
+        var startMonth = newStartDate.toLocaleString('default', { month: 'long' })
         var startYear = newStartDate.getFullYear()
-    
+
         var endDay = newEndDate.getDate()
-        var endMonth = newEndDate.toLocaleString('default', {month: 'long'})
+        var endMonth = newEndDate.toLocaleString('default', { month: 'long' })
         var endYear = newEndDate.getFullYear()
-        
+
         //change HTML elements
         //document.getElementById('myRangeStart').innerText = 'From: ' + startDay +' '+ startMonth +', '+ startYear
         //document.getElementById('myRangeEnd').innerText ='Till: ' +  endDay +' '+ endMonth +', '+ endYear
@@ -284,10 +284,10 @@ export class VisualisationPageComponent implements OnInit {
     updateNodeInfo(node): void {
 
         // function to add a row to the info section
-        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void{
+        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void {
             // update ID
             let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
-            
+
             let text = document.createElement('td');                                // (re)create text
             text.innerText = discr;
             text.className = "has-text-right";
@@ -297,7 +297,7 @@ export class VisualisationPageComponent implements OnInit {
             text.innerText = value;
             newRow.append(text);
 
-            table.append(newRow); 
+            table.append(newRow);
         }
 
         // function to add rows to a table
@@ -398,24 +398,15 @@ export class VisualisationPageComponent implements OnInit {
         console.log(idTable)
 
         // update ID
-        createInfoRow(idTable,"ID:", node.id.toString());
+        createInfoRow(idTable, "ID:", node.id.toString());
 
         // update job
-        createInfoRow(idTable, "Job:",node.job);
+        createInfoRow(idTable, "Job:", node.job);
     }
 
     checkLinksOption(event): void {
         //console.log(event);
         this.showIndividualLinks = event.target.checked;
-    }
-
-    checkSortOption(event): void {
-        // console.log(event.target);
-        this.arcSort = event.target.value
-    }
-
-    checkMatrixSortOption(event): void {
-        this.matrixSort = event.target.value
     }
 
     fullscreenVis1() {

@@ -1,190 +1,190 @@
 <div class="block mt-1">
-  <div class="block mt-1 mx-3">
+    <div class="block mt-1 mx-3">
 
-    <!--Area for Vis Controls bar-->
-    <div class="level mb-1">
-      <div class="level-left">
+        <!--Area for Vis Controls bar-->
+        <div class="level mb-1">
+            <div class="level-left">
 
-        <div class="level-item">
-            <div #dropdown1 class="level-item">
-                <div class="dropdown is-hoverable">
-                  <div class="dropdown-trigger">
-                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3">
-                      <span>Select a visualization</span>
-                      <span class="icon is-small">
-                        <i class="fas fa-angle-down" aria-hidden="true"></i>
-                      </span>
-                    </button>
-                  </div>
-                  <div class="dropdown-menu" id="dropdown-menu3" role="menu">
-                    <div class="dropdown-content">
-                      <a [routerLink]="[{outlets: {vis1: ['force']}}]" class="dropdown-item">
-                        Force Directed Graph
-                      </a>
-                      <a [routerLink]="[{outlets: {vis1: ['arc']}}]" class="dropdown-item">
-                        Arc Diagram
-                      </a>
-                      <a [routerLink]="[{outlets: {vis1: ['matrix']}}]" class="dropdown-item">
-                        Adjacency Matrix
-                      </a>
+                <div class="level-item">
+                    <div #dropdown1 class="level-item">
+                        <div class="dropdown is-hoverable">
+                            <div class="dropdown-trigger">
+                                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3">
+                                    <span>Select a visualization</span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+                                <div class="dropdown-content">
+                                    <a [routerLink]="[{outlets: {vis1: ['force']}}]" class="dropdown-item">
+                                        Force Directed Graph
+                                    </a>
+                                    <a [routerLink]="[{outlets: {vis1: ['arc']}}]" class="dropdown-item">
+                                        Arc Diagram
+                                    </a>
+                                    <a [routerLink]="[{outlets: {vis1: ['matrix']}}]" class="dropdown-item">
+                                        Adjacency Matrix
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 </div>
-              </div>
-        </div>
 
-      </div>
-      <h3 id="myRangeStart"></h3>
-      <div class="level-item">
-        <h3 id="myRangeMin"></h3>
-        <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
-          [max]="dateRange" value="1" type="range" id="myRange" style="width:90%">
-        <h3 id="myRangeMax"></h3>
-      </div>
-      <h3 id="myRangeEnd"></h3>
-
-      <div class="level-right">
-        <div #dropdown2 class="level-item">
-          <div class="dropdown is-hoverable is-right">
-            <div class="dropdown-trigger">
-              <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3">
-                <span>Select a visualization</span>
-                <span class="icon is-small">
-                  <i class="fas fa-angle-down" aria-hidden="true"></i>
-                </span>
-              </button>
             </div>
-            <div class="dropdown-menu" id="dropdown-menu3" role="menu">
-              <div class="dropdown-content">
-                <a [routerLink]="[{outlets: {vis2: ['force']}}]" class="dropdown-item">
-                  Force Directed Graph
-                </a>
-                <a [routerLink]="[{outlets: {vis2: ['arc']}}]" class="dropdown-item">
-                  Arc Diagram
-                </a>
-                <a [routerLink]="[{outlets: {vis2: ['matrix']}}]" class="dropdown-item">
-                  Adjacency Matrix
-                </a>
-              </div>
+            <h3 id="myRangeStart"></h3>
+            <div class="level-item">
+                <h3 id="myRangeMin"></h3>
+                <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
+                    [max]="dateRange" value="1" type="range" id="myRange" style="width:90%">
+                <h3 id="myRangeMax"></h3>
             </div>
-          </div>
+            <h3 id="myRangeEnd"></h3>
+
+            <div class="level-right">
+                <div #dropdown2 class="level-item">
+                    <div class="dropdown is-hoverable is-right">
+                        <div class="dropdown-trigger">
+                            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu3">
+                                <span>Select a visualization</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="dropdown-menu" id="dropdown-menu3" role="menu">
+                            <div class="dropdown-content">
+                                <a [routerLink]="[{outlets: {vis2: ['force']}}]" class="dropdown-item">
+                                    Force Directed Graph
+                                </a>
+                                <a [routerLink]="[{outlets: {vis2: ['arc']}}]" class="dropdown-item">
+                                    Arc Diagram
+                                </a>
+                                <a [routerLink]="[{outlets: {vis2: ['matrix']}}]" class="dropdown-item">
+                                    Adjacency Matrix
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!--Area for Visualisations-->
+        <div class="columns is-mobile is-centered">
+            <div #vis1 class="column is-5 has-text-centered">
+                <div class="box">
+                    <h1 class="title">Force Directed Graph</h1>
+                    <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
+                    <app-force-graph [data]="data" [showIndividualLinks]="showIndividualLinks"
+                        (nodeEmailsEvent)="updateNodeInfo($event)" (nodeToParent)="nodeToParent($event)"
+                        [selectedNode]="selectedNode"></app-force-graph>
+                    <div class="buttons is-right">
+                        <button #button1 (click)="fullscreenVis1()" class="button">
+                            <span class="icon is-small">
+                                <i class="fas fa-arrows-alt"></i>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div #infoCard class="column is-2 has-text-centered">
+                <div class="card">
+                    <header class="card-header">
+                        <p class="card-header-title">Node Information</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+
+                    <!--ID value :: using a table to get consistant spacing with the lists of values below-->
+                    <div class="card-content">
+                        <table id="id_table" class="table is-narrow is-hoverable is-fullwidth">
+                            <tbody>
+                                <tr>
+                                    <td id="node_id">Click a node to display addition information</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- emails received header-->
+                    <header class="card-header">
+                        <p class="card-header-title">Received emails from (id)</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+
+                    <!--received emals value-->
+                    <div class="card-content has-text">
+                        <table id="nodeinfo_table_received" class="table is-narrow is-hoverable is-fullwidth">
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- emails send header-->
+                    <header class="card-header">
+                        <p class="card-header-title">Send emails to (id)</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+
+                    <!--send emails value-->
+                    <div class="card-content has-text">
+                        <table id="nodeinfo_table_send" class="table is narrow is-hoverable is-fullwidth">
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <!-- The title for the legend card -->
+                <div class="card" style="margin-top: 25px;">
+                    <header class="card-header">
+                        <p class="card-header-title">Legend</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+
+                    <!--The actual legend-->
+                    <div class="card-content" style="overflow: hidden;" (resized)="onResized($event)">
+                        <svg id="legend"></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div #vis2 class="column is-5 has-text-centered">
+                <div class="box">
+                    <h1 class="title">Arc Diagram</h1>
+                    <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
+                    <app-arc-diagram [data]="data" (nodeToParent)="nodeToParent($event)" [selectedNode]="selectedNode">
+                    </app-arc-diagram>
+                    <div class="buttons is-right">
+                        <button #button2 (click)="fullscreenVis2()" class="button">
+                            <span class="icon is-small">
+                                <i class="fas fa-arrows-alt"></i>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <!--Area for Visualisations-->
-    <div class="columns is-mobile is-centered">
-      <div #vis1 class="column is-5 has-text-centered">
-        <div class="box">
-          <h1 class="title">Force Directed Graph</h1>
-          <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-          <app-force-graph [data]="data" [showIndividualLinks]="showIndividualLinks"
-            (nodeEmailsEvent)="updateNodeInfo($event)"
-            (nodeToParent)="nodeToParent($event)" [selectedNode]="selectedNode"></app-force-graph>
-          <div class="buttons is-right">
-            <button #button1 (click)="fullscreenVis1()" class="button">
-              <span class="icon is-small">
-                <i class="fas fa-arrows-alt"></i>
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div #infoCard class="column is-2 has-text-centered">
-        <div class="card">
-          <header class="card-header">
-            <p class="card-header-title">Node Information</p>
-            <span class="card-header-icon" style="cursor:unset">
-              <i class="fas fa-info-circle"></i>
-            </span>
-          </header>
-
-          <!--ID value :: using a table to get consistant spacing with the lists of values below-->
-          <div class="card-content">
-            <table id="id_table" class="table is-narrow is-hoverable is-fullwidth">
-              <tbody>
-                <tr>
-                  <td id="node_id">Click a node to display addition information</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- emails received header-->
-          <header class="card-header">
-            <p class="card-header-title">Received emails from (id)</p>
-            <span class="card-header-icon" style="cursor:unset">
-              <i class="fas fa-info-circle"></i>
-            </span>
-          </header>
-
-          <!--received emals value-->
-          <div class="card-content has-text">
-            <table id="nodeinfo_table_received" class="table is-narrow is-hoverable is-fullwidth">
-              <tbody>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- emails send header-->
-          <header class="card-header">
-            <p class="card-header-title">Send emails to (id)</p>
-            <span class="card-header-icon" style="cursor:unset">
-              <i class="fas fa-info-circle"></i>
-            </span>
-          </header>
-
-          <!--send emails value-->
-          <div class="card-content has-text">
-            <table id="nodeinfo_table_send" class="table is narrow is-hoverable is-fullwidth">
-              <tbody>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-
-        <!-- The title for the legend card -->
-        <div class="card" style="margin-top: 25px;">
-          <header class="card-header">
-            <p class="card-header-title">Legend</p>
-            <span class="card-header-icon" style="cursor:unset">
-              <i class="fas fa-info-circle"></i>
-            </span>
-          </header>
-
-          <!--The actual legend-->
-          <div class="card-content" style="overflow: hidden;" (resized)="onResized($event)">
-            <svg id="legend"></svg>
-          </div>
-        </div>
-      </div>
-
-      <div #vis2 class="column is-5 has-text-centered">
-        <div class="box">
-          <h1 class="title">Arc Diagram</h1>
-          <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
-          <app-arc-diagram [data]="data" [sort]="arcSort" (nodeToParent)="nodeToParent($event)"
-            [selectedNode]="selectedNode"></app-arc-diagram>
-          <div class="buttons is-right">
-            <button #button2 (click)="fullscreenVis2()" class="button">
-              <span class="icon is-small">
-                <i class="fas fa-arrows-alt"></i>
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="columns is-mobile is-centered">
-  <div class="column is-5 has-text-centered">
-    <div class="box">
-      <h1 class="title">Adjacency Matrix</h1>
-      <h2 class="subtitle is-6">An Adjacency Matrix for the emails</h2>
-      <app-matrix [data]="data" [sortM]="matrixSort"></app-matrix>
+    <div class="column is-5 has-text-centered">
+        <div class="box">
+            <h1 class="title">Adjacency Matrix</h1>
+            <h2 class="subtitle is-6">An Adjacency Matrix for the emails</h2>
+            <app-matrix [data]="data"></app-matrix>
+        </div>
     </div>
-  </div>
