@@ -14,10 +14,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     @Input() data: Data;
     @Input() showIndividualLinks;
-    @Input() selectedNode;  //id of the node last clicked
+    @Input() selectedNodeInfo;  //id of the node last clicked
 
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
-    @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
 
     private width;
     private height = 800;
@@ -46,8 +45,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     // -- ---- - ---- -- \\
 
     ngOnChanges(changes: SimpleChanges): void {
-        if ('selectedNode' in changes) {  //if a new node is selected then no need to refresh the whole graph
-            console.log("forcediagram: The node selected is " + this.selectedNode)
+        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
+            console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
+            this.newNodeSelected(this)
         } else {
             this.initiateGraph();
         }
@@ -123,9 +123,11 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("fill", (d: any) => nodeColor(d.job))    //colour nodes depending on job title
             .call(this.drag(simulation))                        //makes sure you can drag nodes
             .on("click", function (d, i: any) {
-                inst.nodeToParent.emit(i.id);
-                nodeclicked(this, i);                              //Small animation of node
                 nodeGUI(inst, i);                                  //To display info about node
+                nodeclicked(this, i);                              //Small animation of node
+                console.log(inst.selectedNodeInfo)
+                node.attr("stroke", (a: any) => a.id === inst.selectedNodeInfo['id'] ? "black" : "#fff" )
+                node.attr("stroke-width", (a: any) => a.id === inst.selectedNodeInfo['id'] ? 2 : 1 )
             })
             .on("mouseover", function (event, d: any) {
                 d3.select(this)
@@ -135,9 +137,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             })
             .on("mouseout", function (event, d: any) {
                 d3.select(this)
-                    .attr("stroke", d.id === inst.selectedNode ? 'black' : "#fff")
-                    .attr("stroke-width", d.id === inst.selectedNode ? 2 : 1)
-                link.style('stroke', (a: any) => inst.selectedNode != undefined ? (a.source.id === inst.selectedNode || a.target.id === inst.selectedNode ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
+                    .attr("stroke", d.id === inst.selectedNodeInfo['id'] ? 'black' : "#fff")
+                    .attr("stroke-width", d.id === inst.selectedNodeInfo['id'] ? 2 : 1)
+                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
             })
 
 
@@ -203,6 +205,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("r", nodeRadius)
                 .attr("stroke", 'black')
                 .attr("stroke-width", 2)
+            link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
         }
 
         function nodeGUI(inst, i) {
@@ -288,6 +291,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             }
             //console.log(mLinkNum);
         }
+    }
+
+    newNodeSelected(inst) {
+        /*var nodeSelected = d3.selectAll("circle").filter( function(d :any,e) {
+        })
+        console.log(nodeSelected)*/
     }
 
     //to drag nodes around
