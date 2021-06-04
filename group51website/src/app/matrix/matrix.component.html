@@ -7,7 +7,7 @@
         <div class="level-item">
             <div class="control has-icons-left is-normal">
                 <div class="select is-normal">
-                    <select (change)="checkSortOption($event)">
+                    <select (change)="checkMatrixSortOption($event)">
                         <option selected value="id">Sort by Id</option>
                         <option value="job">Sort by Job Function</option>
                         <option value="amount">Sort by Amount of Emails</option>
@@ -20,7 +20,23 @@
         </div>
     </div>
 </div>
-
+<div class="container">
+    <div class="level">
+        <div class="level-item">
+            <div class="control has-icons-left is-normal">
+                <div class="select is-normal">
+                    <select (change)="checkMatrixView($event)">
+                        <option selected value="all">View all ID's</option>
+                        <option value="job">ID's grouped by Job Function</option>
+                    </select>
+                </div>
+                <div class="icon is-small is-left">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <!--
 <div>
     <svg id="matrix-legend"></svg>

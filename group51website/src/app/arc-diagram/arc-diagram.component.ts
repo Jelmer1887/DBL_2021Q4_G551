@@ -148,7 +148,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             // console.log(sentiment);
             for (var s of sentiment) {
                 if (s > 0.1) {
-                    return "#55EE55";
+                    return "#3bff3b"; // #55EE55
                 }
 
                 if (s < -0.1) {
@@ -157,6 +157,18 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             }
 
             return "#999999";
+        }
+        function linkColorHover(sentiment) {
+            for (var s of sentiment) {
+                if (s > 0.1) {
+                    return "#89ff89"; //#76ff76
+                }
+                if (s < -0.1) {
+                    return "#ffadad";
+                } 
+            }
+
+            return "#ccc";
         }
         //This is the ugliest solution ever. It makes the text boxes longer, making it easier to interact with them with mouse-events
         function makeText(d) {
@@ -228,7 +240,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 label.style('fill', "#ccc")
                 d3.select(this).style('font-weight', 'bold')
                 d3.select(this).style('fill', "#000")
-                link.style('stroke', (a: any) => a.source === d.id || a.target === d.id ? nodeColor(d.job) : '#ccc')
+                link.style('stroke', (a: any) => a.source === d.id || a.target === d.id ? nodeColor(d.job) : linkColorHover(a.sentiment))
                 //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
             })
             .on("mouseout", function (event, d) {
