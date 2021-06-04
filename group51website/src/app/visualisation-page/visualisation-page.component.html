@@ -90,8 +90,38 @@
                 </div>
             </div>
 
+            
+            
+
             <!-- Center area -->
             <div #infoCard class="column is-2 has-text-centered">
+
+                <div class="columns is-centered">
+                    <!--<div class="column is-narrow"></div>-->
+                    <div class="column is-10">
+                        <div class="field is-grouped">
+                            <div class="field has-addons">
+                                <p class="control">
+                                    <button class="button">
+                                        <span class="icon is-small">
+                                            <i class="fas fa-object-ungroup"></i>
+                                        </span>
+                                        <span>Brush select</span>
+                                    </button>
+                                </p>
+                                <p class="control">
+                                    <button class="button">
+                                        <span class="icon is-small">
+                                            <i class="fas fa-hand-pointer"></i>
+                                        </span>
+                                        <span>Pan - Click</span>
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
 
                 <!-- The title for the legend card -->
                 <div class="container mb-2">
@@ -190,7 +220,7 @@
     </div>
 </div>
 
-<div class="columns is-mobile is-centered">
+<div class="columns is-centered">
     <div class="column is-5 has-text-centered">
         <div class="box">
             <h1 class="title">Adjacency Matrix</h1>
@@ -198,3 +228,11 @@
             <app-matrix [data]="data"></app-matrix>
         </div>
     </div>
+    <div class="column is-5 has-text-centered">
+        <div class="box">
+            <h1 class="title">Tree Map</h1>
+            <h2 class="sub-title is-6">Area based visualisation of the number of emails per function</h2>
+            <app-treemap [data]="data"></app-treemap>
+        </div>
+    </div>
+</div>

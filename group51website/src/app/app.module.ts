@@ -15,6 +15,7 @@ import { DynamicVisPageComponent } from './dynamic-vis-page/dynamic-vis-page.com
 import { AboutPageComponent } from './about-page/about-page.component'
 import { AngularResizedEventModule } from 'angular-resize-event';
 import { FormsModule } from '@angular/forms';
+import { TreemapComponent } from './treemap/treemap.component';
 
 @NgModule({
     declarations: [
@@ -29,6 +30,7 @@ import { FormsModule } from '@angular/forms';
         FooterComponent,
         DynamicVisPageComponent,
         AboutPageComponent,
+        TreemapComponent,
     ],
     imports: [
         BrowserModule,
