@@ -182,7 +182,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         }
 
         function nodeGUI(inst, i) {
-            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [] };
+            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [], "mailCount": i.mailCount };
 
             console.log(linklist);
             var sentLinks = data.individualLinks.filter(function (e) {

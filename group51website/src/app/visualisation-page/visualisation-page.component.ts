@@ -401,13 +401,13 @@ export class VisualisationPageComponent implements OnInit {
 
             // get table of info
             let idTable = (document.getElementById("id_table") as HTMLTableElement);
-            console.log(idTable)
 
             // update ID
             createInfoRow(idTable, "ID:", node.id.toString());
-
             // update job
             createInfoRow(idTable, "Job:", node.job);
+            // update nr of emails
+            createInfoRow(idTable,"nr of emails send/received:",node.mailCount)
         }
     }
 

@@ -26,7 +26,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private beginScale = 1;
 
     // variable holding information of clicked node
-    nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
+    nodeinfo;
 
     constructor() { }
 
@@ -209,7 +209,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function nodeGUI(inst, i) {
-            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [] };
+            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [], "mailCount": i.mailCount };
 
             // console.log(individualLinks);
             var sentLinks = data.individualLinks.filter(function (e) {

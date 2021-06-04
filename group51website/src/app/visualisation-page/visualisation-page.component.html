@@ -90,7 +90,27 @@
                 </div>
             </div>
 
+            <!-- Center area -->
             <div #infoCard class="column is-2 has-text-centered">
+
+                <!-- The title for the legend card -->
+                <div class="container mb-2">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Legend</p>
+                            <span class="card-header-icon" style="cursor:unset">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                        </header>
+
+                        <!--The actual legend-->
+                        <div class="card-content" style="overflow: hidden;" (resized)="onResized($event)">
+                            <svg id="legend"></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Information card -->
                 <div class="card">
                     <header class="card-header">
                         <p class="card-header-title">Node Information</p>
@@ -101,13 +121,15 @@
 
                     <!--ID value :: using a table to get consistant spacing with the lists of values below-->
                     <div class="card-content">
-                        <table id="id_table" class="table is-narrow is-hoverable is-fullwidth">
-                            <tbody>
-                                <tr>
-                                    <td id="node_id">Click a node to display addition information</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-container">
+                            <table id="id_table" class="table is-narrow is-hoverable is-fullwidth">
+                                <tbody>
+                                    <tr>
+                                        <td id="node_id">Click a node to display addition information</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- emails received header-->
@@ -148,20 +170,6 @@
 
                 </div>
 
-                <!-- The title for the legend card -->
-                <div class="card" style="margin-top: 25px;">
-                    <header class="card-header">
-                        <p class="card-header-title">Legend</p>
-                        <span class="card-header-icon" style="cursor:unset">
-                            <i class="fas fa-info-circle"></i>
-                        </span>
-                    </header>
-
-                    <!--The actual legend-->
-                    <div class="card-content" style="overflow: hidden;" (resized)="onResized($event)">
-                        <svg id="legend"></svg>
-                    </div>
-                </div>
             </div>
 
             <div #vis2 class="column is-5 has-text-centered">
