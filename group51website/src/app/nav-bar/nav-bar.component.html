@@ -82,11 +82,24 @@
     </header>
 
     <!--Section with list-->
-    <section class="modal-card-body is-fullwidth has-text-centered">
-      <h1 class="title is-4">Previously uploaded datasets:</h1>
+    <section class="modal-card-body has-text-centered">
+
+      <div id="not_status" class="notification is-warning py-2 my-1">
+        <button class="delete" (click)= "removeNotification('not_status')"></button>
+        Press the <b>Status</b> button to change the selected dataset
+      </div>
+
+      <div id="not_warning" class="notification is-danger py-2 my-1">
+        <button class="delete" (click)= "removeNotification('not_warning')"></button>
+        The upload button on this page is currently broken
+      </div>
+
+      <h1 class="title is-4 mb-1 mt-1">Datasets database</h1>
+      <h2 class="sub-title">all <span class="tag is-warning is-inline">.csv</span> files uploaded so far</h2>
+      
       <!--Table-->
       <div class="table-container table is-fullwidth is-centered">
-        <table id="upload_modal_table" class="table is-fullwidth">
+        <table id="upload_modal_table" class="table is-fullwidth is-striped">
           <thead><tr>
             <th>nr</th>
             <th>File name</th>

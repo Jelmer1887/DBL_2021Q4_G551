@@ -56,4 +56,7 @@ export class NavBarComponent implements OnInit {
 
         }
     }
+    removeNotification(id:string):void{
+        document.getElementById(id).className += " is-hidden";
+    }
 }
