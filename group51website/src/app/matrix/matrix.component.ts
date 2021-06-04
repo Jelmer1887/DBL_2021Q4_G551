@@ -142,13 +142,13 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
             for(var link of links) {
                 var linkFound = false
                 for (var l of jobLinks) {
-                    if (idToJobs[link.source] == l.jobSource && idToJobs[link.target] == l.jobTarget) {
+                    if (idToJobs[link.source] == l.source && idToJobs[link.target] == l.target) {
                         linkFound = true
                         l.weight +=1
                     }
                 }
                 if (!linkFound) {
-                    jobLinks.push({jobSource: idToJobs[link.source], jobTarget: idToJobs[link.target], weight: 1})    
+                    jobLinks.push({source: idToJobs[link.source], target: idToJobs[link.target], weight: 1})    
                 } 
             }      
         }    
@@ -171,6 +171,17 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
             }
             return colors[index];
         }
+
+        function rectColorJob(weight) {
+            var colors= ["#ffadad", "#ff5e5e", "#ff2323", "#d40000", "#990000", "#5e0000"];
+            var colorChooser = maxWeight / (colors.length+1);
+            var index = Math.floor(weight / colorChooser); //integer division to determine saturation of red
+            if (index>=colors.length){//makes sure that the maximum value isn't hogging a color for itself.
+                index = colors.length-1;
+            }
+            return colors[index];
+        }
+    
 
         function makeText(d) {
             if (d.id.length == 3) {
@@ -205,6 +216,16 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
             return "none"
         }
 
+        function colourJobGrid(a, d) {
+            if(a.source === d.source) {
+                return nodeColor(d.source)
+            }
+            if (a.target === d.target) {
+                return nodeColor(d.target);
+            }
+            return "none"
+        }
+    
         function makeJobGridData(array) {
             var gridData = []
             for (var i=0; i< array.length; i++) {
@@ -216,11 +237,12 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
         }
 
         if (this.matrixView == "job") {
-            var xMargin = 5; 
-            var yMargin = 5;
-            var jobLinks = []; //[{jobSource: , jobTarget: , weight: }]
+            var xMargin = 15; 
+            var yMargin = 15;
+            var jobLinks = []; //[{source: , target: , weight: }]
             makeJobLinks(jobLinks);
             nodes = jobs
+            var maxWeight = findMaxWeight();
             var gridData = makeJobGridData(nodes);
             console.log(gridData);
             var x = d3.scalePoint()
@@ -240,39 +262,40 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 .attr("stroke", "black")
                 .attr('stroke-width', 0.3)
                 .attr('stroke-opacity', 0.5)
-                .attr("width", ((this.width - 2*xMargin) / nodes.length)-5)
-                .attr("height", (this.height - 2*yMargin) / nodes.length)
+                .attr("width", (this.width - 2*xMargin) / (nodes.length+1)) //this somehow works, it probably makes sense if you think about it
+                .attr("height", (this.height - 2*yMargin) / (nodes.length+1)) //yes, it's kinda hard coded
                 .attr("x", function (d: any) { return x(d.target)}) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source)}) //y postion depends on source ID
                 .style("fill", "none");
 
-            /*const linkBox = svg.selectAll("myBoxes")
-            .data(jobLinks)
-            .enter()
-            .append("rect")
-            .attr("stroke", "black")
-            .attr("width", (this.width - xMargin) / nodeID.length)
-            .attr("height", (this.height - yMargin) / nodeID.length)
-            .attr("x", function (d: any) { return (x(d.target) + xMargin) }) //x position depends on target ID
-            .attr("y", function (d: any) { return (y(d.source)) }) //y postion depends on source ID
-            .attr("fill", (d: any) => (data.adjacencyMatrix[d.source][d.target]==maxWeight)? "#4b0000":rectColor(data.adjacencyMatrix[d.source][d.target])) //color depends on the weight of the link (directed links)
-            .on("mouseover", function(event, d: any) {
-                grid.style('fill', (a : any) => colourGrid(a, d))
+            const linkBox = svg.selectAll("myBoxes")
+                .data(jobLinks)
+                .enter()
+                .append("rect")
+                .attr("stroke", "black")
+                .attr("width", (this.width - 2*xMargin) / (nodes.length+1))
+                .attr("height", (this.height - 2*yMargin) / (nodes.length+1))
+                .attr("x", function (d: any) { return x(d.target)}) //x position depends on target ID
+                .attr("y", function (d: any) { return y(d.source)}) //y postion depends on source ID
+                .attr("fill", (d: any) => ////color depends on the weight of the link (directed links), 
+                    rectColorJob(d.weight)) //ternary operator was necessary for bug fix, probably redundant now
+                .on("mouseover", function(event, d: any) {
+                    grid.style('fill', (a : any) => colourJobGrid(a, d))
 
-            })
-            .on("mouseout", function(event, d) {
-                grid.style('fill', "none")
-            });
+                })
+                .on("mouseout", function(event, d) {
+                    grid.style('fill', "none")
+                });
         linkBox.append("title")
             .text((d: any) => {
                 return "source: " + d.source + "\n" +
                     "target: " + d.target + "\n" +
-                    "weight :" + data.adjacencyMatrix[d.source][d.target];
-            });*/
+                    "weight :" + d.weight;
+            });
         }
 
         if (this.matrixView == "all") {
-            var xMargin = 7; //the amount of space in the matrix reserved for text
+            var xMargin = 15; //the amount of space in the matrix reserved for text
             var yMargin = 10; // idem
             sortLinksID(links);
             var nodeID = [];
@@ -306,11 +329,11 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                     .append("rect")
                     .attr("stroke", "black")
                     .attr('stroke-width', 0.3)
-                    .attr('stroke-opacity', 0.5)
-                    .attr("width", (this.width - xMargin) / nodeID.length)
-                    .attr("height", (this.height - yMargin) / nodeID.length)
-                    .attr("x", function (d: any) { return (x(d.target) + xMargin) }) //x position depends on target ID
-                    .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
+                    .attr('stroke-opacity', 0.5)                            //comments indicate previous version in case stuff breaks
+                    .attr("width", (this.width - xMargin) / nodeID.length) //(this.width - xMargin) / nodeID.length) 
+                    .attr("height", (this.height - yMargin) / nodeID.length) //(this.height - yMargin) / nodeID.length)
+                    .attr("x", function (d: any) { return (x(d.target)) }) //x position depends on target ID, function (d: any) { return (x(d.target) + xMargin) })
+                    .attr("y", function (d: any) { return y(d.source)}) //y postion depends on source ID, function (d: any) { return y(d.source) }) 
                     .style("fill", "none");        
 
             const linkBox = svg.selectAll("myBoxes")
@@ -320,7 +343,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 .attr("stroke", "black")
                 .attr("width", (this.width - xMargin) / nodeID.length)
                 .attr("height", (this.height - yMargin) / nodeID.length)
-                .attr("x", function (d: any) { return (x(d.target) + xMargin) }) //x position depends on target ID
+                .attr("x", function (d: any) { return (x(d.target)) }) //x position depends on target ID
                 .attr("y", function (d: any) { return (y(d.source)) }) //y postion depends on source ID
                 .attr("fill", (d: any) => (data.adjacencyMatrix[d.source][d.target]==maxWeight)? "#ad0000" : rectColor(data.adjacencyMatrix[d.source][d.target])) //color depends on the weight of the link (directed links), If we really wanna emphasize the max weight: #4b0000
                 .on("mouseover", function(event, d: any) {
@@ -358,7 +381,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 .append("text")
                 .attr("font-size", "5")
                 .attr("font-family", "sans-serif")
-                .attr("transform", (d: any) => `translate(${d.x = x(d.id) + xMargin},${0}) rotate(90)`)
+                .attr("transform", (d: any) => `translate(${d.x = x(d.id)},${0}) rotate(90)`)
                 .text(d => makeText(d))
                 .style("text-anchor", "middle")
                 .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
