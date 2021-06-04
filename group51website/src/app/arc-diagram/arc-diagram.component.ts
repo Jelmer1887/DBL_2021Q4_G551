@@ -16,9 +16,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     // Input variables.
     @Input() data: Data;
     @Input() sort;
-    @Input() selectedNode;
+    @Input() selectedNodeInfo;
 
-    @Output() nodeToParent = new EventEmitter<any>(); //event to send node selected to parent
+    @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     private width;
     private height = 800;
@@ -35,7 +35,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     // -- --- -- \\
 
     ngOnChanges(changes: SimpleChanges): void {
-        console.log("arcdiagram: NODE SELECTED IS " + this.selectedNode)
+        console.log("arcdiagram: NODE SELECTED IS " + this.selectedNodeInfo['id'])
         this.initiateDiagram()
     }
 
@@ -169,6 +169,30 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             }
         }
 
+        function nodeGUI(inst, i) {
+            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [] };
+
+            console.log(linklist);
+            var sentLinks = data.individualLinks.filter(function (e) {
+                return e.source == i.id;      //Finds emails sent
+            })
+
+            var receivedLinks = data.individualLinks.filter(function (e) {
+                return e.target == i.id;      //Finds emails received
+            })
+
+            for (var link in sentLinks) {
+                linklist["sendto"].push(sentLinks[link]['target'])
+            }
+            for (var link in receivedLinks) {
+                linklist["receivedfrom"].push(receivedLinks[link]['source'])
+            }
+
+            console.log(linklist);
+            inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
+            //inst.nodeinfo = linklist;       // set local version
+        }
+
         const node = svg.selectAll("mynodes")
             .data(nodes)
             .enter()
@@ -197,7 +221,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .text(d => makeText(d))
             .style("text-anchor", "middle")
             .on("click", (event, d: any) => {
-                inst.nodeToParent.emit(d.id)
+                nodeGUI(inst,d)
             })
             //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
             .on("mouseover", function (event, d: any) {
