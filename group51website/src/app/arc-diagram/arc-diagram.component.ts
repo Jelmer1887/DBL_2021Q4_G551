@@ -35,8 +35,12 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     // -- --- -- \\
 
     ngOnChanges(changes: SimpleChanges): void {
-        console.log("arcdiagram: NODE SELECTED IS " + this.selectedNodeInfo['id'])
-        this.initiateDiagram()
+        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
+            console.log("arcdiagram: The node selected is " + this.selectedNodeInfo['id'])
+            this.newNodeSelected()
+        } else {
+            this.initiateDiagram()
+        }
     }
 
     initiateDiagram() {
@@ -143,33 +147,6 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 }
 
 `);
-        //link colour based on sentiment of message
-        function linkColor(sentiment): string {
-            // console.log(sentiment);
-            for (var s of sentiment) {
-                if (s > 0.1) {
-                    return "#3bff3b"; // #55EE55
-                }
-
-                if (s < -0.1) {
-                    return "#EE5555";
-                }
-            }
-
-            return "#999999";
-        }
-        function linkColorHover(sentiment) {
-            for (var s of sentiment) {
-                if (s > 0.1) {
-                    return "#89ff89"; //#76ff76
-                }
-                if (s < -0.1) {
-                    return "#ffadad";
-                } 
-            }
-
-            return "#ccc";
-        }
         //This is the ugliest solution ever. It makes the text boxes longer, making it easier to interact with them with mouse-events
         function makeText(d) {
             if (d.id.length == 3) {
@@ -240,15 +217,16 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 label.style('fill', "#ccc")
                 d3.select(this).style('font-weight', 'bold')
                 d3.select(this).style('fill', "#000")
-                link.style('stroke', (a: any) => a.source === d.id || a.target === d.id ? nodeColor(d.job) : linkColorHover(a.sentiment))
+                link.style('stroke', (a: any) => a.source === d.id || a.target === d.id ? nodeColor(d.job) : inst.linkColorHover(a.sentiment))
                 //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
             })
-            .on("mouseout", function (event, d) {
-                label.style('fill', "#000")
-                d3.select(this).style('fill', '#000')
-                d3.select(this).style('font-weight', 'normal')
-                link.style('stroke', (a: any) => linkColor(a.sentiment))
-                //.style('stroke-width', 1)
+            .on("mouseout", function (event, d: any) {
+                if(d.id != inst.selectedNodeInfo['id']){
+                    label.style('fill', "#000")
+                    d3.select(this).style('fill', '#000')
+                    d3.select(this).style('font-weight', 'normal')
+                }
+                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? ( a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)): inst.linkColor(a.sentiment) )
             })
             .call(mylabels => mylabels.append("text")
                 .attr("x", 0)
@@ -295,9 +273,52 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     .join(' ');
             })
             .style("fill", "none")
-            .attr("stroke", (d: any) => linkColor(d.sentiment))
+            .attr("stroke", (d: any) => this.linkColor(d.sentiment))
             .attr("stroke-opacity", 0.6)
             .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
+    }
+
+    newNodeSelected() {
+
+        const svg = d3.select("#arc-diagram")
+        //const node = svg.selectAll("circle")
+        const label = svg.selectAll("text")
+        const link = svg.selectAll('path')
+
+        //label.style('stroke', "#ccc")
+        label.style('font-weight', (a:any) => a.id === this.selectedNodeInfo['id'] ? 'bold' : 'plain')
+        label.style('fill', (a:any) => this.selectedNodeInfo['id'].length != 0 ? ( a.id === this.selectedNodeInfo['id'] ? "#000" : '#ccc') : "#000")
+        link.style('stroke', (a: any) => this.selectedNodeInfo['id'].length != 0 ? ( a.source === this.selectedNodeInfo['id'] || a.target === this.selectedNodeInfo['id'] ? nodeColor(this.selectedNodeInfo['job']) : this.linkColorHover(a.sentiment)): this.linkColor(a.sentiment) )
+
+    }
+
+    //link colour based on sentiment of message
+    linkColorHover(sentiment) {
+        for (var s of sentiment) {
+            if (s > 0.1) {
+                return "#89ff89"; //#76ff76
+            }
+            if (s < -0.1) {
+                return "#ffadad";
+            } 
+        }
+
+        return "#ccc";
+    }
+
+    linkColor(sentiment): string {
+        // console.log(sentiment);
+        for (var s of sentiment) {
+            if (s > 0.1) {
+                return "#3bff3b"; // #55EE55
+            }
+
+            if (s < -0.1) {
+                return "#EE5555";
+            }
+        }
+
+        return "#999999";
     }
 
     ngAfterViewInit(): void {

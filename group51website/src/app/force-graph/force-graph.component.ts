@@ -47,10 +47,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     ngOnChanges(changes: SimpleChanges): void {
         if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
-            this.newNodeSelected(this)
         } else {
             this.initiateGraph();
         }
+        this.newNodeSelected()
     }
 
     initiateGraph() {
@@ -125,9 +125,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .on("click", function (d, i: any) {
                 nodeGUI(inst, i);                                  //To display info about node
                 nodeclicked(this, i);                              //Small animation of node
-                console.log(inst.selectedNodeInfo)
-                node.attr("stroke", (a: any) => a.id === inst.selectedNodeInfo['id'] ? "black" : "#fff" )
-                node.attr("stroke-width", (a: any) => a.id === inst.selectedNodeInfo['id'] ? 2 : 1 )
             })
             .on("mouseover", function (event, d: any) {
                 d3.select(this)
@@ -197,14 +194,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             var nodeRadius = Math.max(Math.min(Math.sqrt(i.mailCount), 20), 5)
             d3.select(d)
                 .transition()
-                .attr("stroke", "black")
-                .attr("stroke-width", 2)
                 .attr("r", nodeRadius * 2)
 
                 .transition()
                 .attr("r", nodeRadius)
-                .attr("stroke", 'black')
-                .attr("stroke-width", 2)
             link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
         }
 
@@ -293,10 +286,21 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
     }
 
-    newNodeSelected(inst) {
-        /*var nodeSelected = d3.selectAll("circle").filter( function(d :any,e) {
-        })
-        console.log(nodeSelected)*/
+    newNodeSelected() {
+
+        var edgeStyle = "line"
+        
+        if (this.showIndividualLinks) {
+            edgeStyle = "path"
+        }
+
+        var svg = d3.select("#force-graph")
+        var node = svg.selectAll('circle')
+        var link = svg.selectAll(edgeStyle)
+
+        link.style('stroke', (a: any) => this.selectedNodeInfo['id'].length != 0 ? (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'] ? this.linkColor(a.sentiment, 1) : '#ccc') : this.linkColor(a.sentiment, 0))
+        node.attr("stroke", (a:any, d: any) => a.id === this.selectedNodeInfo['id'] ? "black" : "#fff" );
+        node.attr("stroke-width", (a:any, d: any) => a.id === this.selectedNodeInfo['id'] ? 2 : 1 )
     }
 
     //to drag nodes around
