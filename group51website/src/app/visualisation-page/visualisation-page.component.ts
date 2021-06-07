@@ -34,7 +34,7 @@ export class VisualisationPageComponent implements OnInit {
     };
     arcSort = "id";
     matrixSort = "id";
-    showIndividualLinks = false;
+    brushMode = false;
     max;
     //selectedNodeID;
     selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
@@ -203,8 +203,8 @@ export class VisualisationPageComponent implements OnInit {
             var maxMonth = maxDate.toLocaleString('default', { month: 'long' })
             var maxYear = maxDate.getFullYear()
 
-            document.getElementById('myRangeMax').innerText =  maxDay +' '+ maxMonth +', '+ maxYear;
-            document.getElementById('myRangeMin').innerText =  minDay +' '+ minMonth +', '+ minYear
+            document.getElementById('myRangeMax').innerText = maxDay + ' ' + maxMonth + ', ' + maxYear;
+            document.getElementById('myRangeMin').innerText = minDay + ' ' + minMonth + ', ' + minYear
 
         };
 
@@ -370,7 +370,7 @@ export class VisualisationPageComponent implements OnInit {
                 }
             }
 
-            
+
             for (let i = 0; i < this.selectedNodeInfo["receivedfrom"].length; i++) {
                 var id = this.selectedNodeInfo["receivedfrom"][i]
                 this.selectedNodeInfo["receivedfrom"][i] = id.toString() + " "; // I need to hvae a space between every element
@@ -407,13 +407,16 @@ export class VisualisationPageComponent implements OnInit {
             // update job
             createInfoRow(idTable, "Job:", node.job);
             // update nr of emails
-            createInfoRow(idTable,"nr of emails send/received:",node.mailCount)
+            createInfoRow(idTable, "nr of emails send/received:", node.mailCount)
         }
     }
 
-    checkLinksOption(event): void {
-        //console.log(event);
-        this.showIndividualLinks = event.target.checked;
+    setBrushMode(): void {
+        this.brushMode = true;
+    }
+
+    setPanMode(): void {
+        this.brushMode = false;
     }
 
     fullscreenVis1() {

@@ -13,10 +13,13 @@ import { ResizedEvent } from 'angular-resize-event';
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     @Input() data: Data;
-    @Input() showIndividualLinks;
     @Input() selectedNodeInfo;  //id of the node last clicked
+    @Input() brushMode;
 
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
+
+    showIndividualLinks = false;
+    brushedNodes = [];
 
     private width;
     private height = 800;
@@ -43,9 +46,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     // -- ---- - ---- -- \\
-
     ngOnChanges(changes: SimpleChanges): void {
-        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
+        if ('brushMode' in changes) {
+            if (this.brushMode) {
+                this.enableBrushMode();
+            } else {
+                this.disableBrushMode();
+            }
+        } else if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
         } else {
             this.initiateGraph();
@@ -136,7 +144,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 d3.select(this)
                     .attr("stroke", d.id === inst.selectedNodeInfo['id'] ? 'black' : "#fff")
                     .attr("stroke-width", d.id === inst.selectedNodeInfo['id'] ? 2 : 1)
-                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
+                //link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
+                inst.newNodeSelected();
             })
 
 
@@ -287,7 +296,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     newNodeSelected() {
-
         var edgeStyle = "line"
 
         if (this.showIndividualLinks) {
@@ -298,8 +306,20 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         var node = svg.selectAll('circle')
         var link = svg.selectAll(edgeStyle)
 
-        link.style('stroke', (a: any) => this.selectedNodeInfo['id'].length != 0 ? (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'] ? this.linkColor(a.sentiment, 1) : '#ccc') : this.linkColor(a.sentiment, 0))
-        node.attr("stroke", (a: any, d: any) => a.id === this.selectedNodeInfo['id'] ? "black" : "#fff");
+        link.style('stroke', (a: any) => {
+            if (this.selectedNodeInfo['id'].length != 0 || this.brushedNodes.length != 0) {
+                var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
+                    (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
+                return (highlighted ? this.linkColor(a.sentiment, 1) : '#ccc')
+            }
+            else {
+                return this.linkColor(a.sentiment, 0)
+            }
+        })
+        node.attr("stroke", (a: any, d: any) => {
+            var selected = a.id === this.selectedNodeInfo['id'] || this.brushedNodes.includes(a.id);
+            return selected ? "black" : "#fff"
+        });
         node.attr("stroke-width", (a: any, d: any) => a.id === this.selectedNodeInfo['id'] ? 2 : 1)
     }
 
@@ -357,49 +377,58 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("height", this.height)
     }
 
-    onKeyDown(event: KeyboardEvent) {
-        // Shift enters brushing mode. Only listen to the first shift press event, not the repeated events when shift is held down.
-        if (event.code == "KeyB" && !event.repeat) {
-            const svg = d3.select("#force-graph")
-            svg.on(".zoom", null);  // Disable zooming when in brush mode.
+    enableBrushMode() {
+        this.checkZoomReset();
+        const svg = d3.select("#force-graph")
+        svg.on(".zoom", null);  // Disable zooming when in brush mode.
 
-            svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
-                .extent([[0, 0], [this.width, this.height]])       // initialise the brush area, so the entire graph
-                .on("start end", function (e) {
-                    console.log(e);
-                })
-            )
-        }
+        var inst = this;
+        svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
+            .extent([[0, 0], [this.width, this.height]])       // initialise the brush area, so the entire graph
+            .on("start end", function (e) {
+                inst.brushedNodes = [];
+                if (e.selection) {
+                    var x0 = e.selection[0][0],
+                        x1 = e.selection[1][0],
+                        y0 = e.selection[0][1],
+                        y1 = e.selection[1][1];
+                    svg.selectAll("circle")
+                        .each(function (d) {
+                            var isSelected = x0 <= d.x && d.x <= x1 && y0 <= d.y && d.y <= y1;
+                            if (isSelected) {
+                                inst.brushedNodes.push(d.id)
+                            }
+                        })
+                }
+                inst.newNodeSelected();
+                // console.log(inst.brushedNodes)
+            })
+        )
     }
 
-    onKeyUp(event: KeyboardEvent) {
-        // We exit brushing mode once shift goes back up.
-        if (event.code == "KeyB") {
-            const svg = d3.select("#force-graph")
+    disableBrushMode() {
+        const svg = d3.select("#force-graph")
 
-            // Disable the brush
-            // svg.on(".brush", null);
-            svg.call(d3.brush().extent([[0, 0], [0, 0]]))
-            svg.on(".brush", null);
+        // Disable the brush
+        // svg.on(".brush", null);
+        svg.call(d3.brush().extent([[0, 0], [0, 0]]))
+        svg.on(".brush", null);
+        svg.selectAll("rect").remove();
 
-            var node = svg.selectAll("circle")
-            var link = svg.selectAll("line")
+        var node = svg.selectAll("circle")
+        var link = svg.selectAll("line")
 
-            // Add the zoom and panning back
-            svg.call(this.zoom
-                .extent([[0, 0], [this.width, this.height]])
-                .on("zoom", function ({ transform }) {
-                    node.attr("transform", transform);
-                    link.attr("transform", transform);
-                })
-            )
-        }
-        /*
-        */
+        // Add the zoom and panning back
+        svg.call(this.zoom
+            .extent([[0, 0], [this.width, this.height]])
+            .on("zoom", function ({ transform }) {
+                node.attr("transform", transform);
+                link.attr("transform", transform);
+            })
+        )
     }
 
     checkZoomReset(): void {
-        console.log("Reset zoom!");
         const svg = d3.select("#force-graph");
         svg.selectAll("circle")
             .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
