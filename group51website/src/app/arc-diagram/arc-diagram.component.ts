@@ -210,7 +210,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .text(d => makeText(d))
             .style("text-anchor", "middle")
             .on("click", (event, d: any) => {
-                nodeGUI(inst,d)
+                nodeGUI(inst, d)
             })
             //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
             .on("mouseover", function (event, d: any) {
@@ -221,12 +221,12 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
             })
             .on("mouseout", function (event, d: any) {
-                if(d.id != inst.selectedNodeInfo['id']){
+                if (d.id != inst.selectedNodeInfo['id']) {
                     label.style('fill', "#000")
                     d3.select(this).style('fill', '#000')
                     d3.select(this).style('font-weight', 'normal')
                 }
-                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? ( a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)): inst.linkColor(a.sentiment) )
+                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
             })
             .call(mylabels => mylabels.append("text")
                 .attr("x", 0)
@@ -286,9 +286,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         const link = svg.selectAll('path')
 
         //label.style('stroke', "#ccc")
-        label.style('font-weight', (a:any) => a.id === this.selectedNodeInfo['id'] ? 'bold' : 'plain')
-        label.style('fill', (a:any) => this.selectedNodeInfo['id'].length != 0 ? ( a.id === this.selectedNodeInfo['id'] ? "#000" : '#ccc') : "#000")
-        link.style('stroke', (a: any) => this.selectedNodeInfo['id'].length != 0 ? ( a.source === this.selectedNodeInfo['id'] || a.target === this.selectedNodeInfo['id'] ? nodeColor(this.selectedNodeInfo['job']) : this.linkColorHover(a.sentiment)): this.linkColor(a.sentiment) )
+        label.style('font-weight', (a: any) => a.id === this.selectedNodeInfo['id'] ? 'bold' : 'plain')
+        label.style('fill', (a: any) => this.selectedNodeInfo['id'].length != 0 ? (a.id === this.selectedNodeInfo['id'] ? "#000" : '#ccc') : "#000")
+        link.style('stroke', (a: any) => this.selectedNodeInfo['id'].length != 0 ? (a.source === this.selectedNodeInfo['id'] || a.target === this.selectedNodeInfo['id'] ? nodeColor(this.selectedNodeInfo['job']) : this.linkColorHover(a.sentiment)) : this.linkColor(a.sentiment))
 
     }
 
@@ -300,7 +300,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             }
             if (s < -0.1) {
                 return "#ffadad";
-            } 
+            }
         }
 
         return "#ccc";
@@ -323,6 +323,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
+        this.runDiagram(this.data);
     }
 
     @ViewChild('container')

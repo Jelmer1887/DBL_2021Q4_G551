@@ -289,7 +289,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     newNodeSelected() {
 
         var edgeStyle = "line"
-        
+
         if (this.showIndividualLinks) {
             edgeStyle = "path"
         }
@@ -299,8 +299,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         var link = svg.selectAll(edgeStyle)
 
         link.style('stroke', (a: any) => this.selectedNodeInfo['id'].length != 0 ? (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'] ? this.linkColor(a.sentiment, 1) : '#ccc') : this.linkColor(a.sentiment, 0))
-        node.attr("stroke", (a:any, d: any) => a.id === this.selectedNodeInfo['id'] ? "black" : "#fff" );
-        node.attr("stroke-width", (a:any, d: any) => a.id === this.selectedNodeInfo['id'] ? 2 : 1 )
+        node.attr("stroke", (a: any, d: any) => a.id === this.selectedNodeInfo['id'] ? "black" : "#fff");
+        node.attr("stroke-width", (a: any, d: any) => a.id === this.selectedNodeInfo['id'] ? 2 : 1)
     }
 
     //to drag nodes around
