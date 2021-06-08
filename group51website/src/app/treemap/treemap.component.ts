@@ -96,8 +96,8 @@ export class TreemapComponent implements OnInit {
     // 4. assign the jobs as children of the root, and update the root count of mails.
     //    also convert this elaborate structure to a d3 data type.
     root.children = joblist                                             // assign the jobs as children at the root
-    for (const j in joblist){root.mailCount += joblist[j].mailCount;}   // update the roots mailCount now that is has children
-    let rootd3 = d3.hierarchy(root)                                     // convert to d3 hierarchy structure to tranform into a treemap
+    //for (const j in joblist){root.mailCount += joblist[j].mailCount;}   // update the roots mailCount now that is has children
+    let rootd3 = d3.hierarchy(root).sum(function(node){ return node.mailCount})                                     // convert to d3 hierarchy structure to tranform into a treemap
 
 
     // -- compute the graph

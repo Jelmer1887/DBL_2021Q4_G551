@@ -188,6 +188,20 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             }
         } 
+        function jobTextX(d) {
+            if(d.job.lastIndexOf(" ")==-1){
+                return  d.job + "\u00A0 \u00A0 \u00A0" ; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
+            }else{
+                return  d.job.substr(0,d.job.lastIndexOf(" ")) + "\n" + d.job.substr(d.job.lastIndexOf(" ")) ;
+            }
+        } 
+        function jobTextY(d) {
+            if(d.job.lastIndexOf(" ")==-1){
+                return "\u00A0 \u00A0 " + d.job ; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
+            }else{
+                return  d.job.substr(0,d.job.lastIndexOf(" ")) + "\n" + d.job.substr(d.job.lastIndexOf(" ")) ;
+            }
+        } 
 
         function makeGridData() {
             var gridData = [];
@@ -326,6 +340,42 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                             "target: " + d.target + "\n" +
                             "weight :" + d.weight;
                     });
+                    const yAxisLabel = svg.selectAll("myYlabels")
+                    .data(nodes)
+                    .enter()
+                    .append("text")
+                    .attr("font-size", "8")
+                    .attr("font-family", "sans-serif")
+                    //.attr("x", 1)
+                    .attr("transform", (d: any) => `translate(${37},${d.y = y(d.job) + (this.height - yMargin) / jobLinks.length})`)
+                    .text(d => jobTextY(d))
+                    .style("text-anchor", "end")
+                    .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
+                    .on("click", (event, d: any) => {
+                        //inst.nodeToParent.emit(d.id)
+                    });
+    
+                const xAxisLabel = svg.selectAll("myXlabels")
+                    .data(nodes)
+                    .enter()
+                    .append("text")
+                    .attr("font-size", "8")
+                    .attr("font-family", "sans-serif")
+                    .attr("transform", (d: any) => `translate(${d.x = x(d.job) +15},${45}) rotate(270) `)
+                    .text(d => jobTextX(d))
+                    .style("text-anchor", "start")
+                    .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
+                    .on("click", (event, d: any) => {
+                        //inst.nodeToParent.emit(d.id)
+                    })/*
+                    .on("mouseover", function (event, d: any) {
+                        xAxisLabel.style('fill', '#ccc')
+                        d3.select(this).attr("font-size", "10")
+                            .style('fill', '#000')
+                            .style('font-weight', 'bold')
+                            .attr("x")
+                    })*/;
+    
                 }
 
         if (this.matrixView == "all") {
