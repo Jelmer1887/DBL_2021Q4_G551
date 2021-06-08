@@ -60,14 +60,12 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
 
     runMatrix(data: Data) {
         var links = JSON.parse(JSON.stringify(data.individualLinks))
-        console.log(links);
+        // console.log(links);
         var nodes = JSON.parse(JSON.stringify(data.nodes))
         var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
         "Employee", "Unknown"];
         var idToJobs = {};//dictionary
-        makeIDtoJobDict();
-        console.log(idToJobs);
-        
+                
         function findMaxWeight() {
             var maxWeight = 0;
             for (var x of data.adjacencyMatrix) {
@@ -97,12 +95,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
             sortLinksTargetID(links);
             sortLinksSourceID(links);
         }
-    
-        //console.log(links);
-        const svg = d3.select('#matrix')
-            .attr("width", this.width)
-            .attr("height", this.height); //800
-        svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
    
         function sortNodesID() {
             nodes.sort(function (a, b) {
@@ -133,6 +125,17 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 }
             })
         }
+
+        function sortJobNodesAmount() {
+            nodes.sort(function (a, b) {
+                if (a.mailCount == b.mailCount) {
+                    return (a.id < b.id ? -1 : 1);
+                } else {
+                    return (a.mailCount > b.mailCount ? -1 : 1);
+                }
+            })
+        }
+
         function makeIDtoJobDict() {
             for(var node of nodes) {
                 idToJobs[node.id] = node.job; // {node.id:node.job}
@@ -141,7 +144,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
         function makeJobLinks(array) {
             for(var link of links) {
                 var linkFound = false
-                for (var l of jobLinks) {
+                for (var l of array) {
                     if (idToJobs[link.source] == l.source && idToJobs[link.target] == l.target) {
                         linkFound = true
                         l.weight +=1
@@ -152,14 +155,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 } 
             }      
         }    
-
-        if (this.matrixSort == 'id') {
-            sortNodesID();
-        } else if (this.matrixSort == 'job') {
-            sortNodesJob();
-        } else if (this.matrixSort == 'amount') {
-            sortNodesAmount();
-        }      
 
         function rectColor(weight) {
             //var colors = ["#ffadad", "#ff8585", "#ff5e5e", "#ff3737", "#ff1010"]; //Based on saturation
@@ -172,16 +167,17 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
             return colors[index];
         }
 
-        function rectColorJob(weight) {
+        /*
+        function rectColorJob(weight) { //TODO: Take a look a this (semantically)
             var colors= ["#ffadad", "#ff5e5e", "#ff2323", "#d40000", "#990000", "#5e0000"];
-            var colorChooser = maxWeight / (colors.length+1);
+            var colorChooser = maxWeight / (colors.length); //+1
             var index = Math.floor(weight / colorChooser); //integer division to determine saturation of red
             if (index>=colors.length){//makes sure that the maximum value isn't hogging a color for itself.
                 index = colors.length-1;
             }
             return colors[index];
         }
-    
+        */
 
         function makeText(d) {
             if (d.id.length == 3) {
@@ -192,9 +188,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             }
         } 
-        const legend = d3.select("#matrix-legend")
-        .attr("width", this.width)
-        .attr("height", 80);
 
         function makeGridData() {
             var gridData = [];
@@ -236,24 +229,66 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
             return gridData;
         }
 
+        function makeJobNodes(){
+            var jobNodes = [];
+            for (var node of nodes) {
+                var nodeFound = false;
+                for (var n of jobNodes) {
+                    if (node.job == n.job) {
+                        nodeFound = true;
+                        n.mailCount += node.mailCount;
+                    }
+                }
+                if(!nodeFound) {
+                    jobNodes.push({job: node.job, mailCount: node.mailCount })
+                }
+            }
+            return jobNodes;
+        }
+
+        makeIDtoJobDict();
+
+        //handles sorting requests
+        if ((this.matrixSort == 'id') && (this.matrixView == 'all')) { //dont want to run these sorts in job view.
+            sortNodesID();
+        } else if ((this.matrixSort == 'job') && (this.matrixView == 'all')) {
+            sortNodesJob();
+        } else if ((this.matrixSort == 'amount') && (this.matrixView == 'all')) {
+            sortNodesAmount();
+        }      
+
+        const svg = d3.select('#matrix')
+            .attr("width", this.width)
+            .attr("height", this.height); //800
+            svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
+
+        const legend = d3.select("#matrix-legend")
+            .attr("width", this.width)
+            .attr("height", 80);
+        
         if (this.matrixView == "job") {
             var xMargin = 15; 
             var yMargin = 15;
             var jobLinks = []; //[{source: , target: , weight: }]
             makeJobLinks(jobLinks);
-            nodes = jobs
+            var jobNodes = makeJobNodes();
+            console.log(jobNodes);
             var maxWeight = findMaxWeight();
-            var gridData = makeJobGridData(nodes);
-            console.log(gridData);
+            var gridData = makeJobGridData(jobs);
+            // console.log(gridData);
             var x = d3.scalePoint()
-                .range([xMargin, this.width-xMargin-(this.width - 2*xMargin) / nodes.length])
+                .range([xMargin, this.width-xMargin-(this.width - 2*xMargin) / jobs.length])
                 .padding(0.5)
-                .domain(nodes);
+                .domain(jobs);
 
             var y = d3.scalePoint()
-                .range([yMargin, this.height-yMargin-(this.height - 2*yMargin) / nodes.length])
+                .range([yMargin, this.height-yMargin-(this.height - 2*yMargin) / jobs.length])
                 .padding(0.5)
-                .domain(nodes);
+                .domain(jobs);
+            
+            var myColor = d3.scaleLinear() 
+                .range(["#d8d8ff", "#0000b1"])  
+                .domain([1, maxWeight])
             
             const grid = svg.selectAll("grid")
                 .data(gridData)
@@ -262,8 +297,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 .attr("stroke", "black")
                 .attr('stroke-width', 0.3)
                 .attr('stroke-opacity', 0.5)
-                .attr("width", (this.width - 2*xMargin) / (nodes.length+1)) //this somehow works, it probably makes sense if you think about it
-                .attr("height", (this.height - 2*yMargin) / (nodes.length+1)) //yes, it's kinda hard coded
+                .attr("width", (this.width - 2*xMargin) / (jobs.length+1)) //this somehow works, it probably makes sense if you think about it
+                .attr("height", (this.height - 2*yMargin) / (jobs.length+1)) //yes, it's kinda hard coded
                 .attr("x", function (d: any) { return x(d.target)}) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source)}) //y postion depends on source ID
                 .style("fill", "none");
@@ -273,26 +308,25 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 .enter()
                 .append("rect")
                 .attr("stroke", "black")
-                .attr("width", (this.width - 2*xMargin) / (nodes.length+1))
-                .attr("height", (this.height - 2*yMargin) / (nodes.length+1))
+                .attr("width", (this.width - 2*xMargin) / (jobs.length+1))
+                .attr("height", (this.height - 2*yMargin) / (jobs.length+1))
                 .attr("x", function (d: any) { return x(d.target)}) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source)}) //y postion depends on source ID
-                .attr("fill", (d: any) => ////color depends on the weight of the link (directed links), 
-                    rectColorJob(d.weight)) //ternary operator was necessary for bug fix, probably redundant now
+                .attr("fill", function(d) {return myColor(d.weight)})
                 .on("mouseover", function(event, d: any) {
                     grid.style('fill', (a : any) => colourJobGrid(a, d))
 
                 })
                 .on("mouseout", function(event, d) {
                     grid.style('fill', "none")
-                });
-        linkBox.append("title")
-            .text((d: any) => {
-                return "source: " + d.source + "\n" +
-                    "target: " + d.target + "\n" +
-                    "weight :" + d.weight;
-            });
-        }
+                })
+                .append("title")
+                    .text((d: any) => {
+                        return "source: " + d.source + "\n" +
+                            "target: " + d.target + "\n" +
+                            "weight :" + d.weight;
+                    });
+                }
 
         if (this.matrixView == "all") {
             var xMargin = 15; //the amount of space in the matrix reserved for text
@@ -311,18 +345,23 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
             var maxWeight = findMaxWeight();
             //boxes are distanced based on the number and order of the nodes in nodeID
             var x = d3.scalePoint()
-                .range([xMargin, this.width-(this.width - xMargin) / nodeID.length])
+                .range([xMargin, this.width-((this.width - xMargin) / (nodeID.length+1))])
                 .padding(0.5)
                 .domain(nodeID);
 
             var y = d3.scalePoint()
-                .range([yMargin, this.height-(this.height - yMargin) / nodeID.length])
+                .range([yMargin, this.height-((this.height - yMargin) / (nodeID.length+1))])
                 .padding(0.5)
                 .domain(nodeID);
-            console.log(nodeID);
+            
+            var myColor = d3.scaleLinear() 
+                .range(["#d8d8ff", "#0000b1"])  
+                .domain([1, maxWeight])
+
             var gridData = makeGridData();
+            
             sortLinksID(gridData);
-            console.log(gridData);
+
             const grid = svg.selectAll("grid")
                     .data(gridData)
                     .enter()
@@ -330,8 +369,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                     .attr("stroke", "black")
                     .attr('stroke-width', 0.3)
                     .attr('stroke-opacity', 0.5)                            //comments indicate previous version in case stuff breaks
-                    .attr("width", (this.width - xMargin) / nodeID.length) //(this.width - xMargin) / nodeID.length) 
-                    .attr("height", (this.height - yMargin) / nodeID.length) //(this.height - yMargin) / nodeID.length)
+                    .attr("width", (this.width - xMargin) / (nodeID.length+1)) //(this.width - xMargin) / nodeID.length) 
+                    .attr("height", (this.height - yMargin) / (nodeID.length+1)) //(this.height - yMargin) / nodeID.length)
                     .attr("x", function (d: any) { return (x(d.target)) }) //x position depends on target ID, function (d: any) { return (x(d.target) + xMargin) })
                     .attr("y", function (d: any) { return y(d.source)}) //y postion depends on source ID, function (d: any) { return y(d.source) }) 
                     .style("fill", "none");        
@@ -341,11 +380,11 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit{
                 .enter()
                 .append("rect")
                 .attr("stroke", "black")
-                .attr("width", (this.width - xMargin) / nodeID.length)
-                .attr("height", (this.height - yMargin) / nodeID.length)
+                .attr("width", (this.width - xMargin) / (nodeID.length+1))
+                .attr("height", (this.height - yMargin) / (nodeID.length+1))
                 .attr("x", function (d: any) { return (x(d.target)) }) //x position depends on target ID
                 .attr("y", function (d: any) { return (y(d.source)) }) //y postion depends on source ID
-                .attr("fill", (d: any) => (data.adjacencyMatrix[d.source][d.target]==maxWeight)? "#ad0000" : rectColor(data.adjacencyMatrix[d.source][d.target])) //color depends on the weight of the link (directed links), If we really wanna emphasize the max weight: #4b0000
+                .attr("fill", (d: any) => (myColor(data.adjacencyMatrix[d.source][d.target])))
                 .on("mouseover", function(event, d: any) {
                     grid.style('fill', (a : any) => colourGrid(a, d))
     
