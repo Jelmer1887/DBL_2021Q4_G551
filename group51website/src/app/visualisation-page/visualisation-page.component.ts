@@ -185,6 +185,8 @@ export class VisualisationPageComponent implements OnInit {
                 newData.adjacencyMatrix[link.source][link.target] += 1;
             }
 
+            newData.nodes.sort((a, b) => (a.id > b.id ? 1 : -1));
+
             this.data = newData;
 
             //YYYY-MM-DDTHH:MM:SS
