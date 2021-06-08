@@ -154,6 +154,7 @@ export class VisualisationPageComponent implements OnInit {
                         linkFound = true;
                         l.date.push(dateInt);
                         l.sentiment.push(parseFloat(columns[8]));
+                        l.type.push(columns[7]);
                         break;
                     }
                 }
@@ -163,7 +164,8 @@ export class VisualisationPageComponent implements OnInit {
                         source: source,
                         target: target,
                         date: [dateInt],
-                        sentiment: [parseFloat(columns[8])]
+                        sentiment: [parseFloat(columns[8])],
+                        type: [columns[7]]
                     });
                 }
 
@@ -171,7 +173,8 @@ export class VisualisationPageComponent implements OnInit {
                     source: source,
                     target: target,
                     date: [dateInt],
-                    sentiment: [parseFloat(columns[8])]
+                    sentiment: [parseFloat(columns[8])],
+                    type: [columns[7]]
                 });
 
             }

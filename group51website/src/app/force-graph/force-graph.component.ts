@@ -121,7 +121,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 .text((d: any) => {
                     return "from: " + d.source.address + "\n" +
                         "to: " + d.target.address + "\n" +
-                        "sentiment: " + d.sentiment[0];
+                        "sentiment: " + d.sentiment[0] + "\n" +
+                        "type: " + d.type[0];
                 })
         } else {
             link.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.sentiment.length), 8))

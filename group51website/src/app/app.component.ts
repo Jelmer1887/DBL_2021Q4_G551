@@ -21,7 +21,8 @@ declare global {
         source: number, // Id of source
         target: number, // Id of target
         date: number[],
-        sentiment: number[]
+        sentiment: number[],
+        type: string[] // TO or CC
     }
 
     type Data = {
