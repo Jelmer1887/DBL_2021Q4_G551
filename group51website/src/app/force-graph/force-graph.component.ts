@@ -72,7 +72,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     runSimulation(data): void {
+        // Select the link mode
         var selectLinks = (this.showIndividualLinks) ? data.individualLinks : data.groupedLinks;
+
+        // Copy the arrays so they don't get modified elsewhere.
         var links = JSON.parse(JSON.stringify(selectLinks))
         var nodes = JSON.parse(JSON.stringify(data.nodes))
         var mLinkNum = [];
@@ -169,6 +172,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             })
         );
 
+        // Set the zoom to the default levels.
         this.resetZoom()
 
         //function that updates position of nodes and links
@@ -301,6 +305,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
     }
 
+    // Updates the selected/highlighted nodes
     newNodeSelected() {
         var edgeStyle = "line"
 

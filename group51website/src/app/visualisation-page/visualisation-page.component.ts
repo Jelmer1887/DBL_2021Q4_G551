@@ -3,7 +3,7 @@ import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
 import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 import * as d3 from 'd3';
-import { nodeColor } from '../app.component';
+import { jobs, nodeColor } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 import { MatrixComponent } from '../matrix/matrix.component';
 
@@ -219,9 +219,6 @@ export class VisualisationPageComponent implements OnInit {
         // Add a legend.
         const legend = d3.select("#legend")
         legend.selectAll("*").remove();
-
-        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-            "Employee", "Unknown"];
 
         if (width < 340) {
             legend.attr("height", 350);

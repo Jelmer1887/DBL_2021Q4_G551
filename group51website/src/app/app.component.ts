@@ -33,6 +33,9 @@ declare global {
 
 }
 
+export const jobs: string[] = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
+    "Employee", "Unknown"];
+
 //node colour based on job title
 export function nodeColor(job): string {
     switch (job) {

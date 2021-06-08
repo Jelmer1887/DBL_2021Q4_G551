@@ -1,6 +1,6 @@
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
-import { nodeColor } from '../app.component';
+import { jobs, nodeColor } from '../app.component';
 //we need to import this component in the app.module.ts
 //we need to add the line below to visualisation-page.component.html:
 //<app-arc-diagram [file]="file"></app-arc-diagram>
@@ -56,9 +56,6 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
         var links = JSON.parse(JSON.stringify(data.groupedLinks))
         var nodes = JSON.parse(JSON.stringify(data.nodes))
-
-        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-            "Employee", "Unknown"];
 
         if (this.sort == "id") {
             sortNodesID();
