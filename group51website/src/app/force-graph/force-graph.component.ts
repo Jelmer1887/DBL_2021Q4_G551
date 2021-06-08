@@ -3,6 +3,7 @@ import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, E
 import { nodeColor } from '../app.component';
 import * as d3 from 'd3';
 import { ResizedEvent } from 'angular-resize-event';
+import { inArray } from 'jquery';
 
 @Component({
     selector: 'app-force-graph',
@@ -26,7 +27,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     private beginPosX = 0;
     private beginPosY = 0;
-    private beginScale = 1;
+    private beginScale = 0.75;
 
     // variable holding information of clicked node
     nodeinfo;
@@ -88,6 +89,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("viewBox", `0 0 ${this.width} ${this.height}`)
             .attr("width", this.width)
             .attr("height", this.height)
+
+        this.beginPosX = ((1 - this.beginScale) / 2) * this.width;
+        this.beginPosY = ((1 - this.beginScale) / 2) * this.height;
 
         svg.selectAll("*").remove();
 
@@ -164,6 +168,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 link.attr("transform", transform);
             })
         );
+
+        this.resetZoom()
 
         //function that updates position of nodes and links
         simulation.on("tick", () => {
@@ -378,7 +384,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     enableBrushMode() {
-        this.checkZoomReset();
+        this.resetZoom();
         const svg = d3.select("#force-graph")
         svg.on(".zoom", null);  // Disable zooming when in brush mode.
 
@@ -392,11 +398,35 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         x1 = e.selection[1][0],
                         y0 = e.selection[0][1],
                         y1 = e.selection[1][1];
+
+                    /*
+                    var transX1 = ((1 - inst.beginScale)/(x1-inst.width/2)) * (x1 - x0);
+                    var transY = (1 - inst.beginScale) * (y1 - y0);
+
+                    var tx0 = x0 - transX / 2,
+                        tx1 = x1 - transX / 2,
+                        ty0 = y0 - transY / 2,
+                        ty1 = y1 - transY / 2;
+
+                        console.log(`Rect Transform: (${tx0}, ${ty0}), (${tx1}, ${ty1})`);
+                        */
+
+                    console.log(`Rect Original: (${x0}, ${y0}), (${x1}, ${y1})`);
                     svg.selectAll("circle")
                         .each(function (d) {
-                            var isSelected = x0 <= d.x && d.x <= x1 && y0 <= d.y && d.y <= y1;
+                            //var cx = d3.select(this).attr("cx");
+                            //var cy = d3.select(this).attr("cy");
+
+                            var x = (d.x * inst.beginScale) + inst.beginPosX;
+                            var y = (d.y * inst.beginScale) + inst.beginPosY;
+
+                            var isSelected = x0 <= x && x <= x1 && y0 <= y && y <= y1;
                             if (isSelected) {
                                 inst.brushedNodes.push(d.id)
+                                // console.log(`Circle: (${d.x}, ${d.y})`);
+                            }
+                            if (d.id == 18) {
+                                console.log(`Circle: (${x}, ${y})`);
                             }
                         })
                 }
@@ -428,7 +458,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         )
     }
 
-    checkZoomReset(): void {
+    resetZoom(): void {
         const svg = d3.select("#force-graph");
         svg.selectAll("circle")
             .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
