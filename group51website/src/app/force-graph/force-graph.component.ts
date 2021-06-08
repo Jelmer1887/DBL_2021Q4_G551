@@ -301,7 +301,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     mLinkNum[links[i].source + "," + links[i].target] = links[i].linkindex;
                 }
             }
-            //console.log(mLinkNum);
         }
     }
 
@@ -389,7 +388,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     enableBrushMode() {
-        this.resetZoom();
         const svg = d3.select("#force-graph")
         svg.on(".zoom", null);  // Disable zooming when in brush mode.
 
@@ -404,39 +402,38 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         y0 = e.selection[0][1],
                         y1 = e.selection[1][1];
 
-                    /*
-                    var transX1 = ((1 - inst.beginScale)/(x1-inst.width/2)) * (x1 - x0);
-                    var transY = (1 - inst.beginScale) * (y1 - y0);
-
-                    var tx0 = x0 - transX / 2,
-                        tx1 = x1 - transX / 2,
-                        ty0 = y0 - transY / 2,
-                        ty1 = y1 - transY / 2;
-
-                        console.log(`Rect Transform: (${tx0}, ${ty0}), (${tx1}, ${ty1})`);
-                        */
-
-                    console.log(`Rect Original: (${x0}, ${y0}), (${x1}, ${y1})`);
                     svg.selectAll("circle")
                         .each(function (d) {
                             //var cx = d3.select(this).attr("cx");
                             //var cy = d3.select(this).attr("cy");
 
-                            var x = (d.x * inst.beginScale) + inst.beginPosX;
-                            var y = (d.y * inst.beginScale) + inst.beginPosY;
+                            // Gets the transform as a string: "translate(x, y) scale(s)""
+                            var transform = d3.select(this).attr("transform").split(" ");
+                            var transString = transform[0];
+                            var transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
+                                .split(","); // Split the x and y coordinate
 
+                            // Parse the translation to numbers.
+                            var tx = parseFloat(transString[0]);
+                            var ty = parseFloat(transString[1]);
+
+                            // Get the scale srting and retrieve the part between ().
+                            var scaleString = transform[1];
+                            var scaleString = scaleString.substring(scaleString.indexOf("(") + 1, scaleString.indexOf(")"));
+                            var scale = parseFloat(scaleString);    // Parse the string to a number.
+
+                            // Apply the translation to the x coordinate of the node to get the real coordinate.
+                            var x = (d.x * scale) + tx;
+                            var y = (d.y * scale) + ty;
+
+                            // Check whether the real coordinate is in our box.
                             var isSelected = x0 <= x && x <= x1 && y0 <= y && y <= y1;
                             if (isSelected) {
                                 inst.brushedNodes.push(d.id)
-                                // console.log(`Circle: (${d.x}, ${d.y})`);
-                            }
-                            if (d.id == 18) {
-                                console.log(`Circle: (${x}, ${y})`);
                             }
                         })
                 }
                 inst.newNodeSelected();
-                // console.log(inst.brushedNodes)
             })
         )
     }
@@ -445,7 +442,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         const svg = d3.select("#force-graph")
 
         // Disable the brush
-        // svg.on(".brush", null);
         svg.call(d3.brush().extent([[0, 0], [0, 0]]))
         svg.on(".brush", null);
         svg.selectAll("rect").remove();
