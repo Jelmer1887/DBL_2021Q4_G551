@@ -10,7 +10,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-force-graph',
-    providers: [ DataShareService ],
+    providers: [DataShareService],
     templateUrl: './force-graph.component.html',
     styles: [
     ]
@@ -44,17 +44,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         .scaleExtent([0.5, 10])
 
     ngOnInit(): void {
-        console.log("forceGraph: subbing to Service!")
-        this.datasubscription = this.dsService.sdatasource.subscribe(newData => {
-            console.log("forceGraph: Service Triggered!");
-            this.data = newData;
-            this.initiateGraph();
-        })
-        console.log(this.datasubscription)
-        this.uploadService.currentFile.subscribe(() => {console.log("forceGraph: succesfully used fileService!")})
+        this.uploadService.currentFile.subscribe(() => { console.log("forceGraph: succesfully used fileService!") })
     }
 
-    ngOnDestroy(){
+    ngOnDestroy() {
         this.datasubscription.unsubscribe();
     }
 
@@ -479,6 +472,15 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     resetZoom(): void {
+        console.log("forceGraph: subbing to Service!")
+        this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
+            console.log("forceGraph: Service Triggered!");
+            this.data = newData;
+            console.log(newData);
+            // this.initiateGraph();
+        })
+        console.log(this.datasubscription)
+
         const svg = d3.select("#force-graph");
         svg.selectAll("circle")
             .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)

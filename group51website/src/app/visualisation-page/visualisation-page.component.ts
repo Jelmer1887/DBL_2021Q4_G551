@@ -54,7 +54,7 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
     @ViewChild(MatrixComponent) matrix;
-    
+
     constructor(private uploadService: UploadService, private dsService: DataShareService, private renderer: Renderer2) { }
 
     ngOnInit(): void {
@@ -194,7 +194,7 @@ export class VisualisationPageComponent implements OnInit {
 
             this.data = newData;
             console.log("page: pushing new data to service...")
-            this.dsService.updateData(newData);
+            DataShareService.updateData(newData);
 
             //YYYY-MM-DDTHH:MM:SS
             var minDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
