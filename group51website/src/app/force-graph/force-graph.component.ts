@@ -1,165 +1,101 @@
-import { ForceGraphDataShareService } from './../force-graph-data-share.service';
+import { UploadService } from './../upload.service';
+import { DataShareService } from './../data-share.service';
 import { ThrowStmt } from '@angular/compiler';
-import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
+import { nodeColor } from '../app.component';
 import * as d3 from 'd3';
+import { ResizedEvent } from 'angular-resize-event';
+import { inArray } from 'jquery';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-force-graph',
+    providers: [DataShareService],
     templateUrl: './force-graph.component.html',
     styles: [
     ]
 })
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
-    @Input() file;
+    data: Data;
+    @Input() selectedNodeInfo;  //id of the node last clicked
+    @Input() brushMode;
 
-    private nodes = [
-        /*
-        { "id": 0, "job": "Employee" },
-        { "id": 1, "job": "Unknown" },
-        { "id": 2, "job": "Employee" },
-        { "id": 3, "job": "Employee" },
-        { "id": 4, "job": "Vice President" },
-        { "id": 5, "job": "Manager" },
-        */
-    ];
+    @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
-    private links = [
-        /*
-        { "source": 0, "target": 1, "value": 1, "sentiment": [0.0] },
-        { "source": 0, "target": 5, "value": 1, "sentiment": [0.4] },
-        { "source": 2, "target": 1, "value": 1, "sentiment": [0.9] },
-        { "source": 3, "target": 5, "value": 1, "sentiment": [-0.5] },
-        { "source": 2, "target": 4, "value": 1, "sentiment": [-0.8] },
-        */
-    ]
-
-    //This will hold the number of links every node has
-    private mLinkNum = []
+    showIndividualLinks = false;
+    brushedNodes = [];
 
     private width;
     private height = 800;
 
-    @Input() showIndividualLinks;
+    private beginPosX = 0;
+    private beginPosY = 0;
+    private beginScale = 0.75;
 
-    // Filter start and end date.
-    private startDate = 20011201;
-    private endDate = 20011231;
+    private datasubscription: Subscription;
 
     // variable holding information of clicked node
-    private nodeInfo: Array<string>
+    nodeinfo;
 
-    constructor(private shareService: ForceGraphDataShareService) { }
+    constructor() { }
 
-    ngOnInit() {
-        // subscribe to the data-sharing service (if some other component updates the info of the selected node, this var gets updated)
-        this.shareService.currentNodeSelect.subscribe(newInfo => this.nodeInfo = newInfo);
+    private zoom = d3.zoom()
+        .scaleExtent([0.5, 10])
+
+    ngOnInit(): void {
+        console.log("forceGraph: initialising: subbing to Service!")
+        this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
+            console.log("forceGraph: Datashareservice: data update detected!");
+            this.data = newData;
+            this.initiateGraph();
+        })
     }
 
+    ngOnDestroy() {
+        this.datasubscription.unsubscribe();
+    }
+
+    // -- Funtions to deal with buttons and controls -- \\
+    checkLinksOption(event): void {
+        this.showIndividualLinks = event.target.checked;
+        this.initiateGraph();
+    }
+
+    // -- ---- - ---- -- \\
     ngOnChanges(changes: SimpleChanges): void {
-        console.log(this.showIndividualLinks);
+        if ('brushMode' in changes) {
+            if (this.brushMode) {
+                this.enableBrushMode();
+            } else {
+                this.disableBrushMode();
+            }
+        } else if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
+            console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
+        } else {
+            this.initiateGraph();
+        }
+        this.newNodeSelected()
+    }
+
+    initiateGraph() {
+        //console.log(this.showIndividualLinks);
         if (this.container) {
             this.width = this.container.nativeElement.offsetWidth;
         }
 
-        let fileReader = new FileReader();
-
-        fileReader.onload = (e) => {
-
-            // Array of strings with every string being a line.
-            var lines = fileReader.result.toString().split('\n');
-            lines.shift();
-
-            // Empty the nodes and links so we can read the new ones.
-            this.nodes = [];
-            this.links = [];
-            this.mLinkNum = [];
-
-            // Loop through all the lines, but skip the first since that one never contains data.
-            for (var line of lines) {
-                // Get the different columns by splitting on the "," .
-                var columns = line.split(',');
-
-                // Make sure it's not an empty line.
-                if (columns.length <= 4) {
-                    continue;
-                }
-
-                // Filter to a specific month for more clarity.
-                // Remove the '-' from the date
-                var dateString = columns[0].split('-').join('');
-                // Turn it into an integer
-                var dateInt = parseInt(dateString);
-                // This comparison works because the format is YY-MM-DD,
-                // So the bigger number will always be later in time.
-                if (dateInt < this.startDate || dateInt > this.endDate) {
-                    continue;
-                }
-
-                // Convert the source and target to an integer.
-                var source = parseInt(columns[1]);
-                var target = parseInt(columns[4]);
-
-                // Add the source if we can't find it in the array of nodes.
-                var srcFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === source) {
-                        srcFound = true;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!srcFound) {
-                    console.log(source);
-                    this.nodes.push({ "id": source, "job": columns[3], "address": columns[2], "mailCount": 1 });
-                }
-
-                // Add the target if we can't find it in the array of nodes.
-                var tarFound = false;
-                for (var n of this.nodes) {
-                    if (n.id === target) {
-                        tarFound = true;
-                        n.mailCount += 1;
-                        break;
-                    }
-                }
-                if (!tarFound) {
-                    console.log(target);
-                    this.nodes.push({ "id": target, "job": columns[6], "address": columns[5], "mailCount": 1 });
-                }
-
-                // Create the link between the source and target
-                var linkFound = false;
-                for (var l of this.links) {
-                    if ((l.source === source && l.target === target) ||
-                        (l.source === target && l.target === source)) {
-                        linkFound = true;
-                        //l.value += 1;
-                        l.sentiment.push(parseFloat(columns[8]));
-                        break;
-                    }
-                }
-                if (!linkFound || this.showIndividualLinks) {
-                    this.links.push({
-                        "source": source,
-                        "target": target,
-                        "sentiment": [parseFloat(columns[8])]
-                    });
-                }
-            }
-
-            // Start the simulation with the new links and nodes.
-            this.runSimulation(this.links, this.nodes, this.mLinkNum);
-        };
-
-        if (this.file) {
-            fileReader.readAsText(this.file);
-        }
+        this.runSimulation(this.data);
     }
 
-    runSimulation(links, nodes, mLinkNum): void {
+    runSimulation(data): void {
+        // Select the link mode
+        var selectLinks = (this.showIndividualLinks) ? data.individualLinks : data.groupedLinks;
 
-        // var data = { "nodes": nodes, "links": links };
+        // Copy the arrays so they don't get modified elsewhere.
+        var links = JSON.parse(JSON.stringify(selectLinks))
+        var nodes = JSON.parse(JSON.stringify(data.nodes))
+        var mLinkNum = [];
+
         sortLinks();
         setLinkIndexAndNum();
 
@@ -169,28 +105,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .force("center", d3.forceCenter(this.width / 2, this.height / 2));  // nodes get pulled towards the centre of svg
 
         const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
-            .attr("width", 1000)
-            .attr("height", 1000)
-            .call(d3.zoom()
-                .scaleExtent([1, 10])
-                .on("zoom", (e, d) => {
-                    svg.attr("transform", e.transform);
-                })
-            );
-
-        svg.selectAll("g").remove();
-
-        // Add a legend.
-        const legend = d3.select("#legend")
+            .attr("viewBox", `0 0 ${this.width} ${this.height}`)
             .attr("width", this.width)
-            .attr("height", 80);
+            .attr("height", this.height)
 
-        var jobs = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-            "Employee", "Unknown"];
-        for (var i = 0; i < jobs.length; i++) {
-            legend.append("circle").attr("cx", 20 + (i % 5) * 160).attr("cy", 30 + (i % 2) * 35 - 6).attr("r", 6).style("fill", this.nodeColor(jobs[i]))
-            legend.append("text").attr("x", 30 + (i % 5) * 160).attr("y", 30 + (i % 2) * 35).text(jobs[i]).style("font-size", "15px").attr("alignment-baseline", "middle")
-        }
+        this.beginPosX = ((1 - this.beginScale) / 2) * this.width;
+        this.beginPosY = ((1 - this.beginScale) / 2) * this.height;
+
+        svg.selectAll("*").remove();
 
         var edgeStyle = "line"
         if (this.showIndividualLinks) {
@@ -203,9 +125,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .selectAll(edgeStyle)
             .data(links)
             .join(edgeStyle)
-            .attr("stroke", (d: any) => this.linkColor(d.sentiment))
-            .on("click", function (d, i) {
-                linkGUI(i);                                     //To display info about link
+            .attr("stroke", (d: any) => this.linkColor(d.sentiment, 0))  // 0 is just to show it is not highlighted so color is lighter
+            .on("click", (d, i) => {
+                linkGUI(i, this.showIndividualLinks);                                //To display info about link
             })
 
 
@@ -215,11 +137,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 .text((d: any) => {
                     return "from: " + d.source.address + "\n" +
                         "to: " + d.target.address + "\n" +
-                        "sentiment: " + d.sentiment[0];
+                        "sentiment: " + d.sentiment[0] + "\n" +
+                        "type: " + d.type[0];
                 })
         } else {
             link.attr("stroke-width", (d: any) => Math.min(Math.sqrt(d.sentiment.length), 8))
         }
+
+        var inst = this; // crude fix to store instance info
         const node = svg.append("g")
             .attr("stroke", "#fff")
             .attr("stroke-width", 1)
@@ -227,12 +152,26 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .data(nodes)
             .join("circle")
             .attr("r", (d: any) => Math.max(Math.min(Math.sqrt(d.mailCount), 20), 5))
-            .attr("fill", (d: any) => this.nodeColor(d.job))    //colour nodes depending on job title
+            .attr("fill", (d: any) => nodeColor(d.job))    //colour nodes depending on job title
             .call(this.drag(simulation))                        //makes sure you can drag nodes
-            .on("click", function (d, i) {
+            .on("click", function (d, i: any) {
+                nodeGUI(inst, i);                                  //To display info about node
                 nodeclicked(this, i);                              //Small animation of node
-                nodeGUI(i);                                     //To display info about node
             })
+            .on("mouseover", function (event, d: any) {
+                d3.select(this)
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 2);
+                link.style('stroke', (a: any) => a.source.id === d.id || a.target.id === d.id ? inst.linkColor(a.sentiment, 1) : '#ccc')
+            })
+            .on("mouseout", function (event, d: any) {
+                d3.select(this)
+                    .attr("stroke", d.id === inst.selectedNodeInfo['id'] ? 'black' : "#fff")
+                    .attr("stroke-width", d.id === inst.selectedNodeInfo['id'] ? 2 : 1)
+                //link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
+                inst.newNodeSelected();
+            })
+
 
         // Displays some useful info if you hover over a node.
         node.append("title")
@@ -242,6 +181,16 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     "function: " + d.job;
             });
 
+        svg.call(this.zoom
+            .extent([[0, 0], [this.width, this.height]])
+            .on("zoom", function ({ transform }) {
+                node.attr("transform", transform);
+                link.attr("transform", transform);
+            })
+        );
+
+        // Set the zoom to the default levels.
+        this.resetZoom()
 
         //function that updates position of nodes and links
         simulation.on("tick", () => {
@@ -267,49 +216,64 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     .attr("x2", (d: any) => d.target.x)
                     .attr("y2", (d: any) => d.target.y);
             }
+
             node
-                .attr("cx", (d: any) => d.x)
-                .attr("cy", (d: any) => d.y);
+                .attr("cx", (d: any) => {
+                    return d.x;
+                })
+                .attr("cy", (d: any) => {
+                    return d.y;
+                });
         });
 
-        function nodeclicked(node, data) {
-            var nodeRadius = Math.max(Math.min(Math.sqrt(data.mailCount), 20), 5)
-            d3.select(node)
+        function nodeclicked(d, i) {
+            var nodeRadius = Math.max(Math.min(Math.sqrt(i.mailCount), 20), 5)
+            d3.select(d)
                 .transition()
-                .attr("stroke", "black")
-                .attr("stroke-width", 2)
                 .attr("r", nodeRadius * 2)
 
                 .transition()
-                .attr("stroke", "#fff")
-                .attr("stroke-width", 1)
-                .attr("r", nodeRadius);
+                .attr("r", nodeRadius)
+            link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
         }
 
-        function nodeGUI(i) {
-            var sentLinks = links.filter(function (e) {
-                return e.source.id == i.id;      //Finds emails sent
+        function nodeGUI(inst, i) {
+            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [], "mailCount": i.mailCount };
+
+            // console.log(individualLinks);
+            var sentLinks = data.individualLinks.filter(function (e) {
+                return e.source == i.id;      //Finds emails sent
             })
-            var receivedLinks = links.filter(function (e) {
-                return e.target.id == i.id;      //Finds emails received
+
+            var receivedLinks = data.individualLinks.filter(function (e) {
+                return e.target == i.id;      //Finds emails received
             })
+
             for (var link in sentLinks) {
-                console.log("Sent an email to " + sentLinks[link]['target']['id']);
+                linklist["sendto"].push(sentLinks[link]['target'])
             }
             for (var link in receivedLinks) {
-                console.log("Received an email from " + receivedLinks[link]['source']['id']);
+                linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
 
+            console.log(linklist);
+            inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
+            inst.nodeinfo = linklist;       // set local version
         }
 
-        function linkGUI(i) {
+        function linkGUI(i, showIndividualLinks) {
             var fromNode = nodes.filter(function (e) {
                 return e.id == i.source.id;      //Finds from node
             })
             var toNode = nodes.filter(function (e) {
                 return e.id == i.target.id;      //Finds to node
             })
-            console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
+            if (showIndividualLinks) {
+                console.log("Email from " + fromNode[0]['id'] + " and to " + toNode[0]['id'])
+            } else {
+                console.log("Email transfers between " + fromNode[0]['id'] + " and " + toNode[0]['id'])
+            }
+
         }
 
         // sort the links by source, then target
@@ -354,9 +318,36 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     mLinkNum[links[i].source + "," + links[i].target] = links[i].linkindex;
                 }
             }
-            console.log(mLinkNum);
+        }
+    }
+
+    // Updates the selected/highlighted nodes
+    newNodeSelected() {
+        var edgeStyle = "line"
+
+        if (this.showIndividualLinks) {
+            edgeStyle = "path"
         }
 
+        var svg = d3.select("#force-graph")
+        var node = svg.selectAll('circle')
+        var link = svg.selectAll(edgeStyle)
+
+        link.style('stroke', (a: any) => {
+            if (this.selectedNodeInfo['id'].length != 0 || this.brushedNodes.length != 0) {
+                var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
+                    (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
+                return (highlighted ? this.linkColor(a.sentiment, 1) : '#ccc')
+            }
+            else {
+                return this.linkColor(a.sentiment, 0)
+            }
+        })
+        node.attr("stroke", (a: any, d: any) => {
+            var selected = a.id === this.selectedNodeInfo['id'] || this.brushedNodes.includes(a.id);
+            return selected ? "black" : "#fff"
+        });
+        node.attr("stroke-width", (a: any, d: any) => a.id === this.selectedNodeInfo['id'] ? 2 : 1)
     }
 
     //to drag nodes around
@@ -386,7 +377,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     //link colour based on sentiment of message
-    linkColor(sentiment): string {
+    linkColor(sentiment, highlighted): string {
         // console.log(sentiment);
         for (var s of sentiment) {
             if (s > 0.1) {
@@ -397,43 +388,107 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 return "#EE5555";
             }
         }
-
+        if (highlighted) {
+            return "#404040"
+        }
         return "#999999";
     }
 
-    //node colour based on job title
-    nodeColor(job): string {
-        switch (job) {
-            case "Employee":
-                return "#68e256";
-            case "Vice President":
-                return "#56e2cf";
-            case "Manager":
-                return "#56aee2";
-            case "In House Lawyer":
-                return "#5668e2";
-            case "Trader":
-                return "#cf56e2";
-            case "Director":
-                return "#e25668";
-            case "Managing Director":
-                return "#e28956";
-            case "President":
-                return "#e2cf56";
-            case "CEO":
-                return "#8a56e2"
-            case "Unknown":
-                return "#555555";
+    onResized(event: ResizedEvent) {
+        this.width = event.newWidth;
+        this.height = event.newHeight;
 
-            default:
-                console.log(job);
-                return "#000000";
-        }
+        const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
+            .attr("viewBox", `0 0 ${this.width} ${this.height}`)
+            .attr("width", this.width)
+            .attr("height", this.height)
+    }
+
+    enableBrushMode() {
+        const svg = d3.select("#force-graph")
+        svg.on(".zoom", null);  // Disable zooming when in brush mode.
+
+        var inst = this;
+        svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
+            .extent([[0, 0], [this.width, this.height]])       // initialise the brush area, so the entire graph
+            .on("start end", function (e) {
+                inst.brushedNodes = [];
+                if (e.selection) {
+                    var x0 = e.selection[0][0],
+                        x1 = e.selection[1][0],
+                        y0 = e.selection[0][1],
+                        y1 = e.selection[1][1];
+
+                    svg.selectAll("circle")
+                        .each(function (d: any) {
+                            //var cx = d3.select(this).attr("cx");
+                            //var cy = d3.select(this).attr("cy");
+
+                            // Gets the transform as a string: "translate(x, y) scale(s)""
+                            var transform = d3.select(this).attr("transform").split(" ");
+                            var transString = transform[0];
+                            transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
+                                .split(","); // Split the x and y coordinate
+
+                            // Parse the translation to numbers.
+                            var tx = parseFloat(transString[0]);
+                            var ty = parseFloat(transString[1]);
+
+                            // Get the scale srting and retrieve the part between ().
+                            var scaleString = transform[1];
+                            scaleString = scaleString.substring(scaleString.indexOf("(") + 1, scaleString.indexOf(")"));
+                            var scale = parseFloat(scaleString);    // Parse the string to a number.
+
+                            // Apply the translation to the x coordinate of the node to get the real coordinate.
+                            var x = (d.x * scale) + tx;
+                            var y = (d.y * scale) + ty;
+
+                            // Check whether the real coordinate is in our box.
+                            var isSelected = x0 <= x && x <= x1 && y0 <= y && y <= y1;
+                            if (isSelected) {
+                                inst.brushedNodes.push(d.id)
+                            }
+                        })
+                }
+                inst.newNodeSelected();
+            })
+        )
+    }
+
+    disableBrushMode() {
+        const svg = d3.select("#force-graph")
+
+        // Disable the brush
+        svg.call(d3.brush().extent([[0, 0], [0, 0]]))
+        svg.on(".brush", null);
+        svg.selectAll("rect").remove();
+
+        var node = svg.selectAll("circle")
+        var link = svg.selectAll("line")
+
+        // Add the zoom and panning back
+        svg.call(this.zoom
+            .extent([[0, 0], [this.width, this.height]])
+            .on("zoom", function ({ transform }) {
+                node.attr("transform", transform);
+                link.attr("transform", transform);
+            })
+        )
+    }
+
+    resetZoom(): void {
+        const svg = d3.select("#force-graph");
+        svg.selectAll("circle")
+            .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
+        svg.selectAll("line")
+            .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
+
+        svg.call(this.zoom.transform as any, d3.zoomIdentity.translate(this.beginPosX, this.beginPosY).scale(this.beginScale))
     }
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
-        this.runSimulation(this.links, this.nodes, this.mLinkNum);
+        this.runSimulation(this.data);
     }
 
     @ViewChild('container')

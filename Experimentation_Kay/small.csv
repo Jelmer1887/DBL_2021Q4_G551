@@ -2,9 +2,9 @@ date,fromId,fromEmail,fromJobtitle,toId,toEmail,toJobtitle,messageType,sentiment
 2001-12-20,1,k.verbruggen@student.tue.nl,Employee,2,m.hemza@student.tue.nl,Trader,CC,-0.5
 2001-12-20,2,m.hemza@student.tue.nl,Trader,1,k.verbruggen@student.tue.nl,Employee,CC,0.0
 2001-12-20,1,k.verbruggen@student.tue.nl,Employee,3,d.savas@student.tue.nl,President,CC,-0.2
-2001-12-20,1,k.verbruggen@student.tue.nl,Employee,4,m.klophaus@student.tue.nl,CEO,CC,-0.8
+2001-12-20,1,k.verbruggen@student.tue.nl,Employee,4,m.c.campman.klophaus@student.tue.nl,CEO,CC,-0.8
 2001-12-20,2,m.hemza@student.tue.nl,Trader,3,d.savas@student.tue.nl,President,CC,0.2
 2001-12-20,3,d.savas@student.tue.nl,President,2,m.hemza@student.tue.nl,Trader,CC,0.0
-2001-12-20,4,m.klophaus@student.tue.nl,CEO,5,a.preda@student.tue.nl,Manager,CC,0.0
+2001-12-20,4,m.c.campman.klophaus@student.tue.nl,CEO,5,a.preda@student.tue.nl,Manager,CC,0.0
 2001-12-20,5,a.preda@student.tue.nl,Manager,6,j.schuttert@student.tue.nl,Employee,CC,0.2
 2001-12-20,6,j.schuttert@student.tue.nl,Employee,3,d.savas@student.tue.nl,President,CC,0.0

@@ -1,0 +1,22 @@
+<div #container>
+    <svg id="arc-diagram"></svg>
+</div>
+
+<div class="container">
+    <div class="level">
+        <div class="level-item">
+            <div class="control has-icons-left is-normal">
+                <div class="select is-normal">
+                    <select (change)="checkSortOption($event)">
+                        <option selected value="id">Sort by Id</option>
+                        <option value="job">Sort by Job Function</option>
+                        <option value="amount">Sort by Amount of Emails</option>
+                    </select>
+                </div>
+                <div class="icon is-small is-left">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
