@@ -1,3 +1,5 @@
+import { Subscription } from 'rxjs';
+import { DataShareService } from './../data-share.service';
 import { Component, ElementRef, ViewChild, OnInit, Renderer2 } from '@angular/core';
 import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
@@ -36,10 +38,12 @@ export class VisualisationPageComponent implements OnInit {
     matrixSort = "id";
     brushMode = false;
     max;
-    //selectedNodeID;
+
     selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
     vis1Fullscreen = false;
     vis2Fullscreen = false;
+
+    private filesubscription: Subscription;
 
     //Variables for setting the slider
     private minDate: number = Math.min();
@@ -53,15 +57,18 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
     @ViewChild(MatrixComponent) matrix;
+
     constructor(private uploadService: UploadService, private renderer: Renderer2) { }
 
     ngOnInit(): void {
-        this.uploadService.currentFile.subscribe(newfile => {
+        this.filesubscription = this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
             this.parseFile();
         });
+    }
 
-        //this.createLegend();
+    ngOnDestroy(): void {
+        this.filesubscription.unsubscribe();
     }
 
     parseFile(): void {
@@ -191,6 +198,8 @@ export class VisualisationPageComponent implements OnInit {
             newData.nodes.sort((a, b) => (a.id > b.id ? 1 : -1));
 
             this.data = newData;
+            console.log("page: pushing new data to service...")
+            DataShareService.updateData(newData);
 
             //YYYY-MM-DDTHH:MM:SS
             var minDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
