@@ -1,3 +1,4 @@
+import { Subscription } from 'rxjs';
 import { DataShareService } from './../data-share.service';
 import { Component, ElementRef, ViewChild, OnInit, Renderer2 } from '@angular/core';
 import { UploadService } from './../upload.service';
@@ -37,10 +38,12 @@ export class VisualisationPageComponent implements OnInit {
     matrixSort = "id";
     brushMode = false;
     max;
-    //selectedNodeID;
+
     selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
     vis1Fullscreen = false;
     vis2Fullscreen = false;
+
+    private filesubscription: Subscription;
 
     //Variables for setting the slider
     private minDate: number = Math.min();
@@ -55,15 +58,17 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild(ArcDiagramComponent) arcdiagram;
     @ViewChild(MatrixComponent) matrix;
 
-    constructor(private uploadService: UploadService, private dsService: DataShareService, private renderer: Renderer2) { }
+    constructor(private uploadService: UploadService, private renderer: Renderer2) { }
 
     ngOnInit(): void {
-        this.uploadService.currentFile.subscribe(newfile => {
+        this.filesubscription = this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
             this.parseFile();
         });
+    }
 
-        //this.createLegend();
+    ngOnDestroy(): void {
+        this.filesubscription.unsubscribe();
     }
 
     parseFile(): void {

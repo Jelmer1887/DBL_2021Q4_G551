@@ -38,13 +38,18 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     // variable holding information of clicked node
     nodeinfo;
 
-    constructor(private dsService: DataShareService, private uploadService: UploadService) { }
+    constructor() { }
 
     private zoom = d3.zoom()
         .scaleExtent([0.5, 10])
 
     ngOnInit(): void {
-        this.uploadService.currentFile.subscribe(() => { console.log("forceGraph: succesfully used fileService!") })
+        console.log("forceGraph: initialising: subbing to Service!")
+        this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
+            console.log("forceGraph: Datashareservice: data update detected!");
+            this.data = newData;
+            this.initiateGraph();
+        })
     }
 
     ngOnDestroy() {
@@ -472,15 +477,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     resetZoom(): void {
-        console.log("forceGraph: subbing to Service!")
-        this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
-            console.log("forceGraph: Service Triggered!");
-            this.data = newData;
-            console.log(newData);
-            // this.initiateGraph();
-        })
-        console.log(this.datasubscription)
-
         const svg = d3.select("#force-graph");
         svg.selectAll("circle")
             .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)

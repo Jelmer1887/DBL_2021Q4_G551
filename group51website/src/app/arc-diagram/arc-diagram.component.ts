@@ -1,3 +1,5 @@
+import { DataShareService } from './../data-share.service';
+import { Subscription } from 'rxjs';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
 import { jobs, nodeColor } from '../app.component';
@@ -14,7 +16,7 @@ import { jobs, nodeColor } from '../app.component';
 export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     // Input variables.
-    @Input() data: Data;
+    data: Data;
     @Input() sort;
     @Input() selectedNodeInfo;
 
@@ -23,7 +25,18 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     private width;
     private height = 800;
 
+    private datasubscription: Subscription;
+
     constructor() { }
+
+    ngOnInit() {
+        console.log("ArcDiagram: initialising: subbing to Service!")
+        this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
+            console.log("ArcDiagram: Datashareservice: data update detected!");
+            this.data = newData;
+            this.initiateDiagram();
+        })
+    }
 
     // -- Button functions -- \\
     checkSortOption(event): void {
@@ -36,7 +49,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
-            console.log("arcdiagram: The node selected is " + this.selectedNodeInfo['id'])
+            console.log("ArcDiagram: The node selected is " + this.selectedNodeInfo['id'])
             this.newNodeSelected()
         } else {
             this.initiateDiagram()
