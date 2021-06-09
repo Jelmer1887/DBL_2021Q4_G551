@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { SettingsShareService } from './settings-share.service';
+import { DataShareService } from './data-share.service';
 
-describe('SettingsShareService', () => {
-  let service: SettingsShareService;
+describe('DataShareService', () => {
+  let service: DataShareService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(SettingsShareService);
+    service = TestBed.inject(DataShareService);
   });
 
   it('should be created', () => {

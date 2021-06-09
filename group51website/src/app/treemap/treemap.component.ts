@@ -1,3 +1,5 @@
+import { DataShareService } from './../data-share.service';
+import { Subscription } from 'rxjs';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
 import { jobs } from '../app.component';
@@ -29,6 +31,7 @@ export class TreemapComponent implements OnInit {
 
     // -- Private variables
     private svg;
+    private datasubscription: Subscription;
 
     // compute actual constant values of properties
     constructor() {
@@ -46,6 +49,17 @@ export class TreemapComponent implements OnInit {
         // move the element to apply the margins
         this.svg.append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+
+        console.log("TreeMap: initialising: subbing to Service!")
+        this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
+            console.log("TreeMap: Datashareservice: data update detected!");
+            this.data = newData;
+            this.buildGraph();
+        })
+    }
+
+    ngOnDestroy(): void {
+        this.datasubscription.unsubscribe();
     }
 
     // graphs is build upon a change in data (or any change for that matter)
@@ -108,17 +122,22 @@ export class TreemapComponent implements OnInit {
 
         console.log(rootd3.leaves())
         // 2. create rectangles according to the computated coordinates, and add those properties to svg
-        this.svg
-            .selectAll('rect')                                                    // select / create a rectangle
-            .data(rootd3.leaves())                                                // get the datapoints
-            .enter()                                                              // go over each element (right?)
-            .append('rect')                                                     // create a rectangle for the rectangle
-            .attr('x', function (node) { return node.x0; })              // set the x-coordinate
-            .attr('y', function (node) { return node.y0; })              // set the y-coordinate
-            .attr('width', function (node) { return node.x1 - node.x0; })    // set the width of the rectangle
-            .attr('height', function (node) { return node.y1 - node.y0; })    // set the height of the rectangle
-            .style('stroke', 'black')             // add a black outline
-            .style('fill', 'red')                 // make the rectangle filled in with red.
+        if (this.svg){
+            this.svg
+                .selectAll('rect')                                                    // select / create a rectangle
+                .data(rootd3.leaves())                                                // get the datapoints
+                .enter()                                                              // go over each element (right?)
+                .append('rect')                                                     // create a rectangle for the rectangle
+                .attr('x', function (node) { return node.x0; })              // set the x-coordinate
+                .attr('y', function (node) { return node.y0; })              // set the y-coordinate
+                .attr('width', function (node) { return node.x1 - node.x0; })    // set the width of the rectangle
+                .attr('height', function (node) { return node.y1 - node.y0; })    // set the height of the rectangle
+                .style('stroke', 'black')             // add a black outline
+                .style('fill', 'red')                 // make the rectangle filled in with red.
+        } else {
+            console.log("TreeMap: No svg component defined!");
+        }
+        
     }
 
 }
