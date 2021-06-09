@@ -1,19 +1,23 @@
+import { UploadService } from './../upload.service';
+import { DataShareService } from './../data-share.service';
 import { ThrowStmt } from '@angular/compiler';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import { nodeColor } from '../app.component';
 import * as d3 from 'd3';
 import { ResizedEvent } from 'angular-resize-event';
 import { inArray } from 'jquery';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-force-graph',
+    providers: [ DataShareService ],
     templateUrl: './force-graph.component.html',
     styles: [
     ]
 })
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
-    @Input() data: Data;
+    data: Data;
     @Input() selectedNodeInfo;  //id of the node last clicked
     @Input() brushMode;
 
@@ -29,15 +33,29 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private beginPosY = 0;
     private beginScale = 0.75;
 
+    private datasubscription: Subscription;
+
     // variable holding information of clicked node
     nodeinfo;
 
-    constructor() { }
+    constructor(private dsService: DataShareService, private uploadService: UploadService) { }
 
     private zoom = d3.zoom()
         .scaleExtent([0.5, 10])
 
-    ngOnInit() {
+    ngOnInit(): void {
+        console.log("forceGraph: subbing to Service!")
+        this.datasubscription = this.dsService.sdatasource.subscribe(newData => {
+            console.log("forceGraph: Service Triggered!");
+            this.data = newData;
+            this.initiateGraph();
+        })
+        console.log(this.datasubscription)
+        this.uploadService.currentFile.subscribe(() => {console.log("forceGraph: succesfully used fileService!")})
+    }
+
+    ngOnDestroy(){
+        this.datasubscription.unsubscribe();
     }
 
     // -- Funtions to deal with buttons and controls -- \\
