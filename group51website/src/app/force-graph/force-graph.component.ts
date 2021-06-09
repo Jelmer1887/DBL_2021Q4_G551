@@ -410,8 +410,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
                             // Gets the transform as a string: "translate(x, y) scale(s)""
                             var transform = d3.select(this).attr("transform").split(" ");
-                            var transString: any = transform[0];
-                            var transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
+                            var transString = transform[0];
+                            transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
                                 .split(","); // Split the x and y coordinate
 
                             // Parse the translation to numbers.
@@ -420,7 +420,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
                             // Get the scale srting and retrieve the part between ().
                             var scaleString = transform[1];
-                            var scaleString = scaleString.substring(scaleString.indexOf("(") + 1, scaleString.indexOf(")"));
+                            scaleString = scaleString.substring(scaleString.indexOf("(") + 1, scaleString.indexOf(")"));
                             var scale = parseFloat(scaleString);    // Parse the string to a number.
 
                             // Apply the translation to the x coordinate of the node to get the real coordinate.
