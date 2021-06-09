@@ -63,6 +63,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         // console.log(links);
         var nodes = JSON.parse(JSON.stringify(data.nodes))
         var idToJobs = {};//dictionary
+        var jobNodes = makeJobNodes();
 
         function findMaxWeight() {
             var maxWeight = 0;
@@ -125,9 +126,9 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function sortJobNodesAmount() {
-            nodes.sort(function (a, b) {
+            jobNodes.sort(function (a, b) {
                 if (a.mailCount == b.mailCount) {
-                    return (a.id < b.id ? -1 : 1);
+                    return (a.job < b.job ? -1 : 1);
                 } else {
                     return (a.mailCount > b.mailCount ? -1 : 1);
                 }
@@ -260,15 +261,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
         makeIDtoJobDict();
 
-        //handles sorting requests
-        if ((this.matrixSort == 'id') && (this.matrixView == 'all')) { //dont want to run these sorts in job view.
-            sortNodesID();
-        } else if ((this.matrixSort == 'job') && (this.matrixView == 'all')) {
-            sortNodesJob();
-        } else if ((this.matrixSort == 'amount') && (this.matrixView == 'all')) {
-            sortNodesAmount();
-        }
-
         const svg = d3.select('#matrix')
             .attr("width", this.width)
             .attr("height", this.height); //800
@@ -279,11 +271,16 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("height", 80);
 
         if (this.matrixView == "job") {
+
+            if (this.matrixSort == 'amount') {
+                sortJobNodesAmount();
+                console.log(jobNodes);
+            }
+
             var xMargin = 15;
             var yMargin = 15;
             var jobLinks = []; //[{source: , target: , weight: }]
             makeJobLinks(jobLinks);
-            var jobNodes = makeJobNodes();
             console.log(jobNodes);
             var maxWeight = findMaxWeight();
             var gridData = makeJobGridData(jobs);
@@ -309,8 +306,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("stroke", "black")
                 .attr('stroke-width', 0.3)
                 .attr('stroke-opacity', 0.5)
-                .attr("width", (this.width - 2 * xMargin) / (jobs.length + 1)) //this somehow works, it probably makes sense if you think about it
-                .attr("height", (this.height - 2 * yMargin) / (jobs.length + 1)) //yes, it's kinda hard coded
+                .attr("width", (this.width - 2 * xMargin) / (jobs.length + 1))
+                .attr("height", (this.height - 2 * yMargin) / (jobs.length + 1))
                 .attr("x", function (d: any) { return x(d.target) }) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
                 .style("fill", "none");
@@ -322,8 +319,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("stroke", "black")
                 .attr("width", (this.width - 2 * xMargin) / (jobs.length + 1))
                 .attr("height", (this.height - 2 * yMargin) / (jobs.length + 1))
-                .attr("x", function (d: any) { return x(d.target) }) //x position depends on target ID
-                .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
+                .attr("x", function (d: any) { return x(d.target) }) //x position depends on target job
+                .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source job
                 .attr("fill", function (d) { return myColor(d.weight) })
                 .on("mouseover", function (event, d: any) {
                     grid.style('fill', (a: any) => colourJobGrid(a, d))
@@ -339,7 +336,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                         "weight :" + d.weight;
                 });
             const yAxisLabel = svg.selectAll("myYlabels")
-                .data(nodes)
+                .data(jobNodes)
                 .enter()
                 .append("text")
                 .attr("font-size", "8")
@@ -354,11 +351,11 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 });
 
             const xAxisLabel = svg.selectAll("myXlabels")
-                .data(nodes)
+                .data(jobNodes)
                 .enter()
                 .append("text")
                 .attr("font-size", "8")
-                .attr("font-family", "sans-serif")
+                .attr("font-family", "sans-serif") 
                 .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${45}) rotate(270) `)
                 .text(d => jobTextX(d))
                 .style("text-anchor", "start")
@@ -377,6 +374,16 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         if (this.matrixView == "all") {
+
+                 //handles sorting requests
+        if ((this.matrixSort == 'id')){
+            sortNodesID();
+        } else if ((this.matrixSort == 'job')){
+            sortNodesJob();
+        } else if ((this.matrixSort == 'amount')){
+            sortNodesAmount();
+        }      
+
             var xMargin = 15; //the amount of space in the matrix reserved for text
             var yMargin = 10; // idem
             sortLinksID(links);
