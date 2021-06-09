@@ -298,7 +298,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .padding(0.5)
                 .domain(jobs);
 
-            var myColor = d3.scaleLinear()
+            var myColor = d3.scaleLinear<string>()
                 .range(["#d8d8ff", "#0000b1"])
                 .domain([1, maxWeight])
 
@@ -402,7 +402,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .padding(0.5)
                 .domain(nodeID);
 
-            var myColor = d3.scaleLinear()
+            var myColor = d3.scaleLinear<string>()
                 .range(["#d8d8ff", "#0000b1"])
                 .domain([1, maxWeight])
 

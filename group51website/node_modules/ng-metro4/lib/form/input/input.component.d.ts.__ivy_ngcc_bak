@@ -1,0 +1,40 @@
+import { EventEmitter } from '@angular/core';
+import { ControlBase } from '../control-base';
+import { InputType } from '../../helper/types';
+export declare class InputComponent extends ControlBase<string | number> {
+    searchButtonClick: EventEmitter<string | number>;
+    readonly: boolean;
+    placeholder: string;
+    type: InputType;
+    defaultValue: any;
+    size: number;
+    prepend: string;
+    append: string;
+    clearButton: boolean;
+    clearButtonIcon: string;
+    revealButton: boolean;
+    revealButtonIcon: string;
+    customButtons: {
+        html: string;
+        cls: string;
+        onclick: string;
+    }[];
+    searchButton: boolean;
+    searchButtonIcon: string;
+    autocomplete: string[];
+    autocompleteListHeight: number;
+    clsComponent: string;
+    clsInput: string;
+    clsPrepend: string;
+    clsAppend: string;
+    clsClearButton: string;
+    clsRevealButton: string;
+    clsCustomButton: string;
+    private input;
+    private inputObj;
+    private clonedElement;
+    createControl(): Promise<void>;
+    disable(disabled: boolean): void;
+    newValue(): void;
+    newClassValue(newClasses: string[], oldClasses: string[]): void;
+}

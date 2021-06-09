@@ -16,6 +16,7 @@ import { AboutPageComponent } from './about-page/about-page.component'
 import { AngularResizedEventModule } from 'angular-resize-event';
 import { FormsModule } from '@angular/forms';
 import { TreemapComponent } from './treemap/treemap.component';
+import { NgMetro4Module } from 'ng-metro4';
 
 @NgModule({
     declarations: [
@@ -36,7 +37,8 @@ import { TreemapComponent } from './treemap/treemap.component';
         BrowserModule,
         AppRoutingModule,
         FormsModule,
-        AngularResizedEventModule
+        AngularResizedEventModule,
+        NgMetro4Module
     ],
     providers: [],
     bootstrap: [AppComponent]

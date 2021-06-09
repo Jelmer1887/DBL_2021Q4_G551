@@ -1,0 +1,15 @@
+import { __decorate } from "tslib";
+import { Pipe } from '@angular/core';
+import { StringHelper } from '../../helper/string-helper';
+let CreateHashPipe = class CreateHashPipe {
+    transform(value) {
+        return StringHelper.createHash(value);
+    }
+};
+CreateHashPipe = __decorate([
+    Pipe({
+        name: 'createHash'
+    })
+], CreateHashPipe);
+export { CreateHashPipe };
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY3JlYXRlLWhhc2gucGlwZS5qcyIsInNvdXJjZVJvb3QiOiJuZzovL25nLW1ldHJvNC8iLCJzb3VyY2VzIjpbImxpYi9mb3JtL3BpcGVzL2NyZWF0ZS1oYXNoLnBpcGUudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBLE9BQU8sRUFBRSxJQUFJLEVBQWlCLE1BQU0sZUFBZSxDQUFDO0FBQ3BELE9BQU8sRUFBQyxZQUFZLEVBQUMsTUFBTSw0QkFBNEIsQ0FBQztBQUt4RCxJQUFhLGNBQWMsR0FBM0IsTUFBYSxjQUFjO0lBRXpCLFNBQVMsQ0FBQyxLQUFVO1FBQ2xCLE9BQU8sWUFBWSxDQUFDLFVBQVUsQ0FBQyxLQUFLLENBQUMsQ0FBQztJQUN4QyxDQUFDO0NBRUYsQ0FBQTtBQU5ZLGNBQWM7SUFIMUIsSUFBSSxDQUFDO1FBQ0osSUFBSSxFQUFFLFlBQVk7S0FDbkIsQ0FBQztHQUNXLGNBQWMsQ0FNMUI7U0FOWSxjQUFjIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgUGlwZSwgUGlwZVRyYW5zZm9ybSB9IGZyb20gJ0Bhbmd1bGFyL2NvcmUnO1xuaW1wb3J0IHtTdHJpbmdIZWxwZXJ9IGZyb20gJy4uLy4uL2hlbHBlci9zdHJpbmctaGVscGVyJztcblxuQFBpcGUoe1xuICBuYW1lOiAnY3JlYXRlSGFzaCdcbn0pXG5leHBvcnQgY2xhc3MgQ3JlYXRlSGFzaFBpcGUgaW1wbGVtZW50cyBQaXBlVHJhbnNmb3JtIHtcblxuICB0cmFuc2Zvcm0odmFsdWU6IGFueSk6IHN0cmluZyB7XG4gICAgcmV0dXJuIFN0cmluZ0hlbHBlci5jcmVhdGVIYXNoKHZhbHVlKTtcbiAgfVxuXG59XG4iXX0=

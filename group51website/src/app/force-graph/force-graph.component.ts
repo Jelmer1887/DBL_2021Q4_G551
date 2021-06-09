@@ -404,13 +404,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         y1 = e.selection[1][1];
 
                     svg.selectAll("circle")
-                        .each(function (d) {
+                        .each(function (d: any) {
                             //var cx = d3.select(this).attr("cx");
                             //var cy = d3.select(this).attr("cy");
 
                             // Gets the transform as a string: "translate(x, y) scale(s)""
                             var transform = d3.select(this).attr("transform").split(" ");
-                            var transString = transform[0];
+                            //var transString = transform[0];
                             var transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
                                 .split(","); // Split the x and y coordinate
 

@@ -1,0 +1,30 @@
+import { ControlBase } from '../control-base';
+import { InputType, PositionType } from '../../helper/types';
+export declare class KeypadComponent extends ControlBase<string | number> {
+    type: InputType;
+    keySize: number;
+    keys: string[];
+    keyLength: number;
+    shuffle: boolean;
+    shuffleCount: number;
+    position: PositionType;
+    dynamicPosition: boolean;
+    serviceButtons: boolean;
+    showValue: boolean;
+    open: boolean;
+    sizeAsKeys: boolean;
+    clsKeypad: string;
+    clsInput: string;
+    clsKeys: string;
+    clsKey: string;
+    clsServiceKey: string;
+    clsBackspace: string;
+    clsClear: string;
+    private input;
+    private keypad;
+    private clonedElement;
+    createControl(): Promise<void>;
+    disable(disabled: boolean): void;
+    newValue(): void;
+    newClassValue(newClasses: string[], oldClasses: string[]): void;
+}

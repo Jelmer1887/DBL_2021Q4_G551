@@ -1,0 +1,14 @@
+import { __decorate } from "tslib";
+import { Pipe } from '@angular/core';
+let ObjectKeysPipe = class ObjectKeysPipe {
+    transform(value) {
+        return Object.keys(value);
+    }
+};
+ObjectKeysPipe = __decorate([
+    Pipe({
+        name: 'objectKeys'
+    })
+], ObjectKeysPipe);
+export { ObjectKeysPipe };
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoib2JqZWN0LWtleXMucGlwZS5qcyIsInNvdXJjZVJvb3QiOiJuZzovL25nLW1ldHJvNC8iLCJzb3VyY2VzIjpbImxpYi9mb3JtL3BpcGVzL29iamVjdC1rZXlzLnBpcGUudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBLE9BQU8sRUFBRSxJQUFJLEVBQWlCLE1BQU0sZUFBZSxDQUFDO0FBS3BELElBQWEsY0FBYyxHQUEzQixNQUFhLGNBQWM7SUFFekIsU0FBUyxDQUFDLEtBQVU7UUFDbEIsT0FBTyxNQUFNLENBQUMsSUFBSSxDQUFDLEtBQUssQ0FBQyxDQUFDO0lBQzVCLENBQUM7Q0FFRixDQUFBO0FBTlksY0FBYztJQUgxQixJQUFJLENBQUM7UUFDSixJQUFJLEVBQUUsWUFBWTtLQUNuQixDQUFDO0dBQ1csY0FBYyxDQU0xQjtTQU5ZLGNBQWMiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBQaXBlLCBQaXBlVHJhbnNmb3JtIH0gZnJvbSAnQGFuZ3VsYXIvY29yZSc7XG5cbkBQaXBlKHtcbiAgbmFtZTogJ29iamVjdEtleXMnXG59KVxuZXhwb3J0IGNsYXNzIE9iamVjdEtleXNQaXBlIGltcGxlbWVudHMgUGlwZVRyYW5zZm9ybSB7XG5cbiAgdHJhbnNmb3JtKHZhbHVlOiBhbnkpOiBzdHJpbmdbXSB7XG4gICAgcmV0dXJuIE9iamVjdC5rZXlzKHZhbHVlKTtcbiAgfVxuXG59XG4iXX0=
