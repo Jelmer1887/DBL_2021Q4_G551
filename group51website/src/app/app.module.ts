@@ -16,7 +16,6 @@ import { AboutPageComponent } from './about-page/about-page.component'
 import { AngularResizedEventModule } from 'angular-resize-event';
 import { FormsModule } from '@angular/forms';
 import { TreemapComponent } from './treemap/treemap.component';
-import { NgMetro4Module } from 'ng-metro4';
 import { FileUploadModule } from 'ng2-file-upload';
 
 @NgModule({
@@ -39,7 +38,6 @@ import { FileUploadModule } from 'ng2-file-upload';
         AppRoutingModule,
         FormsModule,
         AngularResizedEventModule,
-        NgMetro4Module,
         FileUploadModule
     ],
     providers: [],
