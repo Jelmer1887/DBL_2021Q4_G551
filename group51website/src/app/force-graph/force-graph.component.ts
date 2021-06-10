@@ -58,7 +58,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 console.log("forcegraph: The node selected is " + this.selectedNodeInfo['id'])
             } else {
                 console.log("forcegraph: new selected node was already selected!")
-                this.initiateGraph();
             }
             this.newNodeSelected();
         })
