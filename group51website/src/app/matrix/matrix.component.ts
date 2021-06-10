@@ -32,9 +32,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
     checkMatrixSortOption(event): void {
         this.matrixSort = event.target.value
-        console.log("hey");
         this.initiateGraph();
-        console.log("oi")
     }
 
     checkMatrixView(event): void {
@@ -142,7 +140,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             for (var i = 0; i < jobNodes.length; i++) {
                 sortOrder.push(Object.values(jobNodes[i])[0]);
             }
-            console.log(sortOrder);
             jobLinks.sort(function (a, b) {
                 if (sortOrder.indexOf(a.source) > sortOrder.indexOf(b.source)) {
                     return 1;
@@ -150,7 +147,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     return -1;
                 }
             })
-            console.log(jobLinks);
         }
 
         function makeIDtoJobDict() {
@@ -292,7 +288,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             
             if (this.matrixSort == 'amount') { //sortOrder will contain the correct order necessary
                 sortJobNodesAmount();
-                console.log(jobNodes);
             } else {
                 sortOrder = jobs; //sortOrder will take the default jobs array as order
             }
@@ -330,7 +325,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("x", function (d: any) { return x(d.target) }) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
                 .style("fill", "none");
-            console.log(jobLinks);
+            
             const linkBox = svg.selectAll("myBoxes")
                 .data(jobLinks)
                 .enter()

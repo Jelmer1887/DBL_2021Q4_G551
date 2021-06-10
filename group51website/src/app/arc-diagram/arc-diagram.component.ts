@@ -136,29 +136,20 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
        
         //This is the ugliest solution ever. It makes the text boxes longer, making it easier to interact with them with mouse-events
         function makeText(d) {
-            if(true) {
-                if (d.id.length == 3) {
-                    return " \u00A0" + d.id + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
-                } else if (d.id.length == 2) {
-                    return " \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
-                } else {
-                    return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
-                }
+            if (d.id.length == 3) {
+                return " \u00A0" + d.id + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
+            } else if (d.id.length == 2) {
+                return " \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             } else {
-                if (d.id.length == 3) {
-                    return "\u00A0 \u00A0 \u00A0" + d.id + "\u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
-                } else if (d.id.length == 2) {
-                    return " \u00A0 \u00A0 \u00A0" + d.id + "\u00A0 \u00A0 \u00A0 \u00A0";
-                } else {
-                    return " \u00A0 \u00A0 \u00A0" + d.id + "\u00A0 \u00A0 \u00A0 \u00A0 \u00A0";
-                }
-            }   
+                return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
+            }
+        
         }
 
         function nodeGUI(inst, i) {
             var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [], "mailCount": i.mailCount };
 
-            console.log(linklist);
+            //console.log(linklist);
             var sentLinks = data.individualLinks.filter(function (e) {
                 return e.source == i.id;      //Finds emails sent
             })
@@ -174,7 +165,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
 
-            console.log(linklist);
+            //console.log(linklist);
             inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             //inst.nodeinfo = linklist;       // set local version
         }
@@ -274,7 +265,6 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .attr("stroke-opacity", 0.6)
             .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
     } else if(this.vis2Fullscreen) {
-        
         const node = svg.selectAll("mynodes")
         .data(nodes)
         .enter()
