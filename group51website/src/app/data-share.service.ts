@@ -8,7 +8,9 @@ import { Observable, BehaviorSubject, ReplaySubject, Subscription } from 'rxjs'
 export class DataShareService {
 
 
-    // this is the variable holding the data, it's a special 'replaysubject', basically a log holding all (1) past values of the variable.
+    // variables -------------------------------------------------------
+
+    // common - Data (eg the nodes)
     static sdatasource: BehaviorSubject<Data> = new BehaviorSubject({
         nodes: [],
         groupedLinks: [],
@@ -16,16 +18,28 @@ export class DataShareService {
         adjacencyMatrix: [[]]
     });
 
+    // common - selected node
+    static sselectednode: BehaviorSubject<any> = new BehaviorSubject({})
+
+    // currently only arcDiagram (should it?) - vis2Fullscreen
+    static svis2Fullscreen: BehaviorSubject<any> = new BehaviorSubject(false)
+
+
+    // update methods --------------------------------------------------
+
     public static updateData(newData: Data) {
         console.log("service: new data incoming!")
-        console.log(newData);
         this.sdatasource.next(newData)
+    }
 
-        // debugging logging
-        //console.log("service: found: ")
-        //this.sdatasource.subscribe(console.log)
-        // console.log("stored as replayobject:")
-        // console.log(this.sdatasource)
+    public static updateServiceNodeSelected(newNode: {}){
+        console.log("service: new selected node incoming!")
+        this.sselectednode.next(newNode)
+    }
+
+    public static updateServiceVis2FullScreen(newVal: boolean){
+        console.log("service: new fullscreen2 value incoming!")
+        this.svis2Fullscreen.next(newVal)
     }
 
     constructor() { }

@@ -24,7 +24,7 @@ export class TreemapComponent implements OnInit {
     public height: number = 500;  // px
 
     // -- Input
-    @Input() data: Data;
+    data: Data;
 
     // -- Output
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();
@@ -64,7 +64,7 @@ export class TreemapComponent implements OnInit {
 
     // graphs is build upon a change in data (or any change for that matter)
     ngOnChanges(changes: SimpleChanges): void {
-        this.buildGraph();
+        //this.buildGraph();
     }
 
     // -- GRAPH CREATION FUNCTIONS --------------------------------------------------- -- \\
@@ -120,7 +120,6 @@ export class TreemapComponent implements OnInit {
             .padding(this.padding)              // tell function what space to take between groups (jobs)
             (rootd3)                            // assign all results to augmented nodes in rootd3
 
-        console.log(rootd3.leaves())
         // 2. create rectangles according to the computated coordinates, and add those properties to svg
         if (this.svg){
             this.svg
