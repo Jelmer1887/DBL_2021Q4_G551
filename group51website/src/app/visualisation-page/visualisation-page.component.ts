@@ -42,14 +42,14 @@ export class VisualisationPageComponent implements OnInit {
     selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
     vis1Fullscreen = false;
     vis2Fullscreen = false;
-
+    
     private filesubscription: Subscription;
 
     //Variables for setting the slider
     private minDate: number = Math.min();
     private maxDate: number = Math.max();
     public dateRange: number;
-
+    
     startDate: number = 20011201;
     endDate: number = 20011231;
 
@@ -492,7 +492,7 @@ export class VisualisationPageComponent implements OnInit {
 
 
         }
-
+        
     }
 
 }

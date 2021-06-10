@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
 import { jobs, nodeColor } from '../app.component';
+import { VisualisationPageComponent } from '../visualisation-page/visualisation-page.component';
 //we need to import this component in the app.module.ts
 //we need to add the line below to visualisation-page.component.html:
 //<app-arc-diagram [file]="file"></app-arc-diagram>
@@ -19,7 +20,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     data: Data;
     @Input() sort;
     @Input() selectedNodeInfo;
-
+    @Input() vis2Fullscreen;
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     private width;
@@ -132,40 +133,26 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
         var nodeRadius = 2;
         //add circles for the nodes
-        svg.append("style").text(`
-
-.hover path {
-  stroke: #ccc;
-}
-
-.hover text {
-  fill: #ccc;
-} 
-
-.hover mylabels.primary text {
-  fill: black;
-  font-weight: bold;
-}
-
-.hover mylabels.secondary text {
-  fill: #333;
-}
-
-.hover path.primary {
-  stroke: #333;
-  stroke-opacity: 1;
-}
-
-`);
+       
         //This is the ugliest solution ever. It makes the text boxes longer, making it easier to interact with them with mouse-events
         function makeText(d) {
-            if (d.id.length == 3) {
-                return " \u00A0" + d.id + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
-            } else if (d.id.length == 2) {
-                return " \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
+            if(true) {
+                if (d.id.length == 3) {
+                    return " \u00A0" + d.id + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
+                } else if (d.id.length == 2) {
+                    return " \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
+                } else {
+                    return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
+                }
             } else {
-                return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
-            }
+                if (d.id.length == 3) {
+                    return "\u00A0 \u00A0 \u00A0" + d.id + "\u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
+                } else if (d.id.length == 2) {
+                    return " \u00A0 \u00A0 \u00A0" + d.id + "\u00A0 \u00A0 \u00A0 \u00A0";
+                } else {
+                    return " \u00A0 \u00A0 \u00A0" + d.id + "\u00A0 \u00A0 \u00A0 \u00A0 \u00A0";
+                }
+            }   
         }
 
         function nodeGUI(inst, i) {
@@ -191,7 +178,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             //inst.nodeinfo = linklist;       // set local version
         }
-
+        if (!this.vis2Fullscreen) {
         const node = svg.selectAll("mynodes")
             .data(nodes)
             .enter()
@@ -239,7 +226,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
             })
             .call(mylabels => mylabels.append("text")
-                .attr("x", 0)
+                .attr("x", 1)
                 .attr("dy", "0.35em")
                 .attr("fill", "#008000") //d3.lab(color(d.group)).darker(2)
                 .text(d => makeText(d)));
@@ -286,7 +273,88 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .attr("stroke", (d: any) => this.linkColor(d.sentiment))
             .attr("stroke-opacity", 0.6)
             .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
+    } else if(this.vis2Fullscreen) {
+        
+        const node = svg.selectAll("mynodes")
+        .data(nodes)
+        .enter()
+        .append("circle")
+        .attr("cx", function (d: any) { return (x(d.id)) })
+        .attr("cy", this.height - 30)
+        .attr("r", nodeRadius)
+        .style("fill", (d: any) => nodeColor(d.job));
+    //function(d){ return(x(d.name))}
+    //add labels for nodes 
+    node.append("title")
+        .text((d: any) => {
+            return "id: " + d.id + "\n" +
+                "e-mail: " + d.address + "\n" +
+                "function: " + d.job;
+        });
+
+    const label = svg.selectAll("mylabels")
+        .data(nodes)
+        .enter()
+        .append("text")
+        .attr("font-size", "8")
+        .attr("font-family", "sans-serif")
+        .attr("x", this.height-15)
+        .attr("y", 7)
+        .attr("transform", (d: any) => `translate(${d.x = x(d.id)+ nodeRadius + 1},${0}) rotate(90)`)
+        .text(d => makeText(d))
+        .style("text-anchor", "middle")
+        .on("click", (event, d: any) => {
+            nodeGUI(inst, d)
+        })
+        //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
+        .on("mouseover", function (event, d: any) {
+            label.style('fill', "#ccc")
+            d3.select(this).style('font-weight', 'bold')
+            d3.select(this).style('fill', "#000")
+            link.style('stroke', (a: any) => a.source === d.id || a.target === d.id ? nodeColor(d.job) : inst.linkColorHover(a.sentiment))
+            //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
+        })
+        .on("mouseout", function (event, d: any) {
+            if (d.id != inst.selectedNodeInfo['id']) {
+                label.style('fill', "#000")
+                d3.select(this).style('fill', '#000')
+                d3.select(this).style('font-weight', 'normal')
+            }
+            link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
+        })
+        .call(mylabels => mylabels.append("text")
+            .attr("y", 12)
+            .attr("dx", "0.35em")
+            .attr("fill", "#008000") //d3.lab(color(d.group)).darker(2)
+            .text(d => makeText(d)));
+    label.append("title")
+        .text((d: any) => {
+            return "id: " + d.id + "\n" +
+                "e-mail: " + d.address + "\n" +
+                "function: " + d.job;
+        });
+
+    const link = svg.selectAll('mylinks')
+        .data(links)
+        .enter()
+        .append('path')
+        .attr('d', function (d: any) {
+            var start = x(d.source)    // X position of start node on the X axis
+            //console.log(start);
+            var end = x(d.target)      // X position of end node
+            return ['M', start, 770,    // the arc starts at the coordinate y=start, x=width-30 (where the starting node is)
+                'A',                            // This means we're gonna build an elliptical arc
+                (start - end) / 2, ',',    // Next 2 lines are the coordinates of the inflexion point. Height of this point is proportional with start - end distance
+                (start - end) / 2, 0, 0, ',',
+                start < end ? 1 : 0, end, ',', 770] // We always want the arc on top. So if end is before start, putting 0 here turn the arc upside down. Final numerical value of this line determines x coordinate of endpoints of arc.
+                .join(' ');
+        })
+        .style("fill", "none")
+        .attr("stroke", (d: any) => this.linkColor(d.sentiment))
+        .attr("stroke-opacity", 0.6)
+        .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1)); 
     }
+}
 
     newNodeSelected() {
 
