@@ -11,8 +11,8 @@ import { jobs, nodeColor } from '../app.component';
 export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
     @Input() data: Data;
-    @Input() matrixSort;
-    @Input() matrixView = "all"; //this will be an input variable determining if we show all id's or just per jobtitle etc.
+    @Input() matrixSort = "id";
+    @Input() matrixView = "job"; //this will be an input variable determining if we show all id's or just per jobtitle etc.
     //@Input() showIndividualLinks;
     //@Input() selectedNode;  //id of the node last clicked
 
@@ -32,7 +32,9 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
     checkMatrixSortOption(event): void {
         this.matrixSort = event.target.value
+        console.log("hey");
         this.initiateGraph();
+        console.log("oi")
     }
 
     checkMatrixView(event): void {
@@ -63,7 +65,10 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         // console.log(links);
         var nodes = JSON.parse(JSON.stringify(data.nodes))
         var idToJobs = {};//dictionary
-        var jobNodes = makeJobNodes();
+        makeIDtoJobDict();
+        var jobNodes = makeJobNodes();//[{job: , mailCount: }]
+        var jobLinks = []; //[{source: , target: , weight: }]
+        makeJobLinks(jobLinks);
 
         function findMaxWeight() {
             var maxWeight = 0;
@@ -133,6 +138,19 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     return (a.mailCount > b.mailCount ? -1 : 1);
                 }
             })
+            sortOrder = [];
+            for (var i = 0; i < jobNodes.length; i++) {
+                sortOrder.push(Object.values(jobNodes[i])[0]);
+            }
+            console.log(sortOrder);
+            jobLinks.sort(function (a, b) {
+                if (sortOrder.indexOf(a.source) > sortOrder.indexOf(b.source)) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            })
+            console.log(jobLinks);
         }
 
         function makeIDtoJobDict() {
@@ -259,8 +277,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             return jobNodes;
         }
 
-        makeIDtoJobDict();
-
         const svg = d3.select('#matrix')
             .attr("width", this.width)
             .attr("height", this.height); //800
@@ -271,29 +287,32 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("height", 80);
 
         if (this.matrixView == "job") {
-
-            if (this.matrixSort == 'amount') {
+            
+            var sortOrder = [];
+            
+            if (this.matrixSort == 'amount') { //sortOrder will contain the correct order necessary
                 sortJobNodesAmount();
                 console.log(jobNodes);
+            } else {
+                sortOrder = jobs; //sortOrder will take the default jobs array as order
             }
 
+            
             var xMargin = 15;
             var yMargin = 15;
-            var jobLinks = []; //[{source: , target: , weight: }]
-            makeJobLinks(jobLinks);
-            console.log(jobNodes);
+
             var maxWeight = findMaxWeight();
             var gridData = makeJobGridData(jobs);
             // console.log(gridData);
             var x = d3.scalePoint()
                 .range([xMargin, this.width - xMargin - (this.width - 2 * xMargin) / jobs.length])
                 .padding(0.5)
-                .domain(jobs);
+                .domain(sortOrder);
 
             var y = d3.scalePoint()
                 .range([yMargin, this.height - yMargin - (this.height - 2 * yMargin) / jobs.length])
                 .padding(0.5)
-                .domain(jobs);
+                .domain(sortOrder);
 
             var myColor = d3.scaleLinear<string>()
                 .range(["#d8d8ff", "#0000b1"])
@@ -311,7 +330,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("x", function (d: any) { return x(d.target) }) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
                 .style("fill", "none");
-
+            console.log(jobLinks);
             const linkBox = svg.selectAll("myBoxes")
                 .data(jobLinks)
                 .enter()
