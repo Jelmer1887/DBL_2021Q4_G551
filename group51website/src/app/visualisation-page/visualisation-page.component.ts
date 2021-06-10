@@ -8,6 +8,7 @@ import * as d3 from 'd3';
 import { jobs, nodeColor } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 import { MatrixComponent } from '../matrix/matrix.component';
+import { BrushShareService } from '../brush-share.service';
 
 @Component({
     selector: 'app-visualisation-page',
@@ -42,14 +43,14 @@ export class VisualisationPageComponent implements OnInit {
     selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
     vis1Fullscreen = false;
     vis2Fullscreen = false;
-    
+
     private filesubscription: Subscription;
 
     //Variables for setting the slider
     private minDate: number = Math.min();
     private maxDate: number = Math.max();
     public dateRange: number;
-    
+
     startDate: number = 20011201;
     endDate: number = 20011231;
 
@@ -423,11 +424,17 @@ export class VisualisationPageComponent implements OnInit {
     }
 
     setBrushMode(): void {
-        this.brushMode = true;
+        BrushShareService.updateBrush({
+            brushEnabled: true,
+            brushedNodes: BrushShareService.brushSource.value.brushedNodes,
+        });
     }
 
     setPanMode(): void {
-        this.brushMode = false;
+        BrushShareService.updateBrush({
+            brushEnabled: false,
+            brushedNodes: BrushShareService.brushSource.value.brushedNodes,
+        });
     }
 
     fullscreenVis1() {
@@ -492,7 +499,7 @@ export class VisualisationPageComponent implements OnInit {
 
 
         }
-        
+
     }
 
 }

@@ -1,12 +1,11 @@
-import { UploadService } from './../upload.service';
 import { DataShareService } from './../data-share.service';
-import { ThrowStmt } from '@angular/compiler';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import { nodeColor } from '../app.component';
 import * as d3 from 'd3';
 import { ResizedEvent } from 'angular-resize-event';
 import { inArray } from 'jquery';
 import { Subscription } from 'rxjs';
+import { BrushShareService } from '../brush-share.service';
 
 @Component({
     selector: 'app-force-graph',
@@ -19,12 +18,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     data: Data;
     @Input() selectedNodeInfo;  //id of the node last clicked
-    @Input() brushMode;
 
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     showIndividualLinks = false;
     brushedNodes = [];
+    brushEnabled = false;
 
     private width;
     private height = 800;
@@ -33,7 +32,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private beginPosY = 0;
     private beginScale = 0.75;
 
-    private datasubscription: Subscription;
+    private dataSubscription: Subscription;
+    private brushSubscription: Subscription;
 
     // variable holding information of clicked node
     nodeinfo;
@@ -45,15 +45,34 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     ngOnInit(): void {
         console.log("forceGraph: initialising: subbing to Service!")
-        this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
+        this.dataSubscription = DataShareService.sdatasource.subscribe(newData => {
             console.log("forceGraph: Datashareservice: data update detected!");
             this.data = newData;
             this.initiateGraph();
         })
+
+        this.brushSubscription = BrushShareService.brushSource.subscribe(newBrush => {
+            // The mode stayed the same, meaning the brushedNodes must have changed.
+            if (this.brushEnabled == newBrush.brushEnabled) {
+                if (this.brushedNodes != newBrush.brushedNodes) { // Check if we didn't get the changes from ourselves
+                    //console.log(newBrush);
+                    this.brushedNodes = newBrush.brushedNodes;
+                    this.newNodeSelected();
+                }
+            } else { // We didnt get into the if, so the mode must have changed.
+                this.brushEnabled = newBrush.brushEnabled;
+                if (this.brushEnabled) {
+                    this.enableBrushMode();
+                } else {
+                    this.disableBrushMode();
+                }
+            }
+        })
     }
 
     ngOnDestroy() {
-        this.datasubscription.unsubscribe();
+        this.brushSubscription.unsubscribe();
+        this.dataSubscription.unsubscribe();
     }
 
     // -- Funtions to deal with buttons and controls -- \\
@@ -64,13 +83,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     // -- ---- - ---- -- \\
     ngOnChanges(changes: SimpleChanges): void {
-        if ('brushMode' in changes) {
-            if (this.brushMode) {
-                this.enableBrushMode();
-            } else {
-                this.disableBrushMode();
-            }
-        } else if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
+        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
         } else {
             this.initiateGraph();
@@ -327,13 +340,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 if (s < -0.1) {
                     return "#ffadad";
                 }
-                }
-
-                return "#ccc";
             }
+
+            return "#ccc";
+        }
     }
 
-        
+
 
     // Updates the selected/highlighted nodes
     newNodeSelected() {
@@ -435,9 +448,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
                     svg.selectAll("circle")
                         .each(function (d: any) {
-                            //var cx = d3.select(this).attr("cx");
-                            //var cy = d3.select(this).attr("cy");
 
+                            // TODO: The transformation is the same for every node, 
+                            // so parsing it for every node is a bit of a waste of time.
+                            // We should do parse it for one node and then use that tx, ty and scale for all of them. - Kay
                             // Gets the transform as a string: "translate(x, y) scale(s)""
                             var transform = d3.select(this).attr("transform").split(" ");
                             var transString: any = transform[0];
@@ -464,6 +478,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                             }
                         })
                 }
+                BrushShareService.updateBrush({
+                    brushEnabled: inst.brushEnabled,
+                    brushedNodes: inst.brushedNodes,
+                });
                 inst.newNodeSelected();
             })
         )

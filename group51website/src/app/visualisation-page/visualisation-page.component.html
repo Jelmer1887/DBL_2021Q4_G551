@@ -78,8 +78,7 @@
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph [brushMode]="brushMode" (nodeEmailsEvent)="updateNodeInfo($event)"
-                        [selectedNodeInfo]="selectedNodeInfo">
+                    <app-force-graph (nodeEmailsEvent)="updateNodeInfo($event)" [selectedNodeInfo]="selectedNodeInfo">
                     </app-force-graph>
                     <div class="buttons is-right">
                         <button #button1 (click)="fullscreenVis1()" class="button">
@@ -204,8 +203,8 @@
                 <div class="box">
                     <h1 class="title">Arc Diagram</h1>
                     <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
-                    <app-arc-diagram [selectedNodeInfo]="selectedNodeInfo"
-                        (nodeEmailsEvent)="updateNodeInfo($event)" [vis2Fullscreen] = "vis2Fullscreen"></app-arc-diagram>
+                    <app-arc-diagram [selectedNodeInfo]="selectedNodeInfo" (nodeEmailsEvent)="updateNodeInfo($event)"
+                        [vis2Fullscreen]="vis2Fullscreen"></app-arc-diagram>
                     <div class="buttons is-left">
                         <button #button2 (click)="fullscreenVis2();" class="button">
                             <span class="icon is-small">
