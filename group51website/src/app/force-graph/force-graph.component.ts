@@ -162,7 +162,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 d3.select(this)
                     .attr("stroke", "black")
                     .attr("stroke-width", 2);
-                link.style('stroke', (a: any) => a.source.id === d.id || a.target.id === d.id ? inst.linkColor(a.sentiment, 1) : '#ccc')
+                link.style('stroke', (a: any) => linkColorHover(a.sentiment))
             })
             .on("mouseout", function (event, d: any) {
                 d3.select(this)
@@ -319,7 +319,21 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 }
             }
         }
+        function linkColorHover(sentiment) {
+            for (var s of sentiment) {
+                if (s > 0.1) {
+                    return "#89ff89"; //#76ff76
+                }
+                if (s < -0.1) {
+                    return "#ffadad";
+                }
+                }
+
+                return "#ccc";
+            }
     }
+
+        
 
     // Updates the selected/highlighted nodes
     newNodeSelected() {
