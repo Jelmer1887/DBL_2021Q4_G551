@@ -37,8 +37,9 @@
             <h3 id="myRangeStart"></h3>
             <div class="level-item">
                 <h3 id="myRangeMin"></h3>
-                <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
-                    [max]="dateRange" value="1" type="range" id="myRange" style="width:90%">
+                <ngx-slider [(value)]="value" [(highValue)]="highValue" (userChangeEnd)="setNewDate($event)" [options]="currentOptions"></ngx-slider>
+                <!-- <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
+                    [max]="dateRange" value="1" type="range" id="myRange" style="width:90%"> -->
                 <h3 id="myRangeMax"></h3>
             </div>
             <h3 id="myRangeEnd"></h3>

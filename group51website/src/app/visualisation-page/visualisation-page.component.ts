@@ -9,6 +9,7 @@ import { jobs, nodeColor } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 import { MatrixComponent } from '../matrix/matrix.component';
 import { BrushShareService } from '../brush-share.service';
+import { Options, ChangeContext, LabelType } from "@angular-slider/ngx-slider";
 
 @Component({
     selector: 'app-visualisation-page',
@@ -24,6 +25,17 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild('button2') button2;
     @ViewChild('dropdown1') dd1;
     @ViewChild('dropdown2') dd2;
+
+
+    //Next few lines are to initialise the slider
+    value: number = 40;         //set low value
+    highValue: number = 60;     //set highest value
+    currentOptions: Options = {
+        floor: 0,               //set minimum value
+        ceil: 100,              //set maximum
+        hideLimitLabels: true,   //don't show minimum and maximum
+        hidePointerLabels: true
+    };
 
     // configurables
     INFOCARD_COLUMNS = 4;
@@ -70,6 +82,28 @@ export class VisualisationPageComponent implements OnInit {
 
     ngOnDestroy(): void {
         this.filesubscription.unsubscribe();
+    }
+
+    changeDateRange() {
+        const newOptions: Options = Object.assign({}, this.currentOptions);     //create new options variable and copy old options
+        newOptions.ceil = this.dateRange;       //change maximum value to number of days
+        this.currentOptions = newOptions;       //update slider
+    }
+
+    changeDateLabels(start,end) {
+        const newOptions: Options = Object.assign({}, this.currentOptions);    //create new options variable and copy old options
+        newOptions.translate = (value: number, label: LabelType): string => {
+            switch (label) {
+              case LabelType.Low:   //if pointer is left side 
+                return start;
+              case LabelType.High:  //if pointer is right side
+                return end;
+            default:
+                return '$' + value;
+            }
+        }
+        newOptions.hidePointerLabels = false;
+        this.currentOptions = newOptions;
     }
 
     parseFile(): void {
@@ -218,6 +252,7 @@ export class VisualisationPageComponent implements OnInit {
             var maxMonth = maxDate.toLocaleString('default', { month: 'long' })
             var maxYear = maxDate.getFullYear()
 
+            this.changeDateRange();
             document.getElementById('myRangeMax').innerText = maxDay + ' ' + maxMonth + ', ' + maxYear;
             document.getElementById('myRangeMin').innerText = minDay + ' ' + minMonth + ', ' + minYear
 
@@ -253,20 +288,23 @@ export class VisualisationPageComponent implements OnInit {
         this.createLegend(event.newWidth);
     }
 
-    setNewDate(event) {
+    setNewDate(changeContext: ChangeContext): void {
         if (!this.file) {
             return;
         }
+        var newMinValue = changeContext.value
+        var newMaxValue = changeContext.highValue
+
         //set newStartDate as the minimum date
         var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
+        var newEndDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000");
 
         //set the date to be mindate
-        newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
+        newStartDate.setDate(newStartDate.getDate() + newMinValue);
 
         //Set newEndDate as 30 days after newStartDate
-        var newEndDate = new Date(newStartDate);
-        newEndDate.setDate(newEndDate.getDate() + 30);
-
+        newEndDate.setDate(newEndDate.getDate() + newMaxValue);
+        
         this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
         this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
 
@@ -278,14 +316,16 @@ export class VisualisationPageComponent implements OnInit {
         var endMonth = newEndDate.toLocaleString('default', { month: 'long' })
         var endYear = newEndDate.getFullYear()
 
+        var startDateString = '<b> From: ' + startDay +' '+ startMonth +', '+ startYear + '</b>'
+        var endDateString = '<b> Till: ' +  endDay +' '+ endMonth +', '+ endYear + '</b>'
+
+        this.changeDateLabels(startDateString,endDateString);
+
         //change HTML elements
         //document.getElementById('myRangeStart').innerText = 'From: ' + startDay +' '+ startMonth +', '+ startYear
         //document.getElementById('myRangeEnd').innerText ='Till: ' +  endDay +' '+ endMonth +', '+ endYear
 
         this.parseFile();
-    }
-
-    nodeToParent(nodeID): void {
     }
 
     // setter for selectedNode, used to update info-card, triggered through html event
