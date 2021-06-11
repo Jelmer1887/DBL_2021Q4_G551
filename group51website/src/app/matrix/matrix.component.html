@@ -20,12 +20,14 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+</script>
 <div class="container">
     <div class="level">
         <div class="level-item">
             <div class="control has-icons-left is-normal">
                 <div class="select is-normal">
-                    <select (change)="checkMatrixView($event)">
+                    <select id = "view" (change)="checkMatrixView($event); displayAccordingly();">
                         <option selected value="job">ID's grouped by Job Function</option>
                         <option value="all">View all ID's</option>
                     </select>
@@ -37,6 +39,21 @@
         </div>
     </div>
 </div>
+
+<div class="container">
+    <div class="level">
+        <div class="level-item">
+            <div class="control has-icons-left is-normal">
+                <div id = "checkBox">
+                    <input type="checkbox" (change)="checkWeighted($event)" id="cb">
+                    <label id="label" for="cb">Weighted mail count</label>
+                </div> 
+            </div>
+        </div>
+    </div> 
+</div>
+ 
+                
 <!--
 <div>
     <svg id="matrix-legend"></svg>

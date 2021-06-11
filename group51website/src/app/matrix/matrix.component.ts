@@ -13,12 +13,13 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     @Input() data: Data;
     @Input() matrixSort = "id";
     @Input() matrixView = "job"; //this will be an input variable determining if we show all id's or just per jobtitle etc.
+    
     //@Input() showIndividualLinks;
     //@Input() selectedNode;  //id of the node last clicked
 
     private width;
     private height = 800;
-
+    private weighted = false;
     // variable holding information of clicked node
     nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
 
@@ -40,12 +41,45 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         this.initiateGraph();
     }
 
+    checkWeighted(event): void {
+        this.weighted = event.target.checked;
+        this.initiateGraph();
+    }
+
+
+    
+    displayAccordingly() { //displays a checkbox for weighted nodes or not in the job view
+        //var weightBefore = this.weighted;
+        //console.log(this.weighted)
+        var location = document.getElementById('checkBox');
+        //var newCheckBox = document.createElement('input');
+        //newCheckBox.type = "checkbox";
+        //newCheckBox.name = "name";
+        //newCheckBox.id = 'cb';
+        //newCheckBox.addEventListener('change', 'checkWeighted($event)');
+        //var label = document.createElement('label');
+        //label.htmlFor = "cb";
+        //label.id = 'label'
+        //label.appendChild(document.createTextNode('weighted mail count'));
+        if (this.matrixView == 'job') {
+            //location.appendChild(newCheckBox);
+            document.getElementById("label").style.display = "inline";
+            document.getElementById("cb").style.display = "inline";
+        } else if (this.matrixView = "all") {
+            document.getElementById("cb").style.display = "none";
+            //location.removeChild(document.getElementById('cb'));
+            document.getElementById("label").style.display = "none";
+        }
+    }
     ngOnChanges(changes: SimpleChanges): void {
         /*if('selectedNode' in changes){  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNode)      
         } else{
             this.initiateGraph();
         } */
+        if('weighted' in changes) {
+            this.initiateGraph();
+        }
         this.initiateGraph();
     }
 
@@ -59,14 +93,25 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     runMatrix(data: Data) {
+        console.log(this.weighted);
         var links = JSON.parse(JSON.stringify(data.individualLinks))
         // console.log(links);
         var nodes = JSON.parse(JSON.stringify(data.nodes))
         var idToJobs = {};//dictionary
         makeIDtoJobDict();
-        var jobNodes = makeJobNodes();//[{job: , mailCount: }]
-        var jobLinks = []; //[{source: , target: , weight: }]
-        makeJobLinks(jobLinks);
+        var numJob = makeNumJob();
+        var tempJobNodes = makeJobNodes();//[{job: , mailCount: }]
+        var tempJobLinks = makeJobLinks(); //[{source: , target: , weight: }] needed to make weightedJobLinks
+        var jobLinks;
+        var jobNodes;
+        if (this.weighted) {
+            jobNodes= makeWeightedJobNodes();
+            jobLinks= makeWeightedJobLinks()
+        } else {
+            jobLinks = tempJobLinks;
+            jobNodes = tempJobNodes; 
+        }
+        
 
         function findMaxWeight() {
             var maxWeight = 0;
@@ -154,7 +199,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 idToJobs[node.id] = node.job; // {node.id:node.job}
             }
         }
-        function makeJobLinks(array) {
+        function makeJobLinks() {
+            var array = [];
             for (var link of links) {
                 var linkFound = false
                 for (var l of array) {
@@ -164,11 +210,18 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     }
                 }
                 if (!linkFound) {
-                    jobLinks.push({ source: idToJobs[link.source], target: idToJobs[link.target], weight: 1 })
+                    array.push({ source: idToJobs[link.source], target: idToJobs[link.target], weight: 1 })
                 }
             }
+            return array;
         }
-
+        function makeWeightedJobLinks() {
+            var weightedLinks = [];
+            for (var link of tempJobLinks) {
+                weightedLinks.push({source: link.source, target: link.target, weight: Math.round(link.weight/numJob[link.source.toString()])})
+            }
+            return weightedLinks;
+        }
         function rectColor(weight) {
             //var colors = ["#ffadad", "#ff8585", "#ff5e5e", "#ff3737", "#ff1010"]; //Based on saturation
             var colors = ["#ffadad", "#ff4b4b", "#e70000", "#ad0000"] //Based on different shades and/or saturations, just 4 to improve comparability
@@ -273,6 +326,26 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             return jobNodes;
         }
 
+        function makeNumJob() {
+            var numJob = {};
+            for (var job of jobs) {
+                numJob[job] = 0;
+            }
+            for (var node of nodes) {
+                numJob[node.job.toString()] += 1; //for example: {"CEO" : 2}. There are two instances of CEO in nodes
+                }
+            console.log(numJob);
+            return numJob;
+        }
+        
+        function makeWeightedJobNodes() {
+            var weightedJobNodes = [];
+            for (var node of tempJobNodes) {
+                weightedJobNodes.push({job: node.job, mailCount: node.mailCount/numJob[node.job]});
+            }
+            return weightedJobNodes;
+        }
+
         const svg = d3.select('#matrix')
             .attr("width", this.width)
             .attr("height", this.height); //800
@@ -283,15 +356,15 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("height", 80);
 
         if (this.matrixView == "job") {
-            
             var sortOrder = [];
-            
+
             if (this.matrixSort == 'amount') { //sortOrder will contain the correct order necessary
                 sortJobNodesAmount();
             } else {
                 sortOrder = jobs; //sortOrder will take the default jobs array as order
             }
 
+            
             
             var xMargin = 15;
             var yMargin = 15;
