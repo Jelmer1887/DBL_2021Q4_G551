@@ -47,16 +47,17 @@ export class VisualisationPageComponent implements OnInit {
         individualLinks: [],
         adjacencyMatrix: [[]]
     };
-    arcSort = "id";
-    matrixSort = "id";
-    brushMode = false;
+    arcSort: string = "id";
+    matrixSort: string = "id";
+    brushMode: boolean = false;
     max;
 
-    selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
-    vis1Fullscreen = false;
-    vis2Fullscreen = false;
+    selectedNodeInfo: any = { 'id': -1, 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
+    vis1Fullscreen: boolean = false;
+    vis2Fullscreen: boolean = false;
 
     private filesubscription: Subscription;
+    private selectSubscription: Subscription;
 
     //Variables for setting the slider
     private minDate: number = Math.min();
@@ -78,6 +79,12 @@ export class VisualisationPageComponent implements OnInit {
             this.file = newfile;
             this.parseFile();
         });
+        this.selectSubscription = DataShareService.sselectednode.subscribe(newNode => {
+            const hasChanged: boolean = (newNode.id != this.selectedNodeInfo.id)
+            console.log("page: received new selected node! new = " + hasChanged)
+            this.selectedNodeInfo = newNode;
+            if (hasChanged == true){ this.updateNodeInfo(this.selectedNodeInfo) }
+        })
     }
 
     ngOnDestroy(): void {
@@ -330,137 +337,130 @@ export class VisualisationPageComponent implements OnInit {
 
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
-
-        //Check if node clicked was already selected from before
-        if (node['id'] == this.selectedNodeInfo['id']) {
-            this.selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] };
-            console.log(this.selectedNodeInfo)
-        } else {
-            this.selectedNodeInfo = node;
-            console.log(this.selectedNodeInfo)
+        
+        if (!node.hasOwnProperty('id')){
+            console.log("page: updateNodeInfo: node is empty!");
+            return
         }
 
-        if (this.selectedNodeInfo['id'].length != 0) {
-            // function to add a row to the info section
-            function createInfoRow(table: HTMLTableElement, discr: string, value: any): void {
-                // update ID
-                let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
-
-                let text = document.createElement('td');                                // (re)create text
-                text.innerText = discr;
-                text.className = "has-text-right";
-                newRow.append(text);
-
-                text = document.createElement('td');                                    // set new value
-                text.innerText = value;
-                newRow.append(text);
-
-                table.append(newRow);
-            }
-
-            // function to add rows to a table
-            function createRow(table: HTMLTableElement, attribute: string, component: any): void {
-
-                // repetition detection
-                let repeatdict = {};
-                for (let i = 0; i < component.selectedNodeInfo[attribute].length; i++) {
-                    let p = component.selectedNodeInfo[attribute][i]
-                    if (repeatdict.hasOwnProperty(p) == false) {
-                        repeatdict[p] = 1;
-                    } else {
-                        repeatdict[p] += 1;
-                    }
-                }
-                console.log(repeatdict);
-
-
-                // create the table in array form
-                let structure = [];
-                let newRow = [];
-                let charslen: number = 0;
-                for (const elm in repeatdict) {
-                    let text = elm;
-                    if (repeatdict[elm] > 1) { text = text + "(x" + repeatdict[elm] + ")" }
-                    charslen += text.length;
-                    if (newRow.length < component.INFOCARD_COLUMNS - 1) {
-                        newRow.push(text)
-                    } else {
-                        newRow.push(text)
-                        structure.push(newRow);
-                        //console.log("nr of characters detected in row: "+charslen);
-                        if (charslen >= 22) {
-                            table.className = "table is narrow is-hoverable is-fullwidth is-size-7";
-                            //console.log("table ("+table.id+") is possibly too big, reducing text size...")
-                        }
-                        newRow = [];
-                        charslen = 0;
-                    }
-                }
-                if (newRow.length != 0) { structure.push(newRow) }
-
-                // make the array square, by filling the possibly incomplete last row with empty strings.
-                if (structure.length > 0) {
-                    if (structure[structure.length - 1].length < component.INFOCARD_COLUMNS) {
-                        for (let i = structure[structure.length - 1].length - 1; i < component.INFOCARD_COLUMNS - 1; i++) {
-                            structure[structure.length - 1].push("");
-                        }
-                    }
-                }
-
-                // -- Converting structured array to HTML table on website -- \\
-                for (const r in structure) {
-                    let rowElement = document.createElement('tr');
-
-                    for (const c in structure[r]) {
-                        let cellElement = document.createElement('td');
-                        cellElement.innerText = structure[r][c]
-
-                        rowElement.append(cellElement);
-                    }
-
-                    table.append(rowElement);
-                }
-            }
-
-
-            for (let i = 0; i < this.selectedNodeInfo["receivedfrom"].length; i++) {
-                var id = this.selectedNodeInfo["receivedfrom"][i]
-                this.selectedNodeInfo["receivedfrom"][i] = id.toString() + " "; // I need to hvae a space between every element
-            }
-            for (let i = 0; i < this.selectedNodeInfo["sendto"].length; i++) {
-                var id = this.selectedNodeInfo["sendto"][i]
-                this.selectedNodeInfo["sendto"][i] = id.toString() + " "; // I need to hvae a space between every element
-            }
-
-            // -- code to update the table of send id's -- \\
-
-            // remove ALL rows in the page assuming no other tables are here
-            let rows = document.querySelectorAll('tr');
-            for (let i = 0; rows[i]; i++) {
-                let row = (rows[i] as HTMLTableRowElement);
-                row.remove();
-            }
-
-            // get the tables in the infocard
-            let receivedTable = (document.getElementById('nodeinfo_table_received') as HTMLTableElement);     // table containing rows of received email id's
-            let sendTable = (document.getElementById('nodeinfo_table_send') as HTMLTableElement);             // table containing rows of send     email id's
-
-            // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
-            createRow(receivedTable, "receivedfrom", this);
-            createRow(sendTable, "sendto", this);
-
-            // -- code to update node id + other future info -- \\
-
-            // get table of info
-            let idTable = (document.getElementById("id_table") as HTMLTableElement);
-
+        // function to add a row to the info section
+        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void {
             // update ID
-            createInfoRow(idTable, "ID:", node.id.toString());
-            // update job
-            createInfoRow(idTable, "Job:", node.job);
-            // update nr of emails
-            createInfoRow(idTable, "nr of emails send/received:", node.mailCount)
+            let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
+
+            let text = document.createElement('td');                                // (re)create text
+            text.innerText = discr;
+            text.className = "has-text-right";
+            newRow.append(text);
+
+            text = document.createElement('td');                                    // set new value
+            text.innerText = value;
+            newRow.append(text);
+
+            table.append(newRow);
         }
+
+        // function to add rows to a table
+        function createRow(table: HTMLTableElement, attribute: string, component: any): void {
+
+            // repetition detection
+            let repeatdict = {};
+            for (let i = 0; i < component.selectedNodeInfo[attribute].length; i++) {
+                let p = component.selectedNodeInfo[attribute][i]
+                if (repeatdict.hasOwnProperty(p) == false) {
+                    repeatdict[p] = 1;
+                } else {
+                    repeatdict[p] += 1;
+                }
+            }
+
+
+            // create the table in array form
+            let structure = [];
+            let newRow = [];
+            let charslen: number = 0;
+            for (const elm in repeatdict) {
+                let text = elm;
+                if (repeatdict[elm] > 1) { text = text + "(x" + repeatdict[elm] + ")" }
+                charslen += text.length;
+                if (newRow.length < component.INFOCARD_COLUMNS - 1) {
+                    newRow.push(text)
+                } else {
+                    newRow.push(text)
+                    structure.push(newRow);
+                    //console.log("nr of characters detected in row: "+charslen);
+                    if (charslen >= 22) {
+                        table.className = "table is narrow is-hoverable is-fullwidth is-size-7";
+                        //console.log("table ("+table.id+") is possibly too big, reducing text size...")
+                    }
+                    newRow = [];
+                    charslen = 0;
+                }
+            }
+            if (newRow.length != 0) { structure.push(newRow) }
+
+            // make the array square, by filling the possibly incomplete last row with empty strings.
+            if (structure.length > 0) {
+                if (structure[structure.length - 1].length < component.INFOCARD_COLUMNS) {
+                    for (let i = structure[structure.length - 1].length - 1; i < component.INFOCARD_COLUMNS - 1; i++) {
+                        structure[structure.length - 1].push("");
+                    }
+                }
+            }
+
+            // -- Converting structured array to HTML table on website -- \\
+            for (const r in structure) {
+                let rowElement = document.createElement('tr');
+
+                for (const c in structure[r]) {
+                    let cellElement = document.createElement('td');
+                    cellElement.innerText = structure[r][c]
+
+                    rowElement.append(cellElement);
+                }
+
+                table.append(rowElement);
+            }
+        }
+
+
+        for (let i = 0; i < this.selectedNodeInfo["receivedfrom"].length; i++) {
+            var id = this.selectedNodeInfo["receivedfrom"][i]
+            this.selectedNodeInfo["receivedfrom"][i] = id.toString() + " "; // I need to hvae a space between every element
+        }
+        for (let i = 0; i < this.selectedNodeInfo["sendto"].length; i++) {
+            var id = this.selectedNodeInfo["sendto"][i]
+            this.selectedNodeInfo["sendto"][i] = id.toString() + " "; // I need to hvae a space between every element
+        }
+
+        // -- code to update the table of send id's -- \\
+
+        // remove ALL rows in the page assuming no other tables are here
+        let rows = document.querySelectorAll('tr');
+        for (let i = 0; rows[i]; i++) {
+            let row = (rows[i] as HTMLTableRowElement);
+            row.remove();
+        }
+
+        // get the tables in the infocard
+        let receivedTable = (document.getElementById('nodeinfo_table_received') as HTMLTableElement);     // table containing rows of received email id's
+        let sendTable = (document.getElementById('nodeinfo_table_send') as HTMLTableElement);             // table containing rows of send     email id's
+
+        // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
+        createRow(receivedTable, "receivedfrom", this);
+        createRow(sendTable, "sendto", this);
+
+        // -- code to update node id + other future info -- \\
+
+        // get table of info
+        let idTable = (document.getElementById("id_table") as HTMLTableElement);
+
+        // update ID
+        createInfoRow(idTable, "ID:", node.id.toString());
+        // update job
+        createInfoRow(idTable, "Job:", node.job);
+        // update nr of emails
+        createInfoRow(idTable, "nr of emails send/received:", node.mailCount)
     }
 
     setBrushMode(): void {
@@ -524,6 +524,8 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'inline')
             this.vis2Fullscreen = false;
+            console.log("updating vis2fscr to: "+ false)
+            DataShareService.updateServiceVis2FullScreen(false);
 
         } else {
             this.renderer.setAttribute(
@@ -536,7 +538,8 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'none')
             this.vis2Fullscreen = true;
-
+            console.log("updating vis2fscr to: "+ true)
+            DataShareService.updateServiceVis2FullScreen(true);
 
         }
 

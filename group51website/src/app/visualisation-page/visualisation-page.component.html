@@ -79,8 +79,7 @@
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph (nodeEmailsEvent)="updateNodeInfo($event)" [selectedNodeInfo]="selectedNodeInfo">
-                    </app-force-graph>
+                    <app-force-graph></app-force-graph>
                     <div class="buttons is-right">
                         <button #button1 (click)="fullscreenVis1()" class="button">
                             <span class="icon is-small">
@@ -96,25 +95,21 @@
 
                 <div class="columns is-centered">
                     <!--<div class="column is-narrow"></div>-->
-                    <div class="column is-10">
-                        <div class="field is-grouped">
-                            <div class="field has-addons">
-                                <p class="control">
-                                    <button class="button" (click)="setBrushMode()">
-                                        <span class="icon is-small">
-                                            <i class="fas fa-object-ungroup"></i>
-                                        </span>
-                                        <span>Brush select</span>
-                                    </button>
-                                </p>
-                                <p class="control">
-                                    <button class="button" (click)="setPanMode()">
-                                        <span class="icon is-small">
-                                            <i class="fas fa-hand-pointer"></i>
-                                        </span>
-                                        <span>Pan - Click</span>
-                                    </button>
-                                </p>
+                    <div class="column is-11">
+                        <div class="field">
+                            <div class="field">
+                                <button class="button" (click)="setBrushMode()">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-object-ungroup"></i>
+                                    </span>
+                                    <span>Brush select</span>
+                                </button>
+                                <button class="button" (click)="setPanMode()">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-hand-pointer"></i>
+                                    </span>
+                                    <span>Pan - Click</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -204,8 +199,7 @@
                 <div class="box">
                     <h1 class="title">Arc Diagram</h1>
                     <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
-                    <app-arc-diagram [selectedNodeInfo]="selectedNodeInfo" (nodeEmailsEvent)="updateNodeInfo($event)"
-                        [vis2Fullscreen]="vis2Fullscreen"></app-arc-diagram>
+                    <app-arc-diagram></app-arc-diagram>
                     <div class="buttons is-left">
                         <button #button2 (click)="fullscreenVis2();" class="button">
                             <span class="icon is-small">
@@ -231,7 +225,7 @@
         <div class="box">
             <h1 class="title">Tree Map</h1>
             <h2 class="sub-title is-6">Area based visualisation of the number of emails per function</h2>
-            <app-treemap [data]="data"></app-treemap>
+            <app-treemap></app-treemap>
         </div>
     </div>
 </div>

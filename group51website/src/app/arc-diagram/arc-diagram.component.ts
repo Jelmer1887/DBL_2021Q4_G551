@@ -19,10 +19,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     // Input variables.
     data: Data;
-    sort;
-    @Input() selectedNodeInfo;
-    @Input() vis2Fullscreen;
-    @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
+    sort: string;
+    selectedNodeInfo: any = {id: -1};
+    vis2Fullscreen: boolean = false;
+    //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     private width;
     private height = 800;
@@ -31,16 +31,50 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     private brushEnabled = false;
 
     private datasubscription: Subscription;
+    private selectedSubscription: Subscription;
+    private fullscreen2Subscription: Subscription;
     private brushSubscription: Subscription;
 
     constructor() { }
 
     ngOnInit() {
-        console.log("ArcDiagram: initialising: subbing to Service!")
+        console.log("arcDiagram: initialising: subbing to Service!")
+        
         this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
-            console.log("ArcDiagram: Datashareservice: data update detected!");
+            console.log("arcDiagram: Datashareservice: data update detected!");
             this.data = newData;
             this.initiateDiagram();
+        })
+
+        this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
+            console.log("arcdiagram: new selected node received!")
+            let hasChanged: boolean = false
+            if (this.selectedNodeInfo.hasOwnProperty("id")){
+                hasChanged = (this.selectedNodeInfo["id"] != newNode["id"])
+            } else {
+                hasChanged = true
+            }
+            this.selectedNodeInfo = newNode;
+            if (hasChanged == true){
+                console.log("arcdiagram: The node selected is " + this.selectedNodeInfo['id'])
+            } else {
+                console.log("arcdiagram: new selected node was already selected!")
+                this.initiateDiagram();
+            }
+            this.newNodeSelected();
+        })
+
+        this.fullscreen2Subscription = DataShareService.svis2Fullscreen.subscribe(newBool => {
+            console.log("arcdiagram: new vis2Fullscreen received: " + newBool)
+            const hasChanged: boolean = (this.vis2Fullscreen != newBool)
+            if (hasChanged == true){
+                this.vis2Fullscreen = newBool
+                console.log("arcdiagram: the new vis2fscr value is " + newBool);
+                this.initiateDiagram();
+            } else {
+                console.log("arcdiagram: vis2fscr value wasn't changed");
+            }
+
         })
 
         this.brushSubscription = BrushShareService.brushSource.subscribe(newBrush => {
@@ -65,6 +99,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     ngOnDestroy() {
         this.brushSubscription.unsubscribe();
         this.datasubscription.unsubscribe();
+        this.selectedSubscription.unsubscribe();
     }
 
     // -- Button functions -- \\
@@ -89,12 +124,13 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     // -- --- -- \\
 
     ngOnChanges(changes: SimpleChanges): void {
+        /* MOVED TO SUBSCRIPTION
         if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("ArcDiagram: The node selected is " + this.selectedNodeInfo['id'])
             this.newNodeSelected()
         } else {
             this.initiateDiagram()
-        }
+        }*/
     }
 
     initiateDiagram() {
@@ -205,9 +241,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
 
-            //console.log(linklist);
-            inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
-            //inst.nodeinfo = linklist;       // set local version
+            console.log("arcdiagram: updating selected node to service...");
+            //inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
+            DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
         if (!this.vis2Fullscreen) {
             const node = svg.selectAll("mynodes")
@@ -254,7 +290,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         d3.select(this).style('fill', '#000')
                         d3.select(this).style('font-weight', 'normal')
                     }
-                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
+                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
                     .attr("x", 1)
@@ -350,7 +386,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         d3.select(this).style('fill', '#000')
                         d3.select(this).style('font-weight', 'normal')
                     }
-                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
+                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
                     .attr("y", 12)
@@ -403,7 +439,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         });
         label.style('fill', (a: any) => {
             // If there is a selected node...
-            if (this.selectedNodeInfo['id'].length != 0 ||
+            if (this.selectedNodeInfo['id'] != 0 ||
                 this.brushedNodes.length != 0) {
                 // Color it based on whether it is selected or not.
                 if (a.id === this.selectedNodeInfo['id'] ||

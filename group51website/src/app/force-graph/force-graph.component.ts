@@ -17,9 +17,9 @@ import { BrushShareService } from '../brush-share.service';
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     data: Data;
-    @Input() selectedNodeInfo;  //id of the node last clicked
+    selectedNodeInfo: any = {id: -1}  //id, etc... of the node last clicked
 
-    @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
+    //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     showIndividualLinks = false;
     brushedNodes = [];
@@ -33,10 +33,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private beginScale = 0.75;
 
     private dataSubscription: Subscription;
+    private selectedSubscription: Subscription;
     private brushSubscription: Subscription;
-
-    // variable holding information of clicked node
-    nodeinfo;
 
     constructor() { }
 
@@ -45,10 +43,23 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     ngOnInit(): void {
         console.log("forceGraph: initialising: subbing to Service!")
+
         this.dataSubscription = DataShareService.sdatasource.subscribe(newData => {
             console.log("forceGraph: Datashareservice: data update detected!");
             this.data = newData;
             this.initiateGraph();
+        })
+
+        this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
+            console.log("forcegraph: new selected node received!")
+            const hasChanged: boolean = (this.selectedNodeInfo["id"] != newNode["id"])
+            this.selectedNodeInfo = newNode;
+            if (hasChanged == true){
+                console.log("forcegraph: The node selected is " + this.selectedNodeInfo['id'])
+            } else {
+                console.log("forcegraph: new selected node was already selected!")
+            }
+            this.newNodeSelected();
         })
 
         this.brushSubscription = BrushShareService.brushSource.subscribe(newBrush => {
@@ -73,6 +84,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     ngOnDestroy() {
         this.brushSubscription.unsubscribe();
         this.dataSubscription.unsubscribe();
+        this.selectedSubscription.unsubscribe();
     }
 
     // -- Funtions to deal with buttons and controls -- \\
@@ -83,12 +95,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     // -- ---- - ---- -- \\
     ngOnChanges(changes: SimpleChanges): void {
+        /* MOVED TO SUBSCRIPTION
         if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
         } else {
             this.initiateGraph();
         }
         this.newNodeSelected()
+        */
     }
 
     initiateGraph() {
@@ -269,9 +283,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
 
-            console.log(linklist);
-            inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
-            inst.nodeinfo = linklist;       // set local version
+            console.log("forcegraph: updating selected node to service...");
+            //inst.nodeEmailsEvent.emit(linklist);  
+            DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
 
         function linkGUI(i, showIndividualLinks) {
@@ -361,7 +375,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         var link = svg.selectAll(edgeStyle)
 
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'].length != 0 || this.brushedNodes.length != 0) {
+            if (this.selectedNodeInfo['id'] != 0 || this.brushedNodes.length != 0) {
                 var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
                     (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
                 return (highlighted ? this.linkColor(a.sentiment, 1) : '#ccc')
