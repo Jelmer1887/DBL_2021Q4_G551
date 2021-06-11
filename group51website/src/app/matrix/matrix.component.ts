@@ -288,6 +288,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             var maxWeight = findMaxWeight();
             var gridData = makeJobGridData(jobs);
             // console.log(gridData);
+            var nodeRadius = 10;
+
             var x = d3.scalePoint()
                 .range([xMargin, this.width - xMargin - (this.width - 2 * xMargin) / jobs.length])
                 .padding(0.5)
@@ -341,38 +343,41 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             const yAxisLabel = svg.selectAll("myYlabels")
                 .data(nodes)
                 .enter()
-                .append("text")
-                .attr("font-size", "8")
-                .attr("font-family", "sans-serif")
-                //.attr("x", 1)
-                .attr("transform", (d: any) => `translate(${37},${d.y = y(d.job) + (this.height - yMargin) / jobLinks.length})`)
-                .text(d => jobTextY(d))
-                .style("text-anchor", "end")
-                .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
-                .on("click", (event, d: any) => {
+                .append("circle")
+                .attr("cx", 30)
+                .attr("r", nodeRadius)
+                .style("fill", (d: any) => nodeColor(d.job))
+                .attr("transform", (d: any) => `translate(${-10},${d.y = y(d.job) + ((this.height + 30) - yMargin) / jobLinks.length})`);
+                //.on("click", (event, d: any) => {
                     //inst.nodeToParent.emit(d.id)
-                });
+                //});
+                yAxisLabel.append("title")
+                .text((d: any) => {
+                return "function: " + d.job;
+            });
 
             const xAxisLabel = svg.selectAll("myXlabels")
                 .data(nodes)
                 .enter()
-                .append("text")
-                .attr("font-size", "8")
-                .attr("font-family", "sans-serif")
-                .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${45}) rotate(270) `)
-                .text(d => jobTextX(d))
-                .style("text-anchor", "start")
-                .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
-                .on("click", (event, d: any) => {
+                .append("circle")
+                .attr("cx", 30)
+                .attr("r", nodeRadius)
+                .style("fill", (d: any) => nodeColor(d.job))
+                .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${60}) rotate(270) `);
+                /*.on("click", (event, d: any) => {
                     //inst.nodeToParent.emit(d.id)
-                })/*
+                })
                     .on("mouseover", function (event, d: any) {
                         xAxisLabel.style('fill', '#ccc')
                         d3.select(this).attr("font-size", "10")
                             .style('fill', '#000')
                             .style('font-weight', 'bold')
                             .attr("x")
-                    })*/;
+                    })*/
+                xAxisLabel.append("title")
+                .text((d: any) => {
+                    return "function: " + d.job;
+            });
 
         }
 
@@ -391,7 +396,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 nodeID.push(Object.values(nodes[i])[0]);
             }
             var maxWeight = findMaxWeight();
-            //boxes are distanced based on the number and order of the nodes in nodeID
+            //boxes are distanced based on the number and order of the nodes in nodeID            
             var x = d3.scalePoint()
                 .range([xMargin, this.width - ((this.width - xMargin) / (nodeID.length + 1))])
                 .padding(0.5)
