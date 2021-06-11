@@ -1,26 +1,29 @@
-import { ThrowStmt } from '@angular/compiler';
+import { DataShareService } from './../data-share.service';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import { nodeColor } from '../app.component';
 import * as d3 from 'd3';
 import { ResizedEvent } from 'angular-resize-event';
 import { inArray } from 'jquery';
+import { Subscription } from 'rxjs';
+import { BrushShareService } from '../brush-share.service';
 
 @Component({
     selector: 'app-force-graph',
+    providers: [DataShareService],
     templateUrl: './force-graph.component.html',
     styles: [
     ]
 })
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
-    @Input() data: Data;
-    @Input() selectedNodeInfo;  //id of the node last clicked
-    @Input() brushMode;
+    data: Data;
+    selectedNodeInfo: any = {id: -1}  //id, etc... of the node last clicked
 
-    @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
+    //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     showIndividualLinks = false;
     brushedNodes = [];
+    brushEnabled = false;
 
     private width;
     private height = 800;
@@ -29,15 +32,59 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     private beginPosY = 0;
     private beginScale = 0.75;
 
-    // variable holding information of clicked node
-    nodeinfo;
+    private dataSubscription: Subscription;
+    private selectedSubscription: Subscription;
+    private brushSubscription: Subscription;
 
     constructor() { }
 
     private zoom = d3.zoom()
         .scaleExtent([0.5, 10])
 
-    ngOnInit() {
+    ngOnInit(): void {
+        console.log("forceGraph: initialising: subbing to Service!")
+
+        this.dataSubscription = DataShareService.sdatasource.subscribe(newData => {
+            console.log("forceGraph: Datashareservice: data update detected!");
+            this.data = newData;
+            this.initiateGraph();
+        })
+
+        this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
+            console.log("forcegraph: new selected node received!")
+            const hasChanged: boolean = (this.selectedNodeInfo["id"] != newNode["id"])
+            this.selectedNodeInfo = newNode;
+            if (hasChanged == true){
+                console.log("forcegraph: The node selected is " + this.selectedNodeInfo['id'])
+            } else {
+                console.log("forcegraph: new selected node was already selected!")
+            }
+            this.newNodeSelected();
+        })
+
+        this.brushSubscription = BrushShareService.brushSource.subscribe(newBrush => {
+            // The mode stayed the same, meaning the brushedNodes must have changed.
+            if (this.brushEnabled == newBrush.brushEnabled) {
+                if (this.brushedNodes != newBrush.brushedNodes) { // Check if we didn't get the changes from ourselves
+                    //console.log(newBrush);
+                    this.brushedNodes = newBrush.brushedNodes;
+                    this.newNodeSelected();
+                }
+            } else { // We didnt get into the if, so the mode must have changed.
+                this.brushEnabled = newBrush.brushEnabled;
+                if (this.brushEnabled) {
+                    this.enableBrushMode();
+                } else {
+                    this.disableBrushMode();
+                }
+            }
+        })
+    }
+
+    ngOnDestroy() {
+        this.brushSubscription.unsubscribe();
+        this.dataSubscription.unsubscribe();
+        this.selectedSubscription.unsubscribe();
     }
 
     // -- Funtions to deal with buttons and controls -- \\
@@ -48,18 +95,14 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     // -- ---- - ---- -- \\
     ngOnChanges(changes: SimpleChanges): void {
-        if ('brushMode' in changes) {
-            if (this.brushMode) {
-                this.enableBrushMode();
-            } else {
-                this.disableBrushMode();
-            }
-        } else if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
+        /* MOVED TO SUBSCRIPTION
+        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
             console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
         } else {
             this.initiateGraph();
         }
         this.newNodeSelected()
+        */
     }
 
     initiateGraph() {
@@ -146,7 +189,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 d3.select(this)
                     .attr("stroke", "black")
                     .attr("stroke-width", 2);
-                link.style('stroke', (a: any) => a.source.id === d.id || a.target.id === d.id ? inst.linkColor(a.sentiment, 1) : '#ccc')
+                link.style('stroke', (a: any) => linkColorHover(a.sentiment))
             })
             .on("mouseout", function (event, d: any) {
                 d3.select(this)
@@ -240,9 +283,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
 
-            console.log(linklist);
-            inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
-            inst.nodeinfo = linklist;       // set local version
+            console.log("forcegraph: updating selected node to service...");
+            //inst.nodeEmailsEvent.emit(linklist);  
+            DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
 
         function linkGUI(i, showIndividualLinks) {
@@ -303,7 +346,21 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 }
             }
         }
+        function linkColorHover(sentiment) {
+            for (var s of sentiment) {
+                if (s > 0.1) {
+                    return "#89ff89"; //#76ff76
+                }
+                if (s < -0.1) {
+                    return "#ffadad";
+                }
+            }
+
+            return "#ccc";
+        }
     }
+
+
 
     // Updates the selected/highlighted nodes
     newNodeSelected() {
@@ -318,7 +375,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         var link = svg.selectAll(edgeStyle)
 
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'].length != 0 || this.brushedNodes.length != 0) {
+            if (this.selectedNodeInfo['id'] != 0 || this.brushedNodes.length != 0) {
                 var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
                     (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
                 return (highlighted ? this.linkColor(a.sentiment, 1) : '#ccc')
@@ -405,12 +462,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
                     svg.selectAll("circle")
                         .each(function (d: any) {
-                            //var cx = d3.select(this).attr("cx");
-                            //var cy = d3.select(this).attr("cy");
 
+                            // TODO: The transformation is the same for every node, 
+                            // so parsing it for every node is a bit of a waste of time.
+                            // We should do parse it for one node and then use that tx, ty and scale for all of them. - Kay
                             // Gets the transform as a string: "translate(x, y) scale(s)""
                             var transform = d3.select(this).attr("transform").split(" ");
-                            var transString = transform[0];
+                            var transString: any = transform[0];
                             transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
                                 .split(","); // Split the x and y coordinate
 
@@ -434,6 +492,10 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                             }
                         })
                 }
+                BrushShareService.updateBrush({
+                    brushEnabled: inst.brushEnabled,
+                    brushedNodes: inst.brushedNodes,
+                });
                 inst.newNodeSelected();
             })
         )

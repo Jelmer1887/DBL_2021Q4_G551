@@ -1,3 +1,5 @@
+import { Subscription } from 'rxjs';
+import { DataShareService } from './../data-share.service';
 import { Component, ElementRef, ViewChild, OnInit, Renderer2 } from '@angular/core';
 import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
@@ -6,6 +8,8 @@ import * as d3 from 'd3';
 import { jobs, nodeColor } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 import { MatrixComponent } from '../matrix/matrix.component';
+import { BrushShareService } from '../brush-share.service';
+import { Options, ChangeContext, LabelType } from "@angular-slider/ngx-slider";
 
 @Component({
     selector: 'app-visualisation-page',
@@ -22,6 +26,17 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild('dropdown1') dd1;
     @ViewChild('dropdown2') dd2;
 
+
+    //Next few lines are to initialise the slider
+    value: number = 40;         //set low value
+    highValue: number = 60;     //set highest value
+    currentOptions: Options = {
+        floor: 0,               //set minimum value
+        ceil: 100,              //set maximum
+        hideLimitLabels: true,   //don't show minimum and maximum
+        hidePointerLabels: true
+    };
+
     // configurables
     INFOCARD_COLUMNS = 4;
 
@@ -32,14 +47,17 @@ export class VisualisationPageComponent implements OnInit {
         individualLinks: [],
         adjacencyMatrix: [[]]
     };
-    arcSort = "id";
-    matrixSort = "id";
-    brushMode = false;
+    arcSort: string = "id";
+    matrixSort: string = "id";
+    brushMode: boolean = false;
     max;
-    //selectedNodeID;
-    selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
-    vis1Fullscreen = false;
-    vis2Fullscreen = false;
+
+    selectedNodeInfo: any = { 'id': -1, 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
+    vis1Fullscreen: boolean = false;
+    vis2Fullscreen: boolean = false;
+
+    private filesubscription: Subscription;
+    private selectSubscription: Subscription;
 
     //Variables for setting the slider
     private minDate: number = Math.min();
@@ -53,15 +71,46 @@ export class VisualisationPageComponent implements OnInit {
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
     @ViewChild(MatrixComponent) matrix;
+
     constructor(private uploadService: UploadService, private renderer: Renderer2) { }
 
     ngOnInit(): void {
-        this.uploadService.currentFile.subscribe(newfile => {
+        this.filesubscription = this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
             this.parseFile();
         });
+        this.selectSubscription = DataShareService.sselectednode.subscribe(newNode => {
+            const hasChanged: boolean = (newNode.id != this.selectedNodeInfo.id)
+            console.log("page: received new selected node! new = " + hasChanged)
+            this.selectedNodeInfo = newNode;
+            if (hasChanged == true){ this.updateNodeInfo(this.selectedNodeInfo) }
+        })
+    }
 
-        //this.createLegend();
+    ngOnDestroy(): void {
+        this.filesubscription.unsubscribe();
+    }
+
+    changeDateRange() {
+        const newOptions: Options = Object.assign({}, this.currentOptions);     //create new options variable and copy old options
+        newOptions.ceil = this.dateRange;       //change maximum value to number of days
+        this.currentOptions = newOptions;       //update slider
+    }
+
+    changeDateLabels(start,end) {
+        const newOptions: Options = Object.assign({}, this.currentOptions);    //create new options variable and copy old options
+        newOptions.translate = (value: number, label: LabelType): string => {
+            switch (label) {
+              case LabelType.Low:   //if pointer is left side 
+                return start;
+              case LabelType.High:  //if pointer is right side
+                return end;
+            default:
+                return '$' + value;
+            }
+        }
+        newOptions.hidePointerLabels = false;
+        this.currentOptions = newOptions;
     }
 
     parseFile(): void {
@@ -191,6 +240,8 @@ export class VisualisationPageComponent implements OnInit {
             newData.nodes.sort((a, b) => (a.id > b.id ? 1 : -1));
 
             this.data = newData;
+            console.log("page: pushing new data to service...")
+            DataShareService.updateData(newData);
 
             //YYYY-MM-DDTHH:MM:SS
             var minDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
@@ -208,6 +259,7 @@ export class VisualisationPageComponent implements OnInit {
             var maxMonth = maxDate.toLocaleString('default', { month: 'long' })
             var maxYear = maxDate.getFullYear()
 
+            this.changeDateRange();
             document.getElementById('myRangeMax').innerText = maxDay + ' ' + maxMonth + ', ' + maxYear;
             document.getElementById('myRangeMin').innerText = minDay + ' ' + minMonth + ', ' + minYear
 
@@ -243,20 +295,23 @@ export class VisualisationPageComponent implements OnInit {
         this.createLegend(event.newWidth);
     }
 
-    setNewDate(event) {
+    setNewDate(changeContext: ChangeContext): void {
         if (!this.file) {
             return;
         }
+        var newMinValue = changeContext.value
+        var newMaxValue = changeContext.highValue
+
         //set newStartDate as the minimum date
         var newStartDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
+        var newEndDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000");
 
         //set the date to be mindate
-        newStartDate.setDate(newStartDate.getDate() + event.target.valueAsNumber);
+        newStartDate.setDate(newStartDate.getDate() + newMinValue);
 
         //Set newEndDate as 30 days after newStartDate
-        var newEndDate = new Date(newStartDate);
-        newEndDate.setDate(newEndDate.getDate() + 30);
-
+        newEndDate.setDate(newEndDate.getDate() + newMaxValue);
+        
         this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
         this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
 
@@ -268,6 +323,11 @@ export class VisualisationPageComponent implements OnInit {
         var endMonth = newEndDate.toLocaleString('default', { month: 'long' })
         var endYear = newEndDate.getFullYear()
 
+        var startDateString = '<b> From: ' + startDay +' '+ startMonth +', '+ startYear + '</b>'
+        var endDateString = '<b> Till: ' +  endDay +' '+ endMonth +', '+ endYear + '</b>'
+
+        this.changeDateLabels(startDateString,endDateString);
+
         //change HTML elements
         //document.getElementById('myRangeStart').innerText = 'From: ' + startDay +' '+ startMonth +', '+ startYear
         //document.getElementById('myRangeEnd').innerText ='Till: ' +  endDay +' '+ endMonth +', '+ endYear
@@ -275,150 +335,146 @@ export class VisualisationPageComponent implements OnInit {
         this.parseFile();
     }
 
-    nodeToParent(nodeID): void {
-    }
-
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
-
-        //Check if node clicked was already selected from before
-        if (node['id'] == this.selectedNodeInfo['id']) {
-            this.selectedNodeInfo = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [] };
-            console.log(this.selectedNodeInfo)
-        } else {
-            this.selectedNodeInfo = node;
-            console.log(this.selectedNodeInfo)
+        
+        if (!node.hasOwnProperty('id')){
+            console.log("page: updateNodeInfo: node is empty!");
+            return
         }
 
-        if (this.selectedNodeInfo['id'].length != 0) {
-            // function to add a row to the info section
-            function createInfoRow(table: HTMLTableElement, discr: string, value: any): void {
-                // update ID
-                let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
-
-                let text = document.createElement('td');                                // (re)create text
-                text.innerText = discr;
-                text.className = "has-text-right";
-                newRow.append(text);
-
-                text = document.createElement('td');                                    // set new value
-                text.innerText = value;
-                newRow.append(text);
-
-                table.append(newRow);
-            }
-
-            // function to add rows to a table
-            function createRow(table: HTMLTableElement, attribute: string, component: any): void {
-
-                // repetition detection
-                let repeatdict = {};
-                for (let i = 0; i < component.selectedNodeInfo[attribute].length; i++) {
-                    let p = component.selectedNodeInfo[attribute][i]
-                    if (repeatdict.hasOwnProperty(p) == false) {
-                        repeatdict[p] = 1;
-                    } else {
-                        repeatdict[p] += 1;
-                    }
-                }
-                console.log(repeatdict);
-
-
-                // create the table in array form
-                let structure = [];
-                let newRow = [];
-                let charslen: number = 0;
-                for (const elm in repeatdict) {
-                    let text = elm;
-                    if (repeatdict[elm] > 1) { text = text + "(x" + repeatdict[elm] + ")" }
-                    charslen += text.length;
-                    if (newRow.length < component.INFOCARD_COLUMNS - 1) {
-                        newRow.push(text)
-                    } else {
-                        newRow.push(text)
-                        structure.push(newRow);
-                        //console.log("nr of characters detected in row: "+charslen);
-                        if (charslen >= 22) {
-                            table.className = "table is narrow is-hoverable is-fullwidth is-size-7";
-                            //console.log("table ("+table.id+") is possibly too big, reducing text size...")
-                        }
-                        newRow = [];
-                        charslen = 0;
-                    }
-                }
-                if (newRow.length != 0) { structure.push(newRow) }
-
-                // make the array square, by filling the possibly incomplete last row with empty strings.
-                if (structure.length > 0) {
-                    if (structure[structure.length - 1].length < component.INFOCARD_COLUMNS) {
-                        for (let i = structure[structure.length - 1].length - 1; i < component.INFOCARD_COLUMNS - 1; i++) {
-                            structure[structure.length - 1].push("");
-                        }
-                    }
-                }
-
-                // -- Converting structured array to HTML table on website -- \\
-                for (const r in structure) {
-                    let rowElement = document.createElement('tr');
-
-                    for (const c in structure[r]) {
-                        let cellElement = document.createElement('td');
-                        cellElement.innerText = structure[r][c]
-
-                        rowElement.append(cellElement);
-                    }
-
-                    table.append(rowElement);
-                }
-            }
-
-
-            for (let i = 0; i < this.selectedNodeInfo["receivedfrom"].length; i++) {
-                var id = this.selectedNodeInfo["receivedfrom"][i]
-                this.selectedNodeInfo["receivedfrom"][i] = id.toString() + " "; // I need to hvae a space between every element
-            }
-            for (let i = 0; i < this.selectedNodeInfo["sendto"].length; i++) {
-                var id = this.selectedNodeInfo["sendto"][i]
-                this.selectedNodeInfo["sendto"][i] = id.toString() + " "; // I need to hvae a space between every element
-            }
-
-            // -- code to update the table of send id's -- \\
-
-            // remove ALL rows in the page assuming no other tables are here
-            let rows = document.querySelectorAll('tr');
-            for (let i = 0; rows[i]; i++) {
-                let row = (rows[i] as HTMLTableRowElement);
-                row.remove();
-            }
-
-            // get the tables in the infocard
-            let receivedTable = (document.getElementById('nodeinfo_table_received') as HTMLTableElement);     // table containing rows of received email id's
-            let sendTable = (document.getElementById('nodeinfo_table_send') as HTMLTableElement);             // table containing rows of send     email id's
-
-            // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
-            createRow(receivedTable, "receivedfrom", this);
-            createRow(sendTable, "sendto", this);
-
-            // -- code to update node id + other future info -- \\
-
-            // get table of info
-            let idTable = (document.getElementById("id_table") as HTMLTableElement);
-
+        // function to add a row to the info section
+        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void {
             // update ID
-            createInfoRow(idTable, "ID:", node.id.toString());
-            // update job
-            createInfoRow(idTable, "Job:", node.job);
-            // update nr of emails
-            createInfoRow(idTable, "nr of emails send/received:", node.mailCount)
+            let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
+
+            let text = document.createElement('td');                                // (re)create text
+            text.innerText = discr;
+            text.className = "has-text-right";
+            newRow.append(text);
+
+            text = document.createElement('td');                                    // set new value
+            text.innerText = value;
+            newRow.append(text);
+
+            table.append(newRow);
         }
+
+        // function to add rows to a table
+        function createRow(table: HTMLTableElement, attribute: string, component: any): void {
+
+            // repetition detection
+            let repeatdict = {};
+            for (let i = 0; i < component.selectedNodeInfo[attribute].length; i++) {
+                let p = component.selectedNodeInfo[attribute][i]
+                if (repeatdict.hasOwnProperty(p) == false) {
+                    repeatdict[p] = 1;
+                } else {
+                    repeatdict[p] += 1;
+                }
+            }
+
+
+            // create the table in array form
+            let structure = [];
+            let newRow = [];
+            let charslen: number = 0;
+            for (const elm in repeatdict) {
+                let text = elm;
+                if (repeatdict[elm] > 1) { text = text + "(x" + repeatdict[elm] + ")" }
+                charslen += text.length;
+                if (newRow.length < component.INFOCARD_COLUMNS - 1) {
+                    newRow.push(text)
+                } else {
+                    newRow.push(text)
+                    structure.push(newRow);
+                    //console.log("nr of characters detected in row: "+charslen);
+                    if (charslen >= 22) {
+                        table.className = "table is narrow is-hoverable is-fullwidth is-size-7";
+                        //console.log("table ("+table.id+") is possibly too big, reducing text size...")
+                    }
+                    newRow = [];
+                    charslen = 0;
+                }
+            }
+            if (newRow.length != 0) { structure.push(newRow) }
+
+            // make the array square, by filling the possibly incomplete last row with empty strings.
+            if (structure.length > 0) {
+                if (structure[structure.length - 1].length < component.INFOCARD_COLUMNS) {
+                    for (let i = structure[structure.length - 1].length - 1; i < component.INFOCARD_COLUMNS - 1; i++) {
+                        structure[structure.length - 1].push("");
+                    }
+                }
+            }
+
+            // -- Converting structured array to HTML table on website -- \\
+            for (const r in structure) {
+                let rowElement = document.createElement('tr');
+
+                for (const c in structure[r]) {
+                    let cellElement = document.createElement('td');
+                    cellElement.innerText = structure[r][c]
+
+                    rowElement.append(cellElement);
+                }
+
+                table.append(rowElement);
+            }
+        }
+
+
+        for (let i = 0; i < this.selectedNodeInfo["receivedfrom"].length; i++) {
+            var id = this.selectedNodeInfo["receivedfrom"][i]
+            this.selectedNodeInfo["receivedfrom"][i] = id.toString() + " "; // I need to hvae a space between every element
+        }
+        for (let i = 0; i < this.selectedNodeInfo["sendto"].length; i++) {
+            var id = this.selectedNodeInfo["sendto"][i]
+            this.selectedNodeInfo["sendto"][i] = id.toString() + " "; // I need to hvae a space between every element
+        }
+
+        // -- code to update the table of send id's -- \\
+
+        // remove ALL rows in the page assuming no other tables are here
+        let rows = document.querySelectorAll('tr');
+        for (let i = 0; rows[i]; i++) {
+            let row = (rows[i] as HTMLTableRowElement);
+            row.remove();
+        }
+
+        // get the tables in the infocard
+        let receivedTable = (document.getElementById('nodeinfo_table_received') as HTMLTableElement);     // table containing rows of received email id's
+        let sendTable = (document.getElementById('nodeinfo_table_send') as HTMLTableElement);             // table containing rows of send     email id's
+
+        // - create and append rows for each set of id's (configured by INFOCARD_COLUMNS) -
+        createRow(receivedTable, "receivedfrom", this);
+        createRow(sendTable, "sendto", this);
+
+        // -- code to update node id + other future info -- \\
+
+        // get table of info
+        let idTable = (document.getElementById("id_table") as HTMLTableElement);
+
+        // update ID
+        createInfoRow(idTable, "ID:", node.id.toString());
+        // update job
+        createInfoRow(idTable, "Job:", node.job);
+        // update nr of emails
+        createInfoRow(idTable, "nr of emails send/received:", node.mailCount)
     }
 
     setBrushMode(): void {
-        this.brushMode = true;
+        BrushShareService.updateBrush({
+            brushEnabled: true,
+            brushedNodes: BrushShareService.brushSource.value.brushedNodes,
+        });
     }
 
     setPanMode(): void {
-        this.brushMode = false;
+        BrushShareService.updateBrush({
+            brushEnabled: false,
+            brushedNodes: BrushShareService.brushSource.value.brushedNodes,
+        });
     }
 
     fullscreenVis1() {
@@ -468,6 +524,8 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'inline')
             this.vis2Fullscreen = false;
+            console.log("updating vis2fscr to: "+ false)
+            DataShareService.updateServiceVis2FullScreen(false);
 
         } else {
             this.renderer.setAttribute(
@@ -480,7 +538,8 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'none')
             this.vis2Fullscreen = true;
-
+            console.log("updating vis2fscr to: "+ true)
+            DataShareService.updateServiceVis2FullScreen(true);
 
         }
 

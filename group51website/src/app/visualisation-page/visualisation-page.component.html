@@ -37,8 +37,9 @@
             <h3 id="myRangeStart"></h3>
             <div class="level-item">
                 <h3 id="myRangeMin"></h3>
-                <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
-                    [max]="dateRange" value="1" type="range" id="myRange" style="width:90%">
+                <ngx-slider [(value)]="value" [(highValue)]="highValue" (userChangeEnd)="setNewDate($event)" [options]="currentOptions"></ngx-slider>
+                <!-- <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
+                    [max]="dateRange" value="1" type="range" id="myRange" style="width:90%"> -->
                 <h3 id="myRangeMax"></h3>
             </div>
             <h3 id="myRangeEnd"></h3>
@@ -78,9 +79,7 @@
                 <div class="box">
                     <h1 class="title">Force Directed Graph</h1>
                     <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <app-force-graph [data]="data" [brushMode]="brushMode" (nodeEmailsEvent)="updateNodeInfo($event)"
-                        [selectedNodeInfo]="selectedNodeInfo">
-                    </app-force-graph>
+                    <app-force-graph></app-force-graph>
                     <div class="buttons is-right">
                         <button #button1 (click)="fullscreenVis1()" class="button">
                             <span class="icon is-small">
@@ -91,33 +90,26 @@
                 </div>
             </div>
 
-
-
-
             <!-- Center area -->
             <div #infoCard class="column is-2 has-text-centered">
 
                 <div class="columns is-centered">
                     <!--<div class="column is-narrow"></div>-->
-                    <div class="column is-10">
-                        <div class="field is-grouped">
-                            <div class="field has-addons">
-                                <p class="control">
-                                    <button class="button" (click)="setBrushMode()">
-                                        <span class="icon is-small">
-                                            <i class="fas fa-object-ungroup"></i>
-                                        </span>
-                                        <span>Brush select</span>
-                                    </button>
-                                </p>
-                                <p class="control">
-                                    <button class="button" (click)="setPanMode()">
-                                        <span class="icon is-small">
-                                            <i class="fas fa-hand-pointer"></i>
-                                        </span>
-                                        <span>Pan - Click</span>
-                                    </button>
-                                </p>
+                    <div class="column is-11">
+                        <div class="field">
+                            <div class="field">
+                                <button class="button" (click)="setBrushMode()">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-object-ungroup"></i>
+                                    </span>
+                                    <span>Brush select</span>
+                                </button>
+                                <button class="button" (click)="setPanMode()">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-hand-pointer"></i>
+                                    </span>
+                                    <span>Pan - Click</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -207,10 +199,9 @@
                 <div class="box">
                     <h1 class="title">Arc Diagram</h1>
                     <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
-                    <app-arc-diagram [data]="data" [selectedNodeInfo]="selectedNodeInfo"
-                        (nodeEmailsEvent)="updateNodeInfo($event)"></app-arc-diagram>
+                    <app-arc-diagram></app-arc-diagram>
                     <div class="buttons is-left">
-                        <button #button2 (click)="fullscreenVis2()" class="button">
+                        <button #button2 (click)="fullscreenVis2();" class="button">
                             <span class="icon is-small">
                                 <i class="fas fa-arrows-alt"></i>
                             </span>
@@ -234,7 +225,7 @@
         <div class="box">
             <h1 class="title">Tree Map</h1>
             <h2 class="sub-title is-6">Area based visualisation of the number of emails per function</h2>
-            <app-treemap [data]="data"></app-treemap>
+            <app-treemap></app-treemap>
         </div>
     </div>
 </div>
