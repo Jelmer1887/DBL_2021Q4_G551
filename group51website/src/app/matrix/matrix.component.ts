@@ -29,6 +29,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         .scaleExtent([0.5, 10])
 
     ngOnInit() {
+        this.displayAccordingly();
     }
 
     checkMatrixSortOption(event): void {
@@ -48,26 +49,17 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
 
     
-    displayAccordingly() { //displays a checkbox for weighted nodes or not in the job view
-        //var weightBefore = this.weighted;
-        //console.log(this.weighted)
-        var location = document.getElementById('checkBox');
-        //var newCheckBox = document.createElement('input');
-        //newCheckBox.type = "checkbox";
-        //newCheckBox.name = "name";
-        //newCheckBox.id = 'cb';
-        //newCheckBox.addEventListener('change', 'checkWeighted($event)');
-        //var label = document.createElement('label');
-        //label.htmlFor = "cb";
-        //label.id = 'label'
-        //label.appendChild(document.createTextNode('weighted mail count'));
+    displayAccordingly() { 
+        var sortOptions = document.getElementById("sortOptions");  
         if (this.matrixView == 'job') {
-            //location.appendChild(newCheckBox);
+            sortOptions.getElementsByTagName('option')[1].selected = true;
+            sortOptions.getElementsByTagName('option')[0].hidden = true;   
             document.getElementById("label").style.display = "inline";
             document.getElementById("cb").style.display = "inline";
         } else if (this.matrixView = "all") {
+            sortOptions.getElementsByTagName('option')[0].hidden = false;
+            sortOptions.getElementsByTagName("option")[0].selected = true;
             document.getElementById("cb").style.display = "none";
-            //location.removeChild(document.getElementById('cb'));
             document.getElementById("label").style.display = "none";
         }
     }
@@ -112,6 +104,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             jobNodes = tempJobNodes; 
         }
         
+        /*I made the mistake that some functions assume the existence of certain data, so the functions need to be called in
+        a very specific order. It works, but it's not all too flexible...*/
 
         function findMaxWeight() {
             var maxWeight = 0;
@@ -233,18 +227,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             return colors[index];
         }
 
-        /*
-        function rectColorJob(weight) { //TODO: Take a look a this (semantically)
-            var colors= ["#ffadad", "#ff5e5e", "#ff2323", "#d40000", "#990000", "#5e0000"];
-            var colorChooser = maxWeight / (colors.length); //+1
-            var index = Math.floor(weight / colorChooser); //integer division to determine saturation of red
-            if (index>=colors.length){//makes sure that the maximum value isn't hogging a color for itself.
-                index = colors.length-1;
-            }
-            return colors[index];
-        }
-        */
-
         function makeText(d) {
             if (d.id.length == 3) {
                 return "\u00A0" + d.id + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
@@ -254,7 +236,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 return " \u00A0 \u00A0 \u00A0 \u00A0 \u00A0" + d.id + "\u00A0\u00A0\u00A0";
             }
         }
-        function jobTextX(d) {
+        /*function jobTextX(d) {
             if (d.job.lastIndexOf(" ") == -1) {
                 return d.job + "\u00A0 \u00A0 \u00A0"; //\u00A0 is unicode for NO-BREAK SPACE. HTML will ignore " "...
             } else {
@@ -268,7 +250,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 return d.job.substr(0, d.job.lastIndexOf(" ")) + "\n" + d.job.substr(d.job.lastIndexOf(" "));
             }
         }
-
+        */
         function makeGridData() {
             var gridData = [];
             for (var i = 0; i < nodeID.length; i++) {
