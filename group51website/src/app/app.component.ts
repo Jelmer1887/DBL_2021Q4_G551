@@ -34,12 +34,37 @@ declare global {
 
 }
 
-export const jobs: string[] = ["CEO", "President", "Managing Director", "Director", "Trader", "In House Lawyer", "Manager", "Vice President",
-    "Employee", "Unknown"];
+export var jobs: string[] = [];
+
+export function setJobs(newJobs) {
+    jobs = newJobs;
+}
 
 //node colour based on job title
 export function nodeColor(job): string {
     switch (job) {
+        /*
+        case 0:
+            return "#8a56e2";
+        case 1:
+            return "#e2cf56";
+        case 2:
+            return "#e28956";
+        case 3:
+            return "#e25668";
+        case 4:
+            return "#cf56e2";
+        case 5:
+            return "#5668e2";
+        case 6:
+            return "#56aee2";
+        case 7:
+            return "#56e2cf";
+        case 8:
+            return "#68e256";
+        case 9:
+            return "#555555";
+            */
         case "Employee":
             return "#68e256";
         case "Vice President":
@@ -62,7 +87,6 @@ export function nodeColor(job): string {
             return "#555555";
 
         default:
-            //console.log(job);
             return "#000000";
     }
 }
