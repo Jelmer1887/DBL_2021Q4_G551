@@ -37,7 +37,8 @@
             <h3 id="myRangeStart"></h3>
             <div class="level-item">
                 <h3 id="myRangeMin"></h3>
-                <ngx-slider [(value)]="value" [(highValue)]="highValue" (userChangeEnd)="setNewDate($event)" [options]="currentOptions"></ngx-slider>
+                <ngx-slider [(value)]="value" [(highValue)]="highValue" (userChangeEnd)="setNewDate($event)"
+                    [options]="currentOptions"></ngx-slider>
                 <!-- <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
                     [max]="dateRange" value="1" type="range" id="myRange" style="width:90%"> -->
                 <h3 id="myRangeMax"></h3>
@@ -218,7 +219,7 @@
         <div class="box">
             <h1 class="title">Adjacency Matrix</h1>
             <h2 class="subtitle is-6">An Adjacency Matrix for the emails</h2>
-            <app-matrix [data]="data"></app-matrix>
+            <app-matrix></app-matrix>
         </div>
     </div>
     <div class="column is-5 has-text-centered">

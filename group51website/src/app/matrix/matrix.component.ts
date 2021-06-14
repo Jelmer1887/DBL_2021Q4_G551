@@ -1,6 +1,8 @@
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
+import { Subscription } from 'rxjs';
 import { jobs, nodeColor } from '../app.component';
+import { DataShareService } from '../data-share.service';
 
 @Component({
     selector: 'app-matrix',
@@ -10,10 +12,12 @@ import { jobs, nodeColor } from '../app.component';
 })
 export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
-    @Input() data: Data;
-    @Input() matrixSort = "id";
-    @Input() matrixView = "job"; //this will be an input variable determining if we show all id's or just per jobtitle etc.
-    
+    data: Data;
+    matrixSort = "id";
+    matrixView = "job"; //this will be an input variable determining if we show all id's or just per jobtitle etc.
+
+    private dataSubscription: Subscription;
+
     //@Input() showIndividualLinks;
     //@Input() selectedNode;  //id of the node last clicked
 
@@ -29,6 +33,11 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         .scaleExtent([0.5, 10])
 
     ngOnInit() {
+        this.dataSubscription = DataShareService.sdatasource.subscribe(newData => {
+            console.log("matrix: Datashareservice: data update detected!");
+            this.data = newData;
+            this.initiateGraph();
+        })
         this.displayAccordingly();
     }
 
@@ -48,12 +57,12 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
 
-    
-    displayAccordingly() { 
-        var sortOptions = document.getElementById("sortOptions");  
+
+    displayAccordingly() {
+        var sortOptions = document.getElementById("sortOptions");
         if (this.matrixView == 'job') {
             sortOptions.getElementsByTagName('option')[1].selected = true;
-            sortOptions.getElementsByTagName('option')[0].hidden = true;   
+            sortOptions.getElementsByTagName('option')[0].hidden = true;
             document.getElementById("label").style.display = "inline";
             document.getElementById("cb").style.display = "inline";
         } else if (this.matrixView = "all") {
@@ -69,7 +78,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         } else{
             this.initiateGraph();
         } */
-        if('weighted' in changes) {
+        if ('weighted' in changes) {
             this.initiateGraph();
         }
         this.initiateGraph();
@@ -97,13 +106,13 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         var jobLinks;
         var jobNodes;
         if (this.weighted) {
-            jobNodes= makeWeightedJobNodes();
-            jobLinks= makeWeightedJobLinks()
+            jobNodes = makeWeightedJobNodes();
+            jobLinks = makeWeightedJobLinks()
         } else {
             jobLinks = tempJobLinks;
-            jobNodes = tempJobNodes; 
+            jobNodes = tempJobNodes;
         }
-        
+
         /*I made the mistake that some functions assume the existence of certain data, so the functions need to be called in
         a very specific order. It works, but it's not all too flexible...*/
 
@@ -212,7 +221,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         function makeWeightedJobLinks() {
             var weightedLinks = [];
             for (var link of tempJobLinks) {
-                weightedLinks.push({source: link.source, target: link.target, weight: Math.round(link.weight/numJob[link.source.toString()])})
+                weightedLinks.push({ source: link.source, target: link.target, weight: Math.round(link.weight / numJob[link.source.toString()]) })
             }
             return weightedLinks;
         }
@@ -315,15 +324,15 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             }
             for (var node of nodes) {
                 numJob[node.job.toString()] += 1; //for example: {"CEO" : 2}. There are two instances of CEO in nodes
-                }
+            }
             console.log(numJob);
             return numJob;
         }
-        
+
         function makeWeightedJobNodes() {
             var weightedJobNodes = [];
             for (var node of tempJobNodes) {
-                weightedJobNodes.push({job: node.job, mailCount: node.mailCount/numJob[node.job]});
+                weightedJobNodes.push({ job: node.job, mailCount: node.mailCount / numJob[node.job] });
             }
             return weightedJobNodes;
         }
@@ -346,8 +355,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 sortOrder = jobs; //sortOrder will take the default jobs array as order
             }
 
-            
-            
+
+
             var xMargin = 15;
             var yMargin = 15;
 
@@ -382,7 +391,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("x", function (d: any) { return x(d.target) }) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
                 .style("fill", "none");
-            
+
             const linkBox = svg.selectAll("myBoxes")
                 .data(jobLinks)
                 .enter()
@@ -414,13 +423,13 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
                 .attr("transform", (d: any) => `translate(${-10},${d.y = y(d.job) + ((this.height + 30) - yMargin) / jobLinks.length})`);
-                //.on("click", (event, d: any) => {
-                    //inst.nodeToParent.emit(d.id)
-                //});
-                yAxisLabel.append("title")
+            //.on("click", (event, d: any) => {
+            //inst.nodeToParent.emit(d.id)
+            //});
+            yAxisLabel.append("title")
                 .text((d: any) => {
-                return "function: " + d.job;
-            });
+                    return "function: " + d.job;
+                });
 
             const xAxisLabel = svg.selectAll("myXlabels")
                 .data(jobNodes)
@@ -430,41 +439,41 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
                 .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${60}) rotate(270) `);
-                /*.on("click", (event, d: any) => {
-                .append("text")
-                .attr("font-size", "8")
-                .attr("font-family", "sans-serif") 
-                .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${45}) rotate(270) `)
-                .text(d => jobTextX(d))
-                .style("text-anchor", "start")
-                .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
-                .on("click", (event, d: any) => {
-                    //inst.nodeToParent.emit(d.id)
-                })
-                    .on("mouseover", function (event, d: any) {
-                        xAxisLabel.style('fill', '#ccc')
-                        d3.select(this).attr("font-size", "10")
-                            .style('fill', '#000')
-                            .style('font-weight', 'bold')
-                            .attr("x")
-                    })*/
-                xAxisLabel.append("title")
+            /*.on("click", (event, d: any) => {
+            .append("text")
+            .attr("font-size", "8")
+            .attr("font-family", "sans-serif") 
+            .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${45}) rotate(270) `)
+            .text(d => jobTextX(d))
+            .style("text-anchor", "start")
+            .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
+            .on("click", (event, d: any) => {
+                //inst.nodeToParent.emit(d.id)
+            })
+                .on("mouseover", function (event, d: any) {
+                    xAxisLabel.style('fill', '#ccc')
+                    d3.select(this).attr("font-size", "10")
+                        .style('fill', '#000')
+                        .style('font-weight', 'bold')
+                        .attr("x")
+                })*/
+            xAxisLabel.append("title")
                 .text((d: any) => {
                     return "function: " + d.job;
-            });
+                });
 
         }
 
         if (this.matrixView == "all") {
 
-                 //handles sorting requests
-        if ((this.matrixSort == 'id')){
-            sortNodesID();
-        } else if ((this.matrixSort == 'job')){
-            sortNodesJob();
-        } else if ((this.matrixSort == 'amount')){
-            sortNodesAmount();
-        }      
+            //handles sorting requests
+            if ((this.matrixSort == 'id')) {
+                sortNodesID();
+            } else if ((this.matrixSort == 'job')) {
+                sortNodesJob();
+            } else if ((this.matrixSort == 'amount')) {
+                sortNodesAmount();
+            }
 
             var xMargin = 15; //the amount of space in the matrix reserved for text
             var yMargin = 10; // idem
