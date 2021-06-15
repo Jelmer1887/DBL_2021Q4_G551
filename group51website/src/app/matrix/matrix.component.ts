@@ -118,9 +118,20 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
         function findMaxWeight() {
             var maxWeight = 0;
-            for (var x of data.adjacencyMatrix) {
-                maxWeight = Math.max(maxWeight, Math.max(...x));
+            for (var i = 0; i < data.adjacencyMatrix.length; i++) {
+                for (var j = 0; j < data.adjacencyMatrix[i].length; j++) {
+                    maxWeight = Math.max(maxWeight, data.adjacencyMatrix[i][j]);
+                }
             }
+            return maxWeight;
+        }
+
+        function findMaxJobWeight(array) {
+            var maxWeight = 0;
+            for (var link of array) {
+                maxWeight = Math.max(maxWeight, link.weight);
+            }
+            console.log(maxWeight);
             return maxWeight;
         }
         function sortLinksSourceID(links) {
@@ -355,28 +366,28 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 sortOrder = jobs; //sortOrder will take the default jobs array as order
             }
 
+            var xMargin = 60;
+            var yMargin = 60;
 
-
-            var xMargin = 15;
-            var yMargin = 15;
-
-            var maxWeight = findMaxWeight();
+            var heightBy2 = ((this.height - 2 * yMargin) / (jobs.length))/2;
+            var widthBy2 = ((this.width - 2 * xMargin) / (jobs.length))/2;
+            var maxWeight = findMaxJobWeight(jobLinks);
             var gridData = makeJobGridData(jobs);
             // console.log(gridData);
             var nodeRadius = 10;
 
             var x = d3.scalePoint()
                 .range([xMargin, this.width - xMargin - (this.width - 2 * xMargin) / jobs.length])
-                .padding(0.5)
+                .padding(0)
                 .domain(sortOrder);
 
             var y = d3.scalePoint()
                 .range([yMargin, this.height - yMargin - (this.height - 2 * yMargin) / jobs.length])
-                .padding(0.5)
+                .padding(0)
                 .domain(sortOrder);
 
             var myColor = d3.scaleLinear<string>()
-                .range(["#d8d8ff", "#0000b1"])
+                .range(["#d8d8ff", "#0000b1"]) //#000063
                 .domain([1, maxWeight])
 
             const grid = svg.selectAll("grid")
@@ -386,8 +397,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("stroke", "black")
                 .attr('stroke-width', 0.3)
                 .attr('stroke-opacity', 0.5)
-                .attr("width", (this.width - 2 * xMargin) / (jobs.length + 1))
-                .attr("height", (this.height - 2 * yMargin) / (jobs.length + 1))
+                .attr("width", (this.width - 2 * xMargin) / (jobs.length))
+                .attr("height", (this.height - 2 * yMargin) / (jobs.length))
                 .attr("x", function (d: any) { return x(d.target) }) //x position depends on target ID
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
                 .style("fill", "none");
@@ -397,8 +408,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .enter()
                 .append("rect")
                 .attr("stroke", "black")
-                .attr("width", (this.width - 2 * xMargin) / (jobs.length + 1))
-                .attr("height", (this.height - 2 * yMargin) / (jobs.length + 1))
+                .attr("width", (this.width - 2 * xMargin) / (jobs.length))
+                .attr("height", (this.height - 2 * yMargin) / (jobs.length))
                 .attr("x", function (d: any) { return x(d.target) }) //x position depends on target job
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source job
                 .attr("fill", function (d) { return myColor(d.weight) })
@@ -410,11 +421,12 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     grid.style('fill', "none")
                 })
                 .append("title")
-                .text((d: any) => {
+                .text((d: any) => {d.weight
                     return "source: " + d.source + "\n" +
                         "target: " + d.target + "\n" +
                         "weight :" + d.weight;
                 });
+                
             const yAxisLabel = svg.selectAll("myYlabels")
                 .data(jobNodes)
                 .enter()
@@ -422,41 +434,21 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("cx", 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
-                .attr("transform", (d: any) => `translate(${-10},${d.y = y(d.job) + ((this.height + 30) - yMargin) / jobLinks.length})`);
-            //.on("click", (event, d: any) => {
-            //inst.nodeToParent.emit(d.id)
-            //});
-            yAxisLabel.append("title")
+                .attr("cy", function (d: any) { return (y(d.job)) + heightBy2}) // 
+            
+             yAxisLabel.append("title")
                 .text((d: any) => {
                     return "function: " + d.job;
                 });
-
+            
             const xAxisLabel = svg.selectAll("myXlabels")
                 .data(jobNodes)
                 .enter()
                 .append("circle")
-                .attr("cx", 30)
+                .attr("cy", 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
-                .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${60}) rotate(270) `);
-            /*.on("click", (event, d: any) => {
-            .append("text")
-            .attr("font-size", "8")
-            .attr("font-family", "sans-serif") 
-            .attr("transform", (d: any) => `translate(${d.x = x(d.job) + 15},${45}) rotate(270) `)
-            .text(d => jobTextX(d))
-            .style("text-anchor", "start")
-            .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
-            .on("click", (event, d: any) => {
-                //inst.nodeToParent.emit(d.id)
-            })
-                .on("mouseover", function (event, d: any) {
-                    xAxisLabel.style('fill', '#ccc')
-                    d3.select(this).attr("font-size", "10")
-                        .style('fill', '#000')
-                        .style('font-weight', 'bold')
-                        .attr("x")
-                })*/
+                .attr("cx", function (d: any) { return (x(d.job)) + widthBy2})
             xAxisLabel.append("title")
                 .text((d: any) => {
                     return "function: " + d.job;
