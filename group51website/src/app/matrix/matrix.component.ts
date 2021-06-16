@@ -412,7 +412,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("height", (this.height - 2 * yMargin) / (jobs.length))
                 .attr("x", function (d: any) { return x(d.target) }) //x position depends on target job
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source job
-                .attr("fill", function (d) { return myColor(d.weight) })
+                .attr("fill", function (d: any) { return myColor(d.weight) })
                 .on("mouseover", function (event, d: any) {
                     grid.style('fill', (a: any) => colourJobGrid(a, d))
 

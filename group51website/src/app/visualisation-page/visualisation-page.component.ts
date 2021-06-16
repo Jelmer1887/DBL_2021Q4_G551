@@ -28,8 +28,8 @@ export class VisualisationPageComponent implements OnInit {
 
 
     //Next few lines are to initialise the slider
-    value: number = 40;         //set low value
-    highValue: number = 60;     //set highest value
+    value: number = 0;         //set low value
+    highValue: number = 30;     //set highest value
     currentOptions: Options = {
         floor: 0,               //set minimum value
         ceil: 100,              //set maximum
@@ -63,8 +63,8 @@ export class VisualisationPageComponent implements OnInit {
     private maxDate: number = Math.max();
     public dateRange: number;
 
-    startDate: number = 20011201;
-    endDate: number = 20011231;
+    startDate: number;
+    endDate: number;
 
     @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
@@ -99,13 +99,24 @@ export class VisualisationPageComponent implements OnInit {
     }
 
     changeDateLabels(start, end) {
+        var startDay = start.getDate()
+        var startMonth = start.toLocaleString('default', { month: 'long' })
+        var startYear = start.getFullYear()
+
+        var endDay = end.getDate()
+        var endMonth = end.toLocaleString('default', { month: 'long' })
+        var endYear = end.getFullYear()
+
+        var startDateString = '<b> From: ' + startDay + ' ' + startMonth + ', ' + startYear + '</b>'
+        var endDateString = '<b> Till: ' + endDay + ' ' + endMonth + ', ' + endYear + '</b>'
+
         const newOptions: Options = Object.assign({}, this.currentOptions);    //create new options variable and copy old options
         newOptions.translate = (value: number, label: LabelType): string => {
             switch (label) {
                 case LabelType.Low:   //if pointer is left side 
-                    return start;
+                    return startDateString;
                 case LabelType.High:  //if pointer is right side
-                    return end;
+                    return endDateString;
                 default:
                     return '$' + value;
             }
@@ -135,8 +146,8 @@ export class VisualisationPageComponent implements OnInit {
 
             var maxId = 0;
 
-            // Loop through all the lines, but skip the first since that one never contains data.
-            for (var line of lines) {
+            //find min and max dates of dataset
+            for (var line of lines){
 
                 // Get the different columns by splitting on the "," .
                 var columns: string[] = line.split(',');
@@ -159,7 +170,38 @@ export class VisualisationPageComponent implements OnInit {
                 if (dateInt < this.minDate) {
                     this.minDate = dateInt;
                 }
+            }
 
+            // Loop through all the lines, but skip the first since that one never contains data.
+            for (var line of lines) {
+
+                // Get the different columns by splitting on the "," .
+                var columns: string[] = line.split(',');
+
+                // Make sure it's not an empty line.
+                if (columns.length <= 4) {
+                    continue;
+                }
+
+                // Filter to a specific month for more clarity.
+                // Remove the '-' from the date
+                var dateString = columns[0].split('-').join('');
+                // Turn it into an integer
+                var dateInt = parseInt(dateString);
+
+                if(this.startDate==null && this.endDate==null){
+                    var minDateasDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
+                    var maxDateasDate = new Date(minDateasDate);
+    
+                    //default shows first month of data
+                    minDateasDate.setDate(minDateasDate.getDate() + this.value)
+                    maxDateasDate.setDate(maxDateasDate.getDate() + this.highValue);
+        
+                    this.startDate = parseInt(minDateasDate.getFullYear() + ('0' + (minDateasDate.getMonth())).slice(-2) + ('0' + minDateasDate.getDate()).slice(-2));
+                    this.endDate = parseInt(maxDateasDate.getFullYear() + ('0' + (maxDateasDate.getMonth())).slice(-2) + ('0' + maxDateasDate.getDate()).slice(-2));
+
+                    this.changeDateLabels(minDateasDate, maxDateasDate);
+                }
                 // This comparison works because the format is YY-MM-DD,
                 // So the bigger number will always be later in time.
                 if (dateInt < this.startDate || dateInt > this.endDate) {
@@ -312,6 +354,8 @@ export class VisualisationPageComponent implements OnInit {
 
     setNewDate(changeContext: ChangeContext): void {
         if (!this.file) {
+            this.value = changeContext.value
+            this.highValue = changeContext.highValue
             return;
         }
         var newMinValue = changeContext.value
@@ -330,22 +374,7 @@ export class VisualisationPageComponent implements OnInit {
         this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
         this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
 
-        var startDay = newStartDate.getDate()
-        var startMonth = newStartDate.toLocaleString('default', { month: 'long' })
-        var startYear = newStartDate.getFullYear()
-
-        var endDay = newEndDate.getDate()
-        var endMonth = newEndDate.toLocaleString('default', { month: 'long' })
-        var endYear = newEndDate.getFullYear()
-
-        var startDateString = '<b> From: ' + startDay + ' ' + startMonth + ', ' + startYear + '</b>'
-        var endDateString = '<b> Till: ' + endDay + ' ' + endMonth + ', ' + endYear + '</b>'
-
-        this.changeDateLabels(startDateString, endDateString);
-
-        //change HTML elements
-        //document.getElementById('myRangeStart').innerText = 'From: ' + startDay +' '+ startMonth +', '+ startYear
-        //document.getElementById('myRangeEnd').innerText ='Till: ' +  endDay +' '+ endMonth +', '+ endYear
+        this.changeDateLabels(newStartDate, newEndDate);
 
         this.parseFile();
     }
