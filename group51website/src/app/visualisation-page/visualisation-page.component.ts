@@ -5,7 +5,7 @@ import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
 import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 import * as d3 from 'd3';
-import { jobs, nodeColor } from '../app.component';
+import { jobs, nodeColor, setJobs } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 import { MatrixComponent } from '../matrix/matrix.component';
 import { BrushShareService } from '../brush-share.service';
@@ -28,8 +28,8 @@ export class VisualisationPageComponent implements OnInit {
 
 
     //Next few lines are to initialise the slider
-    value: number = 40;         //set low value
-    highValue: number = 60;     //set highest value
+    value: number = 0;         //set low value
+    highValue: number = 30;     //set highest value
     currentOptions: Options = {
         floor: 0,               //set minimum value
         ceil: 100,              //set maximum
@@ -47,8 +47,7 @@ export class VisualisationPageComponent implements OnInit {
         individualLinks: [],
         adjacencyMatrix: [[]]
     };
-    arcSort: string = "id";
-    matrixSort: string = "id";
+
     brushMode: boolean = false;
     max;
 
@@ -64,13 +63,15 @@ export class VisualisationPageComponent implements OnInit {
     private maxDate: number = Math.max();
     public dateRange: number;
 
-    startDate: number = 20011201;
-    endDate: number = 20011231;
+    startDate: number;
+    endDate: number;
 
     @ViewChild('fileInput', { static: false }) fileInput: ElementRef;
     @ViewChild(ForceGraphComponent) forcegraph;
     @ViewChild(ArcDiagramComponent) arcdiagram;
     @ViewChild(MatrixComponent) matrix;
+
+    legendWidth: number;
 
     constructor(private uploadService: UploadService, private renderer: Renderer2) { }
 
@@ -83,7 +84,7 @@ export class VisualisationPageComponent implements OnInit {
             const hasChanged: boolean = (newNode.id != this.selectedNodeInfo.id)
             console.log("page: received new selected node! new = " + hasChanged)
             this.selectedNodeInfo = newNode;
-            if (hasChanged == true){ this.updateNodeInfo(this.selectedNodeInfo) }
+            if (hasChanged == true) { this.updateNodeInfo(this.selectedNodeInfo) }
         })
     }
 
@@ -97,16 +98,27 @@ export class VisualisationPageComponent implements OnInit {
         this.currentOptions = newOptions;       //update slider
     }
 
-    changeDateLabels(start,end) {
+    changeDateLabels(start, end) {
+        var startDay = start.getDate()
+        var startMonth = start.toLocaleString('default', { month: 'long' })
+        var startYear = start.getFullYear()
+
+        var endDay = end.getDate()
+        var endMonth = end.toLocaleString('default', { month: 'long' })
+        var endYear = end.getFullYear()
+
+        var startDateString = '<b> From: ' + startDay + ' ' + startMonth + ', ' + startYear + '</b>'
+        var endDateString = '<b> Till: ' + endDay + ' ' + endMonth + ', ' + endYear + '</b>'
+
         const newOptions: Options = Object.assign({}, this.currentOptions);    //create new options variable and copy old options
         newOptions.translate = (value: number, label: LabelType): string => {
             switch (label) {
-              case LabelType.Low:   //if pointer is left side 
-                return start;
-              case LabelType.High:  //if pointer is right side
-                return end;
-            default:
-                return '$' + value;
+                case LabelType.Low:   //if pointer is left side 
+                    return startDateString;
+                case LabelType.High:  //if pointer is right side
+                    return endDateString;
+                default:
+                    return '$' + value;
             }
         }
         newOptions.hidePointerLabels = false;
@@ -130,10 +142,12 @@ export class VisualisationPageComponent implements OnInit {
                 adjacencyMatrix: [[]],
             };
 
+            var newJobs = [];
+
             var maxId = 0;
 
-            // Loop through all the lines, but skip the first since that one never contains data.
-            for (var line of lines) {
+            //find min and max dates of dataset
+            for (var line of lines){
 
                 // Get the different columns by splitting on the "," .
                 var columns: string[] = line.split(',');
@@ -156,7 +170,38 @@ export class VisualisationPageComponent implements OnInit {
                 if (dateInt < this.minDate) {
                     this.minDate = dateInt;
                 }
+            }
 
+            // Loop through all the lines, but skip the first since that one never contains data.
+            for (var line of lines) {
+
+                // Get the different columns by splitting on the "," .
+                var columns: string[] = line.split(',');
+
+                // Make sure it's not an empty line.
+                if (columns.length <= 4) {
+                    continue;
+                }
+
+                // Filter to a specific month for more clarity.
+                // Remove the '-' from the date
+                var dateString = columns[0].split('-').join('');
+                // Turn it into an integer
+                var dateInt = parseInt(dateString);
+
+                if(this.startDate==null && this.endDate==null){
+                    var minDateasDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
+                    var maxDateasDate = new Date(minDateasDate);
+    
+                    //default shows first month of data
+                    minDateasDate.setDate(minDateasDate.getDate() + this.value)
+                    maxDateasDate.setDate(maxDateasDate.getDate() + this.highValue);
+        
+                    this.startDate = parseInt(minDateasDate.getFullYear() + ('0' + (minDateasDate.getMonth())).slice(-2) + ('0' + minDateasDate.getDate()).slice(-2));
+                    this.endDate = parseInt(maxDateasDate.getFullYear() + ('0' + (maxDateasDate.getMonth())).slice(-2) + ('0' + maxDateasDate.getDate()).slice(-2));
+
+                    this.changeDateLabels(minDateasDate, maxDateasDate);
+                }
                 // This comparison works because the format is YY-MM-DD,
                 // So the bigger number will always be later in time.
                 if (dateInt < this.startDate || dateInt > this.endDate) {
@@ -178,8 +223,12 @@ export class VisualisationPageComponent implements OnInit {
                         break;
                     }
                 }
+                var srcJob = columns[3];
+                if (!newJobs.includes(srcJob)) {
+                    newJobs.push(srcJob);
+                }
                 if (!srcFound) {
-                    newData.nodes.push({ id: source, job: columns[3], address: columns[2], mailCount: 1 });
+                    newData.nodes.push({ id: source, job: srcJob, address: columns[2], mailCount: 1 });
                 }
 
                 // Add the target if we can't find it in the array of nodes.
@@ -191,8 +240,12 @@ export class VisualisationPageComponent implements OnInit {
                         break;
                     }
                 }
+                var tarJob = columns[6];
+                if (!newJobs.includes(tarJob)) {
+                    newJobs.push(tarJob);
+                }
                 if (!tarFound) {
-                    newData.nodes.push({ id: target, job: columns[6], address: columns[5], mailCount: 1 });
+                    newData.nodes.push({ id: target, job: tarJob, address: columns[5], mailCount: 1 });
                 }
 
                 // Create the link between the source and target
@@ -239,6 +292,9 @@ export class VisualisationPageComponent implements OnInit {
 
             newData.nodes.sort((a, b) => (a.id > b.id ? 1 : -1));
 
+            setJobs(newJobs);
+            this.createLegend(this.legendWidth);
+
             this.data = newData;
             console.log("page: pushing new data to service...")
             DataShareService.updateData(newData);
@@ -270,8 +326,9 @@ export class VisualisationPageComponent implements OnInit {
         }
     }
 
+    // Add a legend.
     createLegend(width) {
-        // Add a legend.
+        this.legendWidth = width;
         const legend = d3.select("#legend")
         legend.selectAll("*").remove();
 
@@ -284,8 +341,8 @@ export class VisualisationPageComponent implements OnInit {
         } else {
             legend.attr("height", 200);
             for (var i = 0; i < jobs.length; i++) {
-                legend.append("circle").attr("cx", 10 + (i % 2) * 160).attr("cy", 30 + (i % 5) * 35 - 6).attr("r", 6).style("fill", nodeColor(jobs[i]))
-                legend.append("text").attr("x", 30 + (i % 2) * 160).attr("y", 30 + (i % 5) * 35).text(jobs[i]).style("font-size", "15px").attr("alignment-baseline", "middle")
+                legend.append("circle").attr("cx", 10 + (i % 2) * 160).attr("cy", 30 + (Math.floor(i / 2) % 5) * 35 - 6).attr("r", 6).style("fill", nodeColor(jobs[i]))
+                legend.append("text").attr("x", 30 + (i % 2) * 160).attr("y", 30 + (Math.floor(i / 2) % 5) * 35).text(jobs[i]).style("font-size", "15px").attr("alignment-baseline", "middle")
             }
         }
 
@@ -297,6 +354,8 @@ export class VisualisationPageComponent implements OnInit {
 
     setNewDate(changeContext: ChangeContext): void {
         if (!this.file) {
+            this.value = changeContext.value
+            this.highValue = changeContext.highValue
             return;
         }
         var newMinValue = changeContext.value
@@ -311,34 +370,19 @@ export class VisualisationPageComponent implements OnInit {
 
         //Set newEndDate as 30 days after newStartDate
         newEndDate.setDate(newEndDate.getDate() + newMaxValue);
-        
+
         this.startDate = parseInt(newStartDate.getFullYear() + ('0' + (newStartDate.getMonth())).slice(-2) + ('0' + newStartDate.getDate()).slice(-2));
         this.endDate = parseInt(newEndDate.getFullYear() + ('0' + (newEndDate.getMonth())).slice(-2) + ('0' + newEndDate.getDate()).slice(-2));
 
-        var startDay = newStartDate.getDate()
-        var startMonth = newStartDate.toLocaleString('default', { month: 'long' })
-        var startYear = newStartDate.getFullYear()
-
-        var endDay = newEndDate.getDate()
-        var endMonth = newEndDate.toLocaleString('default', { month: 'long' })
-        var endYear = newEndDate.getFullYear()
-
-        var startDateString = '<b> From: ' + startDay +' '+ startMonth +', '+ startYear + '</b>'
-        var endDateString = '<b> Till: ' +  endDay +' '+ endMonth +', '+ endYear + '</b>'
-
-        this.changeDateLabels(startDateString,endDateString);
-
-        //change HTML elements
-        //document.getElementById('myRangeStart').innerText = 'From: ' + startDay +' '+ startMonth +', '+ startYear
-        //document.getElementById('myRangeEnd').innerText ='Till: ' +  endDay +' '+ endMonth +', '+ endYear
+        this.changeDateLabels(newStartDate, newEndDate);
 
         this.parseFile();
     }
 
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
-        
-        if (!node.hasOwnProperty('id')){
+
+        if (!node.hasOwnProperty('id')) {
             console.log("page: updateNodeInfo: node is empty!");
             return
         }
@@ -524,7 +568,7 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'inline')
             this.vis2Fullscreen = false;
-            console.log("updating vis2fscr to: "+ false)
+            console.log("updating vis2fscr to: " + false)
             DataShareService.updateServiceVis2FullScreen(false);
 
         } else {
@@ -538,7 +582,7 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'none')
             this.vis2Fullscreen = true;
-            console.log("updating vis2fscr to: "+ true)
+            console.log("updating vis2fscr to: " + true)
             DataShareService.updateServiceVis2FullScreen(true);
 
         }
