@@ -77,54 +77,37 @@ export class TreemapComponent implements OnInit {
         // This was necessary because these are passed by reference, so if they would be changed here,
         // they would also be changed in the other components. Don't worry about performance, copying only takes 2-3ms.
         // - Kay
-        let links = JSON.parse(JSON.stringify(this.data.groupedLinks))
+        //let links = JSON.parse(JSON.stringify(this.data.groupedLinks))
         let nodes = JSON.parse(JSON.stringify(this.data.nodes))
 
         // -- create hierarchic data structure that can be read (visualised) as a treemap
 
-        // 1. create a 'root' representing all email ever send
-        // every entry in the map is a modified version of a 'node' from 'nodes', it also has a children and name field.
-        let root = { name: "root", id: undefined, job: undefined, address: undefined, mailCount: 0, children: [] }
-
-        // 2. create special children, by faking a new node, that has 'root' as job to make it a child of root...
-        //    ... and has the employees as children.
-        let joblist = []
-        for (const i in jobs) {
-            joblist.push({ name: jobs[i], id: undefined, job: "root", address: undefined, mailCount: 0, children: [] })
-        }
-
-        // 3. assign each node from 'nodes' to a job 'node', and update the mailCount of that job 'node'
-        for (const i in nodes) {
-            for (const j in joblist) {
-                if (joblist[j].name == nodes[i].job) {
-                    nodes[i].name = nodes[i].adress
-                    joblist[j].children.push(nodes[i])
-                    joblist[j].mailCount += nodes[i].mailCount;
-                    break;
-                }
-            }
-        }
-
-        // 4. assign the jobs as children of the root, and update the root count of mails.
-        //    also convert this elaborate structure to a d3 data type.
-        root.children = joblist                                             // assign the jobs as children at the root
-        //for (const j in joblist){root.mailCount += joblist[j].mailCount;}   // update the roots mailCount now that is has children
-        let rootd3 = d3.hierarchy(root).sum(function (node) { return node.mailCount })                                     // convert to d3 hierarchy structure to tranform into a treemap
-
+        // 1. create links
+        let links = [
+            {name: "root", parent: null, value: 0},
+        ]
+        for (const job  of jobs) { links.push({name: job, parent: "root", value: 0}) }
+        for (const node of nodes){ links.push({ name: node.id.toString(), parent: node.job, value: node.mailCount }) }
+        let root = d3.stratify(links)
+            .id(link => link.name)
+            .parentId(link => link.parent)
+        console.log(links)
+        console.log(root)
+        
 
         // -- compute the graph
-
+        
         // 1. compute the coordinates, sizes, etc for all the nodes, for the given size
         d3.treemap()                          // use d3 function to compute coordinates etc...
             .size([this.width, this.height])    // tell function what size graph to compute for
             .padding(this.padding)              // tell function what space to take between groups (jobs)
-            (rootd3)                            // assign all results to augmented nodes in rootd3
+            (root)                              // assign all results to augmented nodes in rootd3
 
         // 2. create rectangles according to the computated coordinates, and add those properties to svg
         if (this.svg){
             this.svg
                 .selectAll('rect')                                                    // select / create a rectangle
-                .data(rootd3.leaves())                                                // get the datapoints
+                .data(root.leaves())                                                // get the datapoints
                 .enter()                                                              // go over each element (right?)
                 .append('rect')                                                     // create a rectangle for the rectangle
                 .attr('x', function (node) { return node.x0; })              // set the x-coordinate
@@ -136,6 +119,7 @@ export class TreemapComponent implements OnInit {
         } else {
             console.log("TreeMap: No svg component defined!");
         }
+        
         
     }
 
