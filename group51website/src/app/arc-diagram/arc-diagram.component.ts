@@ -273,6 +273,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 .attr("transform", (d: any) => `translate(${0},${d.y = x(d.id) + nodeRadius + 1})`)
                 .text(d => makeText(d))
                 .style("text-anchor", "middle")
+                .style('fill', "#000")
                 .on("click", (event, d: any) => {
                     nodeGUI(inst, d)
                 })
