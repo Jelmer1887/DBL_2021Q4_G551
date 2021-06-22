@@ -44,6 +44,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             console.log("arcDiagram: Datashareservice: data update detected!");
             this.data = newData;
             this.initiateDiagram();
+            this.newNodeSelected();
         })
 
         this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
@@ -71,6 +72,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 this.vis2Fullscreen = newBool
                 console.log("arcdiagram: the new vis2fscr value is " + newBool);
                 this.initiateDiagram();
+                this.newNodeSelected()
             } else {
                 console.log("arcdiagram: vis2fscr value wasn't changed");
             }
@@ -286,11 +288,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
                 })
                 .on("mouseout", function (event, d: any) {
-                    if (d.id != inst.selectedNodeInfo['id']) {
-                        label.style('fill', "#000")
-                        d3.select(this).style('fill', '#000')
-                        d3.select(this).style('font-weight', 'normal')
-                    }
+                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000' )
+                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal' )
                     link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
@@ -382,11 +381,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
                 })
                 .on("mouseout", function (event, d: any) {
-                    if (d.id != inst.selectedNodeInfo['id']) {
-                        label.style('fill', "#000")
-                        d3.select(this).style('fill', '#000')
-                        d3.select(this).style('font-weight', 'normal')
-                    }
+                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000' )
+                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') :'normal' )
                     link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
@@ -440,7 +436,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         });
         label.style('fill', (a: any) => {
             // If there is a selected node...
-            if (this.selectedNodeInfo['id'] != 0 ||
+            if (this.selectedNodeInfo['id'] != undefined ||
                 this.brushedNodes.length != 0) {
                 // Color it based on whether it is selected or not.
                 if (a.id === this.selectedNodeInfo['id'] ||
@@ -454,7 +450,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             }
         });
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'].length != 0) {
+            if (this.selectedNodeInfo['id'] != 0) {
                 if (a.source === this.selectedNodeInfo['id'] || a.target === this.selectedNodeInfo['id'] ||
                     this.brushedNodes.includes(a.source) || this.brushedNodes.includes(a.target)) {
                     return nodeColor(this.selectedNodeInfo['job'])

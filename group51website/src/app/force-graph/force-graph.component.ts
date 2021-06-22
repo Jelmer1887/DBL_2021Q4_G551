@@ -48,6 +48,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             console.log("forceGraph: Datashareservice: data update detected!");
             this.data = newData;
             this.initiateGraph();
+            this.newNodeSelected();
         })
 
         this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
@@ -91,6 +92,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     checkLinksOption(event): void {
         this.showIndividualLinks = event.target.checked;
         this.initiateGraph();
+        this.newNodeSelected();
     }
 
     // -- ---- - ---- -- \\
@@ -189,13 +191,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 d3.select(this)
                     .attr("stroke", "black")
                     .attr("stroke-width", 2);
-                link.style('stroke', (a: any) => linkColorHover(a.sentiment))
+                link.style('stroke', (a: any) => (d.id === a.source.id || d.id === a.target.id) ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment,0))
             })
             .on("mouseout", function (event, d: any) {
                 d3.select(this)
                     .attr("stroke", d.id === inst.selectedNodeInfo['id'] ? 'black' : "#fff")
                     .attr("stroke-width", d.id === inst.selectedNodeInfo['id'] ? 2 : 1)
-                //link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
+                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment, 0)) : inst.linkColor(a.sentiment, 0))
                 inst.newNodeSelected();
             })
 
@@ -261,7 +263,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
                 .transition()
                 .attr("r", nodeRadius)
-            link.style('stroke', (a: any) => inst.selectedNodeInfo['id'].length != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : '#ccc') : inst.linkColor(a.sentiment, 0))
+            link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment, 0)) : inst.linkColor(a.sentiment, 0))
         }
 
         function nodeGUI(inst, i) {
@@ -346,18 +348,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 }
             }
         }
-        function linkColorHover(sentiment) {
-            for (var s of sentiment) {
-                if (s > 0.1) {
-                    return "#89ff89"; //#76ff76
-                }
-                if (s < -0.1) {
-                    return "#ffadad";
-                }
-            }
-
-            return "#ccc";
-        }
     }
 
 
@@ -378,7 +368,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             if (this.selectedNodeInfo['id'] != 0 || this.brushedNodes.length != 0) {
                 var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
                     (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
-                return (highlighted ? this.linkColor(a.sentiment, 1) : '#ccc')
+                return (highlighted ? this.linkColor(a.sentiment, 1) : this.linkColor(a.sentiment,0))
             }
             else {
                 return this.linkColor(a.sentiment, 0)
@@ -421,18 +411,27 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     linkColor(sentiment, highlighted): string {
         // console.log(sentiment);
         for (var s of sentiment) {
-            if (s > 0.1) {
-                return "#55EE55";
-            }
+            if (highlighted) {
+                if (s > 0.1) {
+                    return "#55EE55";
+                }
 
-            if (s < -0.1) {
-                return "#EE5555";
+                if (s < -0.1) {
+                    return "#EE5555";
+                }
+            } else {
+                if (s > 0.1) {
+                    return "#89ff89"; //#76ff76
+                }
+                if (s < -0.1) {
+                    return "#ffadad";
+                }
             }
         }
         if (highlighted) {
             return "#404040"
         }
-        return "#999999";
+        return "#ccc";
     }
 
     onResized(event: ResizedEvent) {
