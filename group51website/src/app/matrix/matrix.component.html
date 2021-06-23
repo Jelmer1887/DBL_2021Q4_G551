@@ -1,3 +1,6 @@
+<h1 class="title">Adjacency Matrix</h1>
+<h2 class="subtitle is-6">An Adjacency Matrix for the emails</h2>
+
 <div #container>
     <svg id="matrix"></svg>
 </div>
@@ -27,7 +30,7 @@
         <div class="level-item">
             <div class="control has-icons-left is-normal">
                 <div class="select is-normal">
-                    <select id = "view" (change)="checkMatrixView($event); displayAccordingly();">
+                    <select id="view" (change)="checkMatrixView($event); displayAccordingly();">
                         <option selected value="job">ID's grouped by Job Function</option>
                         <option value="all">View all ID's</option>
                     </select>
@@ -44,16 +47,19 @@
     <div class="level">
         <div class="level-item">
             <div class="control has-icons-left is-normal">
-                <div id = "checkBox">
-                    <input type="checkbox" (change)="checkWeighted($event)" id="cb" title="For each job title, shows the average number of emails sent per person">
-                    <label id="label" for="cb" title="For each job title, shows the average number of emails sent per person">Weighted mail count</label>
-                </div> 
+                <div id="checkBox">
+                    <input type="checkbox" (change)="checkWeighted($event)" id="cb"
+                        title="For each job title, shows the average number of emails sent per person">
+                    <label id="label" for="cb"
+                        title="For each job title, shows the average number of emails sent per person">Weighted mail
+                        count</label>
+                </div>
             </div>
         </div>
-    </div> 
+    </div>
 </div>
- 
-                
+
+
 <!--
 <div>
     <svg id="matrix-legend"></svg>

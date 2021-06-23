@@ -78,9 +78,7 @@
         <div class="columns is-mobile is-centered">
             <div #vis1 class="column is-5 has-text-centered">
                 <div class="box">
-                    <h1 class="title">Force Directed Graph</h1>
-                    <h2 class="subtitle is-6">FDG edge colors represent attidude of the email</h2>
-                    <router-outlet name = 'vis1'></router-outlet>
+                    <router-outlet name='vis1'></router-outlet>
                     <div class="buttons is-right">
                         <button #button1 (click)="fullscreenVis1()" class="button">
                             <span class="icon is-small">
@@ -198,9 +196,7 @@
 
             <div #vis2 class="column is-5 has-text-centered">
                 <div class="box">
-                    <h1 class="title">Arc Diagram</h1>
-                    <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
-                    <router-outlet name = 'vis2'></router-outlet>
+                    <router-outlet name='vis2'></router-outlet>
                     <div class="buttons is-left">
                         <button #button2 (click)="fullscreenVis2();" class="button">
                             <span class="icon is-small">
@@ -217,15 +213,11 @@
 <div class="columns is-centered">
     <div class="column is-5 has-text-centered">
         <div class="box">
-            <h1 class="title">Adjacency Matrix</h1>
-            <h2 class="subtitle is-6">An Adjacency Matrix for the emails</h2>
             <app-matrix></app-matrix>
         </div>
     </div>
     <div class="column is-5 has-text-centered">
         <div class="box">
-            <h1 class="title">Tree Map</h1>
-            <h2 class="sub-title is-6">Area based visualisation of the number of emails per function</h2>
             <app-treemap></app-treemap>
         </div>
     </div>
