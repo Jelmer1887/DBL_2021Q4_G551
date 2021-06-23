@@ -13,6 +13,8 @@ declare global {
     type MailNode = {
         id: number,
         mailCount: number,
+        mailSent: number,
+        mailReceived: number,
         address: string,
         job: string
     }

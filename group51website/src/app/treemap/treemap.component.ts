@@ -33,6 +33,8 @@ export class TreemapComponent implements OnInit {
     // -- Private variables
     private svg;
     private datasubscription: Subscription;
+    private groupedByJob = true;
+    private valueOption = "both";
 
     // compute actual constant values of properties
     constructor() {
@@ -97,28 +99,53 @@ export class TreemapComponent implements OnInit {
             "name": "Company",
         }
 
-        // Second layer of the tree; the job functions.
-        for (const job of jobs) {
-            jsonTree["children"].push({
-                "name": job,
-                "children": [],
-                //"colname": "level2",
-            })
+        if (this.groupedByJob) {
+
+            // Second layer of the tree; the job functions.
+            for (const job of jobs) {
+                jsonTree["children"].push({
+                    "name": job,
+                    "children": [],
+                    //"colname": "level2",
+                })
+            }
         }
 
         // Add all the leaves i.e. the people, also keep track of the most e-mails send/received.
         let maxMails = 0;
         for (const node of nodes) {
-            maxMails = Math.max(node.mailCount, maxMails);
-            for (var j of jsonTree["children"]) {
-                if (j["name"] == node.job) {
-                    j["children"].push({
+            let value = 0;
+            if (this.valueOption == "both")
+                value = node.mailCount.toString();
+            else if (this.valueOption == "sent")
+                value = node.mailSent.toString();
+            else if (this.valueOption == "received")
+                value = node.mailReceived.toString();
+
+            maxMails = Math.max(value, maxMails);
+
+            if (this.groupedByJob) {
+
+                for (var j of jsonTree["children"]) {
+                    if (j["name"] == node.job) {
+
+                        j["children"].push({
+                            "name": node.id.toString(),
+                            "value": value,
+                            //"colname": "level3",
+                            "job": node.job
+                        })
+                    }
+                }
+            } else {
+                jsonTree["children"].push(
+                    {
                         "name": node.id.toString(),
-                        "value": node.mailCount.toString(),
+                        "value": value,
                         //"colname": "level3",
                         "job": node.job
-                    })
-                }
+                    }
+                )
             }
         }
 
@@ -199,21 +226,32 @@ export class TreemapComponent implements OnInit {
             .attr("fill", "white")
 
         // Add title for the job functions
-        this.svg
-            .selectAll("titles")
-            .data(hierarchy.descendants().filter(function (d) { return d.depth == 1 }))
-            .enter()
-            .append("text")
-            .attr("x", function (d) { return d.x0 + padding })
-            .attr("y", function (d) { return d.y0 + padding })
-            .text(function (d) {
-                if (d['x1'] - d['x0'] > d['data']['name'].length * 8) {
-                    return d['data']['name']
-                }
-                return ""
-            })
-            .attr("font-size", "14px")
-            .attr("fill", function (d) { return nodeColor(d.data.name) })
+        if (this.groupedByJob) {
+            this.svg
+                .selectAll("titles")
+                .data(hierarchy.descendants().filter(function (d) { return d.depth == 1 }))
+                .enter()
+                .append("text")
+                .attr("x", function (d) { return d.x0 + padding })
+                .attr("y", function (d) { return d.y0 + padding })
+                .text(function (d) {
+                    if (d['x1'] - d['x0'] > d['data']['name'].length * 8) {
+                        return d['data']['name']
+                    }
+                    return ""
+                })
+                .attr("font-size", "14px")
+                .attr("fill", function (d) { return nodeColor(d.data.name) })
+        }
     }
 
+    checkGroupOption(event) {
+        this.groupedByJob = event.target.checked;
+        this.buildGraph();
+    }
+
+    checkValueOption(event) {
+        this.valueOption = event.target.value;
+        this.buildGraph();
+    }
 }

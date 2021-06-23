@@ -147,7 +147,7 @@ export class VisualisationPageComponent implements OnInit {
             var maxId = 0;
 
             //find min and max dates of dataset
-            for (var line of lines){
+            for (var line of lines) {
 
                 // Get the different columns by splitting on the "," .
                 var columns: string[] = line.split(',');
@@ -189,14 +189,14 @@ export class VisualisationPageComponent implements OnInit {
                 // Turn it into an integer
                 var dateInt = parseInt(dateString);
 
-                if(this.startDate==null && this.endDate==null){
+                if (this.startDate == null && this.endDate == null) {
                     var minDateasDate = new Date(this.minDate.toString().slice(0, 4) + "-" + this.minDate.toString().slice(4, 6) + "-" + this.minDate.toString().slice(6, 8) + "T00:00:00+0000")
                     var maxDateasDate = new Date(minDateasDate);
-    
+
                     //default shows first month of data
                     minDateasDate.setDate(minDateasDate.getDate() + this.value)
                     maxDateasDate.setDate(maxDateasDate.getDate() + this.highValue);
-        
+
                     this.startDate = parseInt(minDateasDate.getFullYear() + ('0' + (minDateasDate.getMonth())).slice(-2) + ('0' + minDateasDate.getDate()).slice(-2));
                     this.endDate = parseInt(maxDateasDate.getFullYear() + ('0' + (maxDateasDate.getMonth())).slice(-2) + ('0' + maxDateasDate.getDate()).slice(-2));
 
@@ -220,6 +220,7 @@ export class VisualisationPageComponent implements OnInit {
                     if (n.id === source) {
                         srcFound = true;
                         n.mailCount += 1;
+                        n.mailSent += 1;
                         break;
                     }
                 }
@@ -228,7 +229,7 @@ export class VisualisationPageComponent implements OnInit {
                     newJobs.push(srcJob);
                 }
                 if (!srcFound) {
-                    newData.nodes.push({ id: source, job: srcJob, address: columns[2], mailCount: 1 });
+                    newData.nodes.push({ id: source, job: srcJob, address: columns[2], mailCount: 1, mailSent: 1, mailReceived: 0 });
                 }
 
                 // Add the target if we can't find it in the array of nodes.
@@ -237,6 +238,7 @@ export class VisualisationPageComponent implements OnInit {
                     if (n.id === target) {
                         tarFound = true;
                         n.mailCount += 1;
+                        n.mailReceived += 1;
                         break;
                     }
                 }
@@ -245,7 +247,7 @@ export class VisualisationPageComponent implements OnInit {
                     newJobs.push(tarJob);
                 }
                 if (!tarFound) {
-                    newData.nodes.push({ id: target, job: tarJob, address: columns[5], mailCount: 1 });
+                    newData.nodes.push({ id: target, job: tarJob, address: columns[5], mailCount: 1, mailSent: 0, mailReceived: 1 });
                 }
 
                 // Create the link between the source and target
