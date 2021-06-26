@@ -1,2 +1,36 @@
-<p>treemap works!</p>
-<div id="tree_map_d3"></div>
+<h1 class="title">Tree Map</h1>
+<h2 class="sub-title is-6">Area based visualisation of the number of emails</h2>
+
+<div class="container" (resized)="onResized($event)" #container style="
+    overflow: hidden; 
+    width: 100%;
+    height: 800px;">
+    <svg id="tree_map_d3"></svg>
+</div>
+
+<div class="container">
+    <div class="level">
+        <div class="level-item">
+            <div class="control has-icons-left is-normal">
+                <div class="select is-normal">
+                    <select (change)="checkValueOption($event)">
+                        <option selected value="both">Mails sent and received</option>
+                        <option value="sent">Mails sent</option>
+                        <option value="received">Mails received</option>
+                    </select>
+                </div>
+                <div class="icon is-small is-left">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+        <div class="level-item">
+            <div class="control has-icons-left is-normal">
+                <label class="checkbox">
+                    <input (change)="checkGroupOption($event)" type="checkbox" checked="true">
+                    Group by Job Function
+                </label>
+            </div>
+        </div>
+    </div>
+</div>

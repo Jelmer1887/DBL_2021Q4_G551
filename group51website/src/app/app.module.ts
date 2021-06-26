@@ -17,6 +17,7 @@ import { AngularResizedEventModule } from 'angular-resize-event';
 import { FormsModule } from '@angular/forms';
 import { TreemapComponent } from './treemap/treemap.component';
 import { FileUploadModule } from 'ng2-file-upload';
+import { NgxSliderModule } from '@angular-slider/ngx-slider';
 
 @NgModule({
     declarations: [
@@ -38,7 +39,8 @@ import { FileUploadModule } from 'ng2-file-upload';
         AppRoutingModule,
         FormsModule,
         AngularResizedEventModule,
-        FileUploadModule
+        FileUploadModule,
+        NgxSliderModule
     ],
     providers: [],
     bootstrap: [AppComponent]

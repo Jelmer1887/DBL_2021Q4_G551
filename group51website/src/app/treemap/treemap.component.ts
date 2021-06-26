@@ -2,7 +2,8 @@ import { DataShareService } from './../data-share.service';
 import { Subscription } from 'rxjs';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
-import { jobs } from '../app.component';
+import { jobs, nodeColor } from '../app.component';
+import { ResizedEvent } from 'angular-resize-event';
 
 @Component({
     selector: 'app-treemap',
@@ -20,11 +21,11 @@ export class TreemapComponent implements OnInit {
     // -- Properties
     public margin = { top: 10, right: 10, bottom: 10, left: 10 } // px
     public padding = 20; // px
-    public width: number = 500; // px
-    public height: number = 500;  // px
+    public width: number = 1000; // px
+    public height: number = 800;  // px
 
     // -- Input
-    @Input() data: Data;
+    data: Data;
 
     // -- Output
     @Output() nodeEmailsEvent = new EventEmitter<Array<any>>();
@@ -32,27 +33,20 @@ export class TreemapComponent implements OnInit {
     // -- Private variables
     private svg;
     private datasubscription: Subscription;
+    private groupedByJob = true;
+    private valueOption = "both";
 
     // compute actual constant values of properties
     constructor() {
-        this.width = this.width - this.margin.left - this.margin.right;
-        this.height = this.height - this.margin.top - this.margin.bottom;
     }
 
     // set width etc on loading
     ngOnInit(): void {
         this.svg = d3.select("#tree_map_d3")
-        // set the width and height of the element (account for margins)
-        this.svg.append("svg")
-            .attr("width", this.width + this.margin.left + this.margin.right)
-            .attr("height", this.height + this.margin.top + this.margin.bottom)
-        // move the element to apply the margins
-        this.svg.append("g")
-            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-        console.log("TreeMap: initialising: subbing to Service!")
+        //console.log("TreeMap: initialising: subbing to Service!")
         this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
-            console.log("TreeMap: Datashareservice: data update detected!");
+            //console.log("TreeMap: Datashareservice: data update detected!");
             this.data = newData;
             this.buildGraph();
         })
@@ -62,82 +56,202 @@ export class TreemapComponent implements OnInit {
         this.datasubscription.unsubscribe();
     }
 
+    // Make sure the width is updated on resize.
+    onResized(event: ResizedEvent) {
+        this.width = event.newWidth;
+        this.height = event.newHeight;
+
+        // set the width and height of the element (account for margins)
+        this.svg
+            .attr("width", this.width)
+            .attr("height", this.height)
+    }
+
     // graphs is build upon a change in data (or any change for that matter)
     ngOnChanges(changes: SimpleChanges): void {
-        this.buildGraph();
+        //this.buildGraph();
     }
 
     // -- GRAPH CREATION FUNCTIONS --------------------------------------------------- -- \\
 
     // create child-elements, compute their position, sizes, etc...
     buildGraph(): void {
+        // Reset the treemap.
+        this.svg.selectAll("*").remove();
+
         // get the data into a usable format
         // ^ this is not really about the format, 
         // but this is apparently how you copy arrays in JavaScript/TypeScript.
         // This was necessary because these are passed by reference, so if they would be changed here,
         // they would also be changed in the other components. Don't worry about performance, copying only takes 2-3ms.
         // - Kay
-        let links = JSON.parse(JSON.stringify(this.data.groupedLinks))
+        //let links = JSON.parse(JSON.stringify(this.data.groupedLinks))
         let nodes = JSON.parse(JSON.stringify(this.data.nodes))
 
-        // -- create hierarchic data structure that can be read (visualised) as a treemap
-
-        // 1. create a 'root' representing all email ever send
-        // every entry in the map is a modified version of a 'node' from 'nodes', it also has a children and name field.
-        let root = { name: "root", id: undefined, job: undefined, address: undefined, mailCount: 0, children: [] }
-
-        // 2. create special children, by faking a new node, that has 'root' as job to make it a child of root...
-        //    ... and has the employees as children.
-        let joblist = []
-        for (const i in jobs) {
-            joblist.push({ name: jobs[i], id: undefined, job: "root", address: undefined, mailCount: 0, children: [] })
+        // If there are no nodes, don't build the graph.
+        if (nodes.length == 0) {
+            return;
         }
 
-        // 3. assign each node from 'nodes' to a job 'node', and update the mailCount of that job 'node'
-        for (const i in nodes) {
-            for (const j in joblist) {
-                if (joblist[j].name == nodes[i].job) {
-                    nodes[i].name = nodes[i].adress
-                    joblist[j].children.push(nodes[i])
-                    joblist[j].mailCount += nodes[i].mailCount;
-                    break;
-                }
+        // Root node.
+        let jsonTree = {
+            "children": [],
+            "name": "Company",
+        }
+
+        if (this.groupedByJob) {
+
+            // Second layer of the tree; the job functions.
+            for (const job of jobs) {
+                jsonTree["children"].push({
+                    "name": job,
+                    "children": [],
+                    //"colname": "level2",
+                })
             }
         }
 
-        // 4. assign the jobs as children of the root, and update the root count of mails.
-        //    also convert this elaborate structure to a d3 data type.
-        root.children = joblist                                             // assign the jobs as children at the root
-        //for (const j in joblist){root.mailCount += joblist[j].mailCount;}   // update the roots mailCount now that is has children
-        let rootd3 = d3.hierarchy(root).sum(function (node) { return node.mailCount })                                     // convert to d3 hierarchy structure to tranform into a treemap
+        // Add all the leaves i.e. the people, also keep track of the most e-mails send/received.
+        let maxMails = 0;
+        for (const node of nodes) {
+            let value = 0;
+            if (this.valueOption == "both")
+                value = node.mailCount.toString();
+            else if (this.valueOption == "sent")
+                value = node.mailSent.toString();
+            else if (this.valueOption == "received")
+                value = node.mailReceived.toString();
 
+            maxMails = Math.max(value, maxMails);
 
-        // -- compute the graph
+            if (this.groupedByJob) {
 
-        // 1. compute the coordinates, sizes, etc for all the nodes, for the given size
-        d3.treemap()                          // use d3 function to compute coordinates etc...
-            .size([this.width, this.height])    // tell function what size graph to compute for
-            .padding(this.padding)              // tell function what space to take between groups (jobs)
-            (rootd3)                            // assign all results to augmented nodes in rootd3
+                for (var j of jsonTree["children"]) {
+                    if (j["name"] == node.job) {
 
-        console.log(rootd3.leaves())
-        // 2. create rectangles according to the computated coordinates, and add those properties to svg
-        if (this.svg){
-            this.svg
-                .selectAll('rect')                                                    // select / create a rectangle
-                .data(rootd3.leaves())                                                // get the datapoints
-                .enter()                                                              // go over each element (right?)
-                .append('rect')                                                     // create a rectangle for the rectangle
-                .attr('x', function (node) { return node.x0; })              // set the x-coordinate
-                .attr('y', function (node) { return node.y0; })              // set the y-coordinate
-                .attr('width', function (node) { return node.x1 - node.x0; })    // set the width of the rectangle
-                .attr('height', function (node) { return node.y1 - node.y0; })    // set the height of the rectangle
-                .style('stroke', 'black')             // add a black outline
-                .style('fill', 'red')                 // make the rectangle filled in with red.
-        } else {
-            console.log("TreeMap: No svg component defined!");
+                        j["children"].push({
+                            "name": node.id.toString(),
+                            "value": value,
+                            //"colname": "level3",
+                            "job": node.job
+                        })
+                    }
+                }
+            } else {
+                jsonTree["children"].push(
+                    {
+                        "name": node.id.toString(),
+                        "value": value,
+                        //"colname": "level3",
+                        "job": node.job
+                    }
+                )
+            }
         }
-        
+
+        // Then d3.treemap computes the position of each element of the hierarchy
+        const hierarchy = d3.hierarchy(jsonTree)
+            .sum(d => d['value'])
+            .sort((a, b) => b.value - a.value)
+
+        // Settings for the treemap
+        let padding = 5;
+        const treemap = d3.treemap()
+            .size([this.width, this.height])
+            .padding(padding)
+            .paddingTop(3 * padding)
+
+        // Give the treemap the data.
+        treemap(hierarchy)
+
+        //console.log(hierarchy)
+        // Create an opacity scale based on mails sent/received.
+        var opacity = d3.scaleLinear()
+            .domain([0, maxMails])
+            .range([.5, 1])
+
+        // Create the blocks for every leaf
+        let block = this.svg.selectAll("g")
+            .data(hierarchy.leaves())
+            .enter()
+            .append("g")
+            .attr("transform", (d: any) => `translate(${d['x0']}, ${d['y0']})`)
+
+        // Create the rectangle.
+        block.append('rect')
+            .attr("class", "tile")
+            .attr("fill", (d: any) => nodeColor(d['data']['job']))
+            .attr("opacity", (d: any) => opacity(d['data']['value']))
+            .attr("data-name", (d: any) => "Id: " + d['data']['id'])
+            .attr("data-category", (d: any) => d['data']['job'])
+            .attr("data-value", (d: any) => d['data']['value'])
+            .attr("width", (d: any) => d['x1'] - d['x0'])
+            .attr("height", (d: any) => d['y1'] - d['y0'])
+
+
+        // Add the Id to the rectangle if there is enough space.
+        this.svg
+            .selectAll("text")
+            .data(hierarchy.leaves())
+            .enter()
+            .append("text")
+            .attr("x", function (d) { return d.x0 + padding })    // +10 to adjust position (more right)
+            .attr("y", function (d) { return d.y0 + padding * 3 })    // +20 to adjust position (lower)
+            .text(function (d) {
+                if ((Math.abs(d['x1'] - d['x0']) > 55) &&
+                    (Math.abs(d['y1'] - d['y0']) > 15)) {
+                    return "Id: " + d.data.name
+                }
+                return ""
+            })
+            .attr("font-size", "14px")
+            .attr("fill", "white")
+
+        // Add the amount of mails to the rectangle if there is enough space.
+        this.svg
+            .selectAll("vals")
+            .data(hierarchy.leaves())
+            .enter()
+            .append("text")
+            .attr("x", function (d) { return d.x0 + padding })    // +10 to adjust position (more right)
+            .attr("y", function (d) { return d.y0 + padding * 6 })    // +20 to adjust position (lower)
+            .text(function (d) {
+                if ((Math.abs(d['x1'] - d['x0']) > 55) &&
+                    (Math.abs(d['y1'] - d['y0']) > 40)) {
+                    return "Mails: " + d.data.value
+                }
+                return ""
+            })
+            .attr("font-size", "11px")
+            .attr("fill", "white")
+
+        // Add title for the job functions
+        if (this.groupedByJob) {
+            this.svg
+                .selectAll("titles")
+                .data(hierarchy.descendants().filter(function (d) { return d.depth == 1 }))
+                .enter()
+                .append("text")
+                .attr("x", function (d) { return d.x0 + padding })
+                .attr("y", function (d) { return d.y0 + padding })
+                .text(function (d) {
+                    if (d['x1'] - d['x0'] > d['data']['name'].length * 8) {
+                        return d['data']['name']
+                    }
+                    return ""
+                })
+                .attr("font-size", "14px")
+                .attr("fill", function (d) { return nodeColor(d.data.name) })
+        }
     }
 
+    checkGroupOption(event) {
+        this.groupedByJob = event.target.checked;
+        this.buildGraph();
+    }
+
+    checkValueOption(event) {
+        this.valueOption = event.target.value;
+        this.buildGraph();
+    }
 }
