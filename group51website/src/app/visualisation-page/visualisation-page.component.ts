@@ -98,17 +98,18 @@ export class VisualisationPageComponent implements OnInit {
         this.currentOptions = newOptions;       //update slider
     }
 
-    changeDateLabels(start, end) {
-        var startDay = start.getDate()
-        var startMonth = start.toLocaleString('default', { month: 'long' })
-        var startYear = start.getFullYear()
+    changeDateLabels(start, end): void {
+        const startDay = start.getDate()
+        const startMonth = start.toLocaleString('default', { month: 'long' })
+        const startYear = start.getFullYear()
+        const STYLING = "class = \" tag is-medium mb-2 \""
 
         var endDay = end.getDate()
         var endMonth = end.toLocaleString('default', { month: 'long' })
         var endYear = end.getFullYear()
 
-        var startDateString = '<b> From: ' + startDay + ' ' + startMonth + ', ' + startYear + '</b>'
-        var endDateString = '<b> Till: ' + endDay + ' ' + endMonth + ', ' + endYear + '</b>'
+        var startDateString = '<p ' + STYLING + '> From: ' + startDay + ' ' + startMonth + ', ' + startYear + '</p>'
+        var endDateString = '<p ' + STYLING + '> Till: ' + endDay + ' ' + endMonth + ', ' + endYear + '</p>'
 
         const newOptions: Options = Object.assign({}, this.currentOptions);    //create new options variable and copy old options
         newOptions.translate = (value: number, label: LabelType): string => {
