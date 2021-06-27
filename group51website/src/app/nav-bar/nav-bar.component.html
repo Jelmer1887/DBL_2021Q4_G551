@@ -1,10 +1,8 @@
 <nav class="navbar has-background-info-light" role="navigation" aria-label="main navigation">
   <div class="navbar-brand">
-    <a routerLink="" class="navbar-item">
-      <img src="./assets/logo_veye_email.png" width=60px alt="logo">
-      <h1 class="title">Network <b>Vis</b>ion</h1>
-      
-    </a>
+      <a routerLink="" class="navbar-item">
+        <img src="./assets/logo_veye_email_text.png" width="112" height="28" alt="logo">      
+      </a>
   </div>
 
   <a class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="NavMenu"></a>
@@ -90,12 +88,12 @@
 
       <div id="not_status" class="notification is-warning py-2 my-1">
         <button class="delete" (click)= "removeNotification('not_status')"></button>
-        Press the <b>Status</b> button to change the selected dataset
+        Press the <b>Status</b> button to change the selected dataset (currently non-funtional)
       </div>
 
       <div id="not_warning" class="notification is-danger py-2 my-1">
         <button class="delete" (click)= "removeNotification('not_warning')"></button>
-        The upload button on this page is currently broken
+        This "see uploaded datasets" is just a concept layout preview, and not functional
       </div>
 
       <h1 class="title is-4 mb-1 mt-1">Datasets database</h1>
