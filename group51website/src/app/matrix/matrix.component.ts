@@ -353,10 +353,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("height", this.height); //800
         svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
 
-        const legend = d3.select("#matrix-legend")
-            .attr("width", this.width)
-            .attr("height", 80);
-
         if (this.matrixView == "job") {
             var sortOrder = [];
 
@@ -369,8 +365,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             var xMargin = 60;
             var yMargin = 60;
 
-            var heightBy2 = ((this.height - 2 * yMargin) / (jobs.length))/2;
-            var widthBy2 = ((this.width - 2 * xMargin) / (jobs.length))/2;
+            var heightBy2 = ((this.height - 2 * yMargin) / (jobs.length)) / 2;
+            var widthBy2 = ((this.width - 2 * xMargin) / (jobs.length)) / 2;
             var maxWeight = findMaxJobWeight(jobLinks);
             var gridData = makeJobGridData(jobs);
             // console.log(gridData);
@@ -421,12 +417,13 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     grid.style('fill', "none")
                 })
                 .append("title")
-                .text((d: any) => {d.weight
+                .text((d: any) => {
+                    d.weight
                     return "source: " + d.source + "\n" +
                         "target: " + d.target + "\n" +
                         "weight :" + d.weight;
                 });
-                
+
             const yAxisLabel = svg.selectAll("myYlabels")
                 .data(jobNodes)
                 .enter()
@@ -434,13 +431,13 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("cx", 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
-                .attr("cy", function (d: any) { return (y(d.job)) + heightBy2}) // 
-            
-             yAxisLabel.append("title")
+                .attr("cy", function (d: any) { return (y(d.job)) + heightBy2 }) // 
+
+            yAxisLabel.append("title")
                 .text((d: any) => {
                     return "function: " + d.job;
                 });
-            
+
             const xAxisLabel = svg.selectAll("myXlabels")
                 .data(jobNodes)
                 .enter()
@@ -448,7 +445,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("cy", 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
-                .attr("cx", function (d: any) { return (x(d.job)) + widthBy2})
+                .attr("cx", function (d: any) { return (x(d.job)) + widthBy2 })
             xAxisLabel.append("title")
                 .text((d: any) => {
                     return "function: " + d.job;
@@ -577,6 +574,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
+        this.initiateGraph();
     }
 
     @ViewChild('container')
