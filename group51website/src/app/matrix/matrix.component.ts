@@ -418,10 +418,9 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 })
                 .append("title")
                 .text((d: any) => {
-                    d.weight
                     return "source: " + d.source + "\n" +
                         "target: " + d.target + "\n" +
-                        "weight :" + d.weight;
+                        "weight: " + d.weight;
                 });
 
             const yAxisLabel = svg.selectAll("myYlabels")
