@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { BrushShareService } from './brush-share.service';
 
 @Component({
     selector: 'app-root',
@@ -91,4 +92,11 @@ export function nodeColor(job): string {
         default:
             return "#000000";
     }
+}
+
+export function globalBrushDisable() {
+    BrushShareService.updateBrush({
+        brushEnabled: false,
+        brushedNodes: [],
+    })
 }

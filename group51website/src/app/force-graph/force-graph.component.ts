@@ -1,6 +1,6 @@
 import { DataShareService } from './../data-share.service';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
-import { nodeColor } from '../app.component';
+import { globalBrushDisable, nodeColor } from '../app.component';
 import * as d3 from 'd3';
 import { ResizedEvent } from 'angular-resize-event';
 import { inArray } from 'jquery';
@@ -17,7 +17,7 @@ import { BrushShareService } from '../brush-share.service';
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     data: Data;
-    selectedNodeInfo: any = {id: -1}  //id, etc... of the node last clicked
+    selectedNodeInfo: any = { id: -1 }  //id, etc... of the node last clicked
 
     //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
@@ -55,7 +55,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             console.log("forcegraph: new selected node received!")
             const hasChanged: boolean = (this.selectedNodeInfo["id"] != newNode["id"])
             this.selectedNodeInfo = newNode;
-            if (hasChanged == true){
+            if (hasChanged == true) {
                 console.log("forcegraph: The node selected is " + this.selectedNodeInfo['id'])
             } else {
                 console.log("forcegraph: new selected node was already selected!")
@@ -91,6 +91,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     // -- Funtions to deal with buttons and controls -- \\
     checkLinksOption(event): void {
         this.showIndividualLinks = event.target.checked;
+
+        globalBrushDisable();
         this.initiateGraph();
         this.newNodeSelected();
     }
@@ -191,7 +193,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 d3.select(this)
                     .attr("stroke", "black")
                     .attr("stroke-width", 2);
-                link.style('stroke', (a: any) => (d.id === a.source.id || d.id === a.target.id) ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment,0))
+                link.style('stroke', (a: any) => (d.id === a.source.id || d.id === a.target.id) ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment, 0))
             })
             .on("mouseout", function (event, d: any) {
                 d3.select(this)
@@ -210,13 +212,15 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                     "function: " + d.job;
             });
 
-        svg.call(this.zoom
-            .extent([[0, 0], [this.width, this.height]])
-            .on("zoom", function ({ transform }) {
-                node.attr("transform", transform);
-                link.attr("transform", transform);
-            })
-        );
+        if (!this.brushEnabled) {
+            var graph = svg.selectAll("g");
+            svg.call(this.zoom
+                .extent([[0, 0], [this.width, this.height]])
+                .on("zoom", function ({ transform }) {
+                    graph.attr("transform", transform);
+                })
+            );
+        }
 
         // Set the zoom to the default levels.
         this.resetZoom()
@@ -350,8 +354,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         }
     }
 
-
-
     // Updates the selected/highlighted nodes
     newNodeSelected() {
         var edgeStyle = "line"
@@ -368,7 +370,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             if (this.selectedNodeInfo['id'] != 0 || this.brushedNodes.length != 0) {
                 var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
                     (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
-                return (highlighted ? this.linkColor(a.sentiment, 1) : this.linkColor(a.sentiment,0))
+                return (highlighted ? this.linkColor(a.sentiment, 1) : this.linkColor(a.sentiment, 0))
             }
             else {
                 return this.linkColor(a.sentiment, 0)
@@ -459,27 +461,26 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         y0 = e.selection[0][1],
                         y1 = e.selection[1][1];
 
+                    // TODO: The transformation is the same for every node, 
+                    // so parsing it for every node is a bit of a waste of time.
+                    // We should do parse it for one node and then use that tx, ty and scale for all of them. - Kay
+                    // Gets the transform as a string: "translate(x, y) scale(s)""
+                    var transform = d3.select("g").attr("transform").split(" ");
+                    var transString: any = transform[0];
+                    transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
+                        .split(","); // Split the x and y coordinate
+
+                    // Parse the translation to numbers.
+                    var tx = parseFloat(transString[0]);
+                    var ty = parseFloat(transString[1]);
+
+                    // Get the scale srting and retrieve the part between ().
+                    var scaleString = transform[1];
+                    scaleString = scaleString.substring(scaleString.indexOf("(") + 1, scaleString.indexOf(")"));
+                    var scale = parseFloat(scaleString);    // Parse the string to a number.
+
                     svg.selectAll("circle")
                         .each(function (d: any) {
-
-                            // TODO: The transformation is the same for every node, 
-                            // so parsing it for every node is a bit of a waste of time.
-                            // We should do parse it for one node and then use that tx, ty and scale for all of them. - Kay
-                            // Gets the transform as a string: "translate(x, y) scale(s)""
-                            var transform = d3.select(this).attr("transform").split(" ");
-                            var transString: any = transform[0];
-                            transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
-                                .split(","); // Split the x and y coordinate
-
-                            // Parse the translation to numbers.
-                            var tx = parseFloat(transString[0]);
-                            var ty = parseFloat(transString[1]);
-
-                            // Get the scale srting and retrieve the part between ().
-                            var scaleString = transform[1];
-                            scaleString = scaleString.substring(scaleString.indexOf("(") + 1, scaleString.indexOf(")"));
-                            var scale = parseFloat(scaleString);    // Parse the string to a number.
-
                             // Apply the translation to the x coordinate of the node to get the real coordinate.
                             var x = (d.x * scale) + tx;
                             var y = (d.y * scale) + ty;
@@ -508,24 +509,19 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         svg.on(".brush", null);
         svg.selectAll("rect").remove();
 
-        var node = svg.selectAll("circle")
-        var link = svg.selectAll("line")
-
+        var graph = svg.selectAll("g");
         // Add the zoom and panning back
         svg.call(this.zoom
             .extent([[0, 0], [this.width, this.height]])
             .on("zoom", function ({ transform }) {
-                node.attr("transform", transform);
-                link.attr("transform", transform);
+                graph.attr("transform", transform);
             })
         )
     }
 
     resetZoom(): void {
         const svg = d3.select("#force-graph");
-        svg.selectAll("circle")
-            .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
-        svg.selectAll("line")
+        svg.selectAll("g")
             .attr("transform", `translate(${this.beginPosX},${this.beginPosY}) scale(${this.beginScale})`)
 
         svg.call(this.zoom.transform as any, d3.zoomIdentity.translate(this.beginPosX, this.beginPosY).scale(this.beginScale))

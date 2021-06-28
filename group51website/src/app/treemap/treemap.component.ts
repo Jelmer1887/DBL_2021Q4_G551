@@ -2,7 +2,7 @@ import { DataShareService } from './../data-share.service';
 import { Subscription } from 'rxjs';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
-import { jobs, nodeColor } from '../app.component';
+import { globalBrushDisable, jobs, nodeColor } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 
 @Component({
@@ -247,11 +247,13 @@ export class TreemapComponent implements OnInit {
 
     checkGroupOption(event) {
         this.groupedByJob = event.target.checked;
+        globalBrushDisable();
         this.buildGraph();
     }
 
     checkValueOption(event) {
         this.valueOption = event.target.value;
+        globalBrushDisable();
         this.buildGraph();
     }
 }

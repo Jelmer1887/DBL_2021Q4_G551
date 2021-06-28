@@ -5,7 +5,7 @@ import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
 import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 import * as d3 from 'd3';
-import { jobs, nodeColor, setJobs } from '../app.component';
+import { globalBrushDisable, jobs, nodeColor, setJobs } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 import { MatrixComponent } from '../matrix/matrix.component';
 import { BrushShareService } from '../brush-share.service';
@@ -379,6 +379,7 @@ export class VisualisationPageComponent implements OnInit {
 
         this.changeDateLabels(newStartDate, newEndDate);
 
+        globalBrushDisable();
         this.parseFile();
     }
 
@@ -556,6 +557,8 @@ export class VisualisationPageComponent implements OnInit {
                 'none');
             this.vis1Fullscreen = true;
         }
+
+        globalBrushDisable();
     }
 
     fullscreenVis2() {
@@ -590,6 +593,7 @@ export class VisualisationPageComponent implements OnInit {
 
         }
 
+        globalBrushDisable();
     }
 
 }

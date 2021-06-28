@@ -2,7 +2,7 @@ import { DataShareService } from './../data-share.service';
 import { Subscription } from 'rxjs';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
-import { jobs, nodeColor } from '../app.component';
+import { globalBrushDisable, jobs, nodeColor } from '../app.component';
 import { VisualisationPageComponent } from '../visualisation-page/visualisation-page.component';
 import { BrushShareService } from '../brush-share.service';
 //we need to import this component in the app.module.ts
@@ -20,7 +20,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     // Input variables.
     data: Data;
     sort: string;
-    selectedNodeInfo: any = {id: -1};
+    selectedNodeInfo: any = { id: -1 };
     vis2Fullscreen: boolean = false;
     //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
@@ -39,7 +39,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
     ngOnInit() {
         console.log("arcDiagram: initialising: subbing to Service!")
-        
+
         this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
             console.log("arcDiagram: Datashareservice: data update detected!");
             this.data = newData;
@@ -50,13 +50,13 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
             console.log("arcdiagram: new selected node received!")
             let hasChanged: boolean = false
-            if (this.selectedNodeInfo.hasOwnProperty("id")){
+            if (this.selectedNodeInfo.hasOwnProperty("id")) {
                 hasChanged = (this.selectedNodeInfo["id"] != newNode["id"])
             } else {
                 hasChanged = true
             }
             this.selectedNodeInfo = newNode;
-            if (hasChanged == true){
+            if (hasChanged == true) {
                 console.log("arcdiagram: The node selected is " + this.selectedNodeInfo['id'])
             } else {
                 console.log("arcdiagram: new selected node was already selected!")
@@ -68,7 +68,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         this.fullscreen2Subscription = DataShareService.svis2Fullscreen.subscribe(newBool => {
             console.log("arcdiagram: new vis2Fullscreen received: " + newBool)
             const hasChanged: boolean = (this.vis2Fullscreen != newBool)
-            if (hasChanged == true){
+            if (hasChanged == true) {
                 this.vis2Fullscreen = newBool
                 console.log("arcdiagram: the new vis2fscr value is " + newBool);
                 this.initiateDiagram();
@@ -109,17 +109,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         // console.log(event.target);
         this.sort = event.target.value;
 
-        // NOTE: There's an error when you do the following:
-        // Go into brush mode,
-        // Switch the sorting,
-        // Click in the diagram again.
-        // To prevent this, I switch to pan/zoom mode whenever the sorting switches.
-        this.brushEnabled = false;
-        this.disableBrushMode();
-        BrushShareService.updateBrush({
-            brushEnabled: false,
-            brushedNodes: BrushShareService.brushSource.value.brushedNodes,
-        })
+        globalBrushDisable();
         this.initiateDiagram();
     }
 
@@ -288,8 +278,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
                 })
                 .on("mouseout", function (event, d: any) {
-                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000' )
-                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal' )
+                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000')
+                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal')
                     link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
@@ -381,8 +371,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
                 })
                 .on("mouseout", function (event, d: any) {
-                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000' )
-                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') :'normal' )
+                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000')
+                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal')
                     link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")

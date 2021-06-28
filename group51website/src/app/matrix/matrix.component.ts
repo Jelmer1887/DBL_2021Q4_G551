@@ -1,7 +1,7 @@
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
 import { Subscription } from 'rxjs';
-import { jobs, nodeColor } from '../app.component';
+import { globalBrushDisable, jobs, nodeColor } from '../app.component';
 import { DataShareService } from '../data-share.service';
 
 @Component({
@@ -42,17 +42,20 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     checkMatrixSortOption(event): void {
-        this.matrixSort = event.target.value
+        this.matrixSort = event.target.value;
+        globalBrushDisable();
         this.initiateGraph();
     }
 
     checkMatrixView(event): void {
-        this.matrixView = event.target.value
+        this.matrixView = event.target.value;
+        globalBrushDisable();
         this.initiateGraph();
     }
 
     checkWeighted(event): void {
         this.weighted = event.target.checked;
+        globalBrushDisable();
         this.initiateGraph();
     }
 
@@ -453,7 +456,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         if (this.matrixView == "all") {
-
             //handles sorting requests
             if ((this.matrixSort == 'id')) {
                 sortNodesID();
