@@ -17,7 +17,7 @@ import { BrushShareService } from '../brush-share.service';
 export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
 
     data: Data;
-    selectedNodeInfo: any = { id: -1 }  //id, etc... of the node last clicked
+    selectedNodeInfo: any = { 'id': -1 }  //id, etc... of the node last clicked
 
     //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
@@ -156,7 +156,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .selectAll(edgeStyle)
             .data(links)
             .join(edgeStyle)
-            .attr("stroke", (d: any) => this.linkColor(d.sentiment, 0))  // 0 is just to show it is not highlighted so color is lighter
+            .attr("stroke", (d: any) => this.linkColor(d.sentiment, 1))  // 0 is just to show it is not highlighted so color is lighter
             .on("click", (d, i) => {
                 linkGUI(i, this.showIndividualLinks);                                //To display info about link
             })
@@ -199,7 +199,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 d3.select(this)
                     .attr("stroke", d.id === inst.selectedNodeInfo['id'] ? 'black' : "#fff")
                     .attr("stroke-width", d.id === inst.selectedNodeInfo['id'] ? 2 : 1)
-                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment, 0)) : inst.linkColor(a.sentiment, 0))
+                link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment, 0)) : inst.linkColor(a.sentiment, 1))
                 inst.newNodeSelected();
             })
 
@@ -289,6 +289,12 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
 
+            if (linklist['id'] === inst.selectedNodeInfo['id']){
+                for (var member in linklist) delete linklist[member];
+                console.log(linklist)
+                //linklist = { 'id': undefined, 'job': [], 'sendto': [], 'receivedfrom': [], "mailCount": [] };
+            }
+            
             console.log("forcegraph: updating selected node to service...");
             //inst.nodeEmailsEvent.emit(linklist);  
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
@@ -367,13 +373,13 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         var link = svg.selectAll(edgeStyle)
 
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'] != 0 || this.brushedNodes.length != 0) {
+            if (this.selectedNodeInfo['id'] != undefined ||  this.brushedNodes.length != 0) {
                 var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
                     (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
                 return (highlighted ? this.linkColor(a.sentiment, 1) : this.linkColor(a.sentiment, 0))
             }
             else {
-                return this.linkColor(a.sentiment, 0)
+                return this.linkColor(a.sentiment, 1)
             }
         })
         node.attr("stroke", (a: any, d: any) => {

@@ -232,7 +232,12 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             for (var link in receivedLinks) {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
             }
-
+            
+            if (linklist['id'] === inst.selectedNodeInfo['id']){
+                for (var member in linklist) delete linklist[member];
+                //linklist = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [], "mailCount": [] };
+            }
+            
             console.log("arcdiagram: updating selected node to service...");
             //inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
@@ -280,7 +285,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 .on("mouseout", function (event, d: any) {
                     label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000')
                     label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal')
-                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
+                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
                     .attr("x", 1)
@@ -440,7 +445,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             }
         });
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'] != 0) {
+            if (this.selectedNodeInfo['id'] != undefined) {
                 if (a.source === this.selectedNodeInfo['id'] || a.target === this.selectedNodeInfo['id'] ||
                     this.brushedNodes.includes(a.source) || this.brushedNodes.includes(a.target)) {
                     return nodeColor(this.selectedNodeInfo['job'])
