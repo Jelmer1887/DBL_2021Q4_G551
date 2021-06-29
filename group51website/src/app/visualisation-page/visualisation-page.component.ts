@@ -78,7 +78,7 @@ export class VisualisationPageComponent implements OnInit {
     ngOnInit(): void {
         this.filesubscription = this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
-            this.parseFile();
+            this.parseFile(true);
         });
         this.selectSubscription = DataShareService.sselectednode.subscribe(newNode => {
             const hasChanged: boolean = (newNode.id != this.selectedNodeInfo.id)
@@ -126,14 +126,27 @@ export class VisualisationPageComponent implements OnInit {
         this.currentOptions = newOptions;
     }
 
-    parseFile(): void {
+    parseFile(checkFormat: boolean): void {
         let fileReader = new FileReader();
 
         fileReader.onload = (e) => {
 
             // Array of strings with every string being a line.
             var lines: string[] = fileReader.result.toString().split('\n');
-            lines.shift();
+
+            // Get the first line which defines the format
+            var format = lines.shift();
+
+            // to lower case and remove whitespace since this shouldn't matter.
+            format = format.toLowerCase().replace(/\s/g, "");
+            console.log(format);
+            if (checkFormat &&
+                (format != "date,fromid,fromemail,fromjobtitle,toid,toemail,tojobtitle,messagetype,sentiment")) {
+                alert("The format of the dataset seems to not be officially supported. " +
+                    "The supported format is: \n" +
+                    "date,fromId,fromEmail,fromJobtitle,toId,toEmail,toJobtitle,messageType,sentiment"
+                );
+            }
 
             // Empty the nodes and links so we can read the new ones.
             var newData: Data = {
@@ -380,7 +393,7 @@ export class VisualisationPageComponent implements OnInit {
         this.changeDateLabels(newStartDate, newEndDate);
 
         globalBrushDisable();
-        this.parseFile();
+        this.parseFile(false);
     }
 
     // setter for selectedNode, used to update info-card, triggered through html event
