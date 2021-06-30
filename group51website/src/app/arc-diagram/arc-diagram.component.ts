@@ -300,10 +300,19 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             linklist.sentiment_send.neg = total / recieved_counter.neg;
             console.log("card: rnegative: "+ linklist.sentiment_send.neg)
 
-            if (recieved_counter.neg == 0) {linklist.sentiment_received.neg = 0}
-            if (recieved_counter.pos == 0) {linklist.sentiment_received.pos = 0}
-            if (sent_counter.neg == 0) {linklist.sentiment_send.neg = 0}
-            if (sent_counter.pos == 0) {linklist.sentiment_send.pos = 0}
+            if (linklist.sentiment_received.neg == undefined || linklist.sentiment_received.neg > 100000) {linklist.sentiment_received.neg = 0}
+            if (linklist.sentiment_received.pos == undefined || linklist.sentiment_received.pos > 100000) {linklist.sentiment_received.pos = 0}
+            if (linklist.sentiment_send.neg == undefined || linklist.sentiment_send.neg > 100000) {linklist.sentiment_send.neg = 0}
+            if (linklist.sentiment_send.pos == undefined || linklist.sentiment_send.pos > 100000) {linklist.sentiment_send.pos = 0}
+
+            console.log(
+                "card: final values are (rn, rp, sn, sp) = (" 
+                + linklist.sentiment_received.neg + ','
+                + linklist.sentiment_received.pos + ','
+                + linklist.sentiment_send.neg + ','
+                + linklist.sentiment_send.pos + ')'
+            
+            )
 
             if (linklist['id'] === inst.selectedNodeInfo['id']){
                 for (var member in linklist) delete linklist[member];
