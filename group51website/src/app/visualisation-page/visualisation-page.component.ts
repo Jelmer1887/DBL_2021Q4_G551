@@ -401,6 +401,12 @@ export class VisualisationPageComponent implements OnInit {
 
         if (!node.hasOwnProperty('id')) {
             console.log("page: updateNodeInfo: node is empty!");
+            
+            let rows = document.querySelectorAll('tr');
+            for (let i = 0; rows[i]; i++) {
+                let row = (rows[i] as HTMLTableRowElement);
+                row.remove();
+            }
             return
         }
 
