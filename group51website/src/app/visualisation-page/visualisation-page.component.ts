@@ -51,7 +51,22 @@ export class VisualisationPageComponent implements OnInit {
     brushMode: boolean = false;
     max;
 
-    selectedNodeInfo: any = { 'id': -1, 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
+    selectedNodeInfo: any = {/*{ 'id': -1, 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.*/
+        "id": -1, 
+        "job": [], 
+        "sendto": [], 
+        "receivedfrom": [], 
+        "mailCount": 0, 
+        "address": '', 
+        "sentiment_received": {
+            "pos" : 0.0,
+            "neg" : 0.0,
+        }, 
+        "sentiment_send": {
+            "pos" : 0.0,
+            "neg" : 0.0,
+        }, 
+    };
     vis1Fullscreen: boolean = false;
     vis2Fullscreen: boolean = false;
 
@@ -411,7 +426,7 @@ export class VisualisationPageComponent implements OnInit {
         }
 
         // function to add a row to the info section
-        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void {
+        function createInfoRow(table: HTMLTableElement, discr: string, value: any, size: number = 6): void {
             // update ID
             let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
 
@@ -421,6 +436,7 @@ export class VisualisationPageComponent implements OnInit {
             newRow.append(text);
 
             text = document.createElement('td');                                    // set new value
+            text.className = "is-size-"+(size).toString()+"-widescreen is-size-"+(size + 1).toString()+"-tablet"
             text.innerText = value;
             newRow.append(text);
 
@@ -521,13 +537,22 @@ export class VisualisationPageComponent implements OnInit {
 
         // get table of info
         let idTable = (document.getElementById("id_table") as HTMLTableElement);
+        let sentimentTable = (document.getElementById("vibes_table") as HTMLTableElement);
 
         // update ID
         createInfoRow(idTable, "ID:", node.id.toString());
+        // update email address
+        createInfoRow(idTable, "address:", node.address, 7);
         // update job
         createInfoRow(idTable, "Job:", node.job);
         // update nr of emails
-        createInfoRow(idTable, "nr of emails send/received:", node.mailCount)
+        createInfoRow(idTable, "emails", node.mailCount)
+        // update sentiment values
+        createInfoRow(sentimentTable, "positive received:", node.sentiment_received.pos)
+        createInfoRow(sentimentTable, "positive sent:", node.sentiment_send.pos)
+        createInfoRow(sentimentTable, "negative received:", node.sentiment_send.pos)
+        createInfoRow(sentimentTable, "negative sent:", node.sentiment_send.neg)
+        
     }
 
     setBrushMode(): void {
