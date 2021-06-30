@@ -1,10 +1,10 @@
 import { DataShareService } from './../data-share.service';
 import { Subscription } from 'rxjs';
-import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
+import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 import { globalBrushDisable, jobs, nodeColor } from '../app.component';
-import { VisualisationPageComponent } from '../visualisation-page/visualisation-page.component';
 import { BrushShareService } from '../brush-share.service';
+import { ResizedEvent } from 'angular-resize-event';
 //we need to import this component in the app.module.ts
 //we need to add the line below to visualisation-page.component.html:
 //<app-arc-diagram [file]="file"></app-arc-diagram>
@@ -15,7 +15,7 @@ import { BrushShareService } from '../brush-share.service';
     styles: [
     ]
 })
-export class ArcDiagramComponent implements AfterViewInit, OnChanges {
+export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
 
     // Input variables.
     data: Data;
@@ -24,12 +24,12 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     vis2Fullscreen: boolean = false;
     //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
-    private width;
-    private height = 800;
-
+    public width: number = 1000;
+    public height: number = 800;
+    private svg;
     private brushedNodes = [];
     private brushEnabled = false;
-
+    private fullScreen: boolean = false;
     private datasubscription: Subscription;
     private selectedSubscription: Subscription;
     private fullscreen2Subscription: Subscription;
@@ -38,6 +38,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     constructor() { }
 
     ngOnInit() {
+        this.svg = d3.select("#arc-diagram")
+            .attr('width', this.width)
+            .attr('height', this.height)
         console.log("arcDiagram: initialising: subbing to Service!")
 
         this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
@@ -95,6 +98,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     this.disableBrushMode();
                 }
             }
+            /*.attr("width", this.width)
+            .attr("height", this.height);*/
+            
         })
     }
 
@@ -108,11 +114,25 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     checkSortOption(event): void {
         // console.log(event.target);
         this.sort = event.target.value;
-
         globalBrushDisable();
         this.initiateDiagram();
     }
 
+    onResized(event: ResizedEvent) {
+        console.log("//////////----------------///////////");
+        this.width = event.newWidth;
+        this.height = event.newHeight;
+        console.log(event.newHeight);
+        console.log(event.newWidth);
+
+        // set the width and height of the element (account for margins)
+        this.svg
+            .attr("width", this.width)
+            .attr("height", this.height)
+
+        //this.fullScreen == false ? this.fullScreen = true : this.fullScreen = false;
+        this.initiateDiagram()
+    }
     // -- --- -- \\
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -145,16 +165,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             sortNodesJob();
         } else if (this.sort == "amount") {
             sortNodesAmount();
-        }
-        //console.log(nodes);
-        const svg = d3.select("#arc-diagram")
-            //.append("svg")
-            .attr("width", this.width)
-            .attr("height", this.height);
-        //.append("g")
-        //.attr("transform", "translate(0,50)");
+        }       
 
-        svg.selectAll("*").remove()
+        this.svg.selectAll("*").remove()
 
         //CEO, President, Vice President, Managing Director, Director, In House Lawyer, Trader, Employee, Unknown.
         function sortNodesJob() {
@@ -198,6 +211,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .range([0, this.height])
             .padding(0.5)
             .domain(nodeID);
+        var y = d3.scalePoint()
+            .range([0, this.width])
+            .padding(0.5)
+            .domain(nodeID)
 
         var nodeRadius = 2;
         //add circles for the nodes
@@ -243,7 +260,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
         if (!this.vis2Fullscreen) {
-            const node = svg.selectAll("mynodes")
+            const node = this.svg.selectAll("mynodes")
                 .data(nodes)
                 .enter()
                 .append("circle")
@@ -260,7 +277,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "function: " + d.job;
                 });
 
-            const label = svg.selectAll("mylabels")
+            const label = this.svg.selectAll("mylabels")
                 .data(nodes)
                 .enter()
                 .append("text")
@@ -298,7 +315,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "e-mail: " + d.address + "\n" +
                         "function: " + d.job;
                 });
-            /*const overlay = svg.append("g")
+            /*const overlay = this.svg.append("g")
                 .attr("fill", " none")
                 .attr("pointer-events", "all")
                 .selectAll('rect')
@@ -316,7 +333,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     */
             //add the links
 
-            const link = svg.selectAll('mylinks')
+            const link = this.svg.selectAll('mylinks')
                 .data(links)
                 .enter()
                 .append('path')
@@ -336,11 +353,11 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 .attr("stroke-opacity", 0.6)
                 .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
         } else if (this.vis2Fullscreen) {
-            const node = svg.selectAll("mynodes")
+            const node = this.svg.selectAll("mynodes")
                 .data(nodes)
                 .enter()
                 .append("circle")
-                .attr("cx", function (d: any) { return (x(d.id)) })
+                .attr("cx", function (d: any) { return (y(d.id)) })
                 .attr("cy", this.height - 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job));
@@ -353,7 +370,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "function: " + d.job;
                 });
 
-            const label = svg.selectAll("mylabels")
+            const label = this.svg.selectAll("mylabels")
                 .data(nodes)
                 .enter()
                 .append("text")
@@ -361,7 +378,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 .attr("font-family", "sans-serif")
                 .attr("x", this.height - 15)
                 .attr("y", 7)
-                .attr("transform", (d: any) => `translate(${d.x = x(d.id) + nodeRadius + 1},${0}) rotate(90)`)
+                .attr("transform", (d: any) => `translate(${d.x = y(d.id) + nodeRadius + 1},${0}) rotate(90)`)
                 .text(d => makeText(d))
                 .style("text-anchor", "middle")
                 .on("click", (event, d: any) => {
@@ -392,14 +409,14 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "function: " + d.job;
                 });
 
-            const link = svg.selectAll('mylinks')
+            const link = this.svg.selectAll('mylinks')
                 .data(links)
                 .enter()
                 .append('path')
                 .attr('d', function (d: any) {
-                    var start = x(d.source)    // X position of start node on the X axis
+                    var start = y(d.source)    // X position of start node on the X axis
                     //console.log(start);
-                    var end = x(d.target)      // X position of end node
+                    var end = y(d.target)      // X position of end node
                     return ['M', start, 770,    // the arc starts at the coordinate y=start, x=width-30 (where the starting node is)
                         'A',                            // This means we're gonna build an elliptical arc
                         (start - end) / 2, ',',    // Next 2 lines are the coordinates of the inflexion point. Height of this point is proportional with start - end distance
@@ -415,10 +432,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     newNodeSelected() {
-        const svg = d3.select("#arc-diagram")
+        //const svg = d3.select("#arc-diagram")
         //const node = svg.selectAll("circle")
-        const label = svg.selectAll("text")
-        const link = svg.selectAll('path')
+        const label = this.svg.selectAll("text")
+        const link = this.svg.selectAll('path')
 
         //label.style('stroke', "#ccc")
         label.style('font-weight', (a: any) => {
@@ -460,9 +477,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     enableBrushMode() {
-        const svg = d3.select("#arc-diagram");
+        //const svg = d3.select("#arc-diagram");
         var inst = this;
-        svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
+        this.svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
             .extent([[0, 0], [this.width, this.height]])       // initialise the brush area, so the entire graph
             .on("start end", function (e) {
                 inst.brushedNodes = [];
@@ -473,7 +490,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         y1 = e.selection[1][1];
 
                     // Select node from circle
-                    svg.selectAll("circle")
+                    this.svg.selectAll("circle")
                         .each(function (d: any) {
                             // Get the coordinates
                             var cx = d3.select(this).attr("cx");
@@ -487,7 +504,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         });
 
                     // Select node from text.
-                    svg.selectAll("text")
+                    this.svg.selectAll("text")
                         .each(function (d: any) {
                             // Get the x of the text
                             var cx = d3.select(this).attr("x");
@@ -522,12 +539,12 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     disableBrushMode() {
-        const svg = d3.select("#arc-diagram")
+        //const svg = d3.select("#arc-diagram")
 
         // Disable the brush
-        svg.call(d3.brush().extent([[0, 0], [0, 0]]))
-        svg.on(".brush", null);
-        svg.selectAll("rect").remove();
+        this.svg.call(d3.brush().extent([[0, 0], [0, 0]]))
+        this.svg.on(".brush", null);
+        this.svg.selectAll("rect").remove();
     }
 
     //link colour based on sentiment of message

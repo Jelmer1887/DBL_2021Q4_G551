@@ -445,7 +445,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     onResized(event: ResizedEvent) {
         this.width = event.newWidth;
         this.height = event.newHeight;
-
+        
         const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
             .attr("viewBox", `0 0 ${this.width} ${this.height}`)
             .attr("width", this.width)
