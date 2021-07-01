@@ -22,6 +22,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
     sort: string;
     selectedNodeInfo: any = { id: -1 };
     vis2Fullscreen: boolean = false;
+    vis1Fullscreen: boolean = false;
     //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
     public width: number = 1000;
@@ -32,6 +33,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
     private fullScreen: boolean = false;
     private datasubscription: Subscription;
     private selectedSubscription: Subscription;
+    private fullscreen1Subscription: Subscription;
     private fullscreen2Subscription: Subscription;
     private brushSubscription: Subscription;
 
@@ -82,6 +84,20 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
 
         })
 
+        this.fullscreen1Subscription = DataShareService.svis1Fullscreen.subscribe(newBool => {
+            console.log("arcdiagram: new vis1Fullscreen received: " + newBool)
+            const hasChanged: boolean = (this.vis1Fullscreen != newBool)
+            if (hasChanged == true) {
+                this.vis1Fullscreen = newBool
+                console.log("arcdiagram: the new vis1fscr value is " + newBool);
+                this.initiateDiagram();
+                this.newNodeSelected()
+            } else {
+                console.log("arcdiagram: vis1fscr value wasn't changed");
+            }
+
+        })
+
         this.brushSubscription = BrushShareService.brushSource.subscribe(newBrush => {
             // The mode stayed the same, meaning the brushedNodes must have changed.
             if (this.brushEnabled == newBrush.brushEnabled) {
@@ -119,11 +135,11 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     onResized(event: ResizedEvent) {
-        console.log("//////////----------------///////////");
+        //console.log("//////////----------------///////////");
         this.width = event.newWidth;
         this.height = event.newHeight;
-        console.log(event.newHeight);
-        console.log(event.newWidth);
+        // console.log(event.newHeight);
+        // console.log(event.newWidth);
 
         // set the width and height of the element (account for margins)
         this.svg
@@ -346,7 +362,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
             //inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
-        if (!this.vis2Fullscreen) {
+        if (!this.vis2Fullscreen && !this.vis1Fullscreen) {
             const node = this.svg.selectAll("mynodes")
                 .data(nodes)
                 .enter()
@@ -439,7 +455,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("stroke", (d: any) => this.linkColor(d.sentiment))
                 .attr("stroke-opacity", 0.6)
                 .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
-        } else if (this.vis2Fullscreen) {
+        } else if (this.vis2Fullscreen || this.vis1Fullscreen) {
             const node = this.svg.selectAll("mynodes")
                 .data(nodes)
                 .enter()
@@ -482,7 +498,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                 .on("mouseout", function (event, d: any) {
                     label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000')
                     label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal')
-                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
+                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
                     .attr("y", 12)

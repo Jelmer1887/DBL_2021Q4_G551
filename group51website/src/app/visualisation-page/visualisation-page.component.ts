@@ -585,6 +585,7 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'inline');
             this.vis1Fullscreen = false;
+            DataShareService.updateServiceVis1FullScreen(false);
         } else {
             this.renderer.setAttribute(
                 this.vis1.nativeElement,
@@ -600,6 +601,7 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'none');
             this.vis1Fullscreen = true;
+            DataShareService.updateServiceVis1FullScreen(true);
         }
 
         globalBrushDisable();
