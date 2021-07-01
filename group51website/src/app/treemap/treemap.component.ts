@@ -33,6 +33,7 @@ export class TreemapComponent implements OnInit {
     // -- Private variables
     private svg;
     private datasubscription: Subscription;
+    private selectedSubscription: Subscription;
     private groupedByJob = true;
     private valueOption = "both";
     private selectedNodeId = -1;
@@ -51,9 +52,15 @@ export class TreemapComponent implements OnInit {
             this.data = newData;
             this.buildGraph(this.data);
         })
+
+        this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
+            this.selectedNodeId = newNode.id;
+            this.newBlockSelected();
+        })
     }
 
     ngOnDestroy(): void {
+        this.selectedSubscription.unsubscribe();
         this.datasubscription.unsubscribe();
     }
 
@@ -192,7 +199,6 @@ export class TreemapComponent implements OnInit {
             })
 
         block.on("click", (event, d: any) => {
-            console.log("Clicked treemap!");
             if (d['data']['id'] == inst.selectedNodeId) {
                 inst.selectedNodeId = -1;
                 DataShareService.updateServiceNodeSelected({});
@@ -203,26 +209,18 @@ export class TreemapComponent implements OnInit {
                 nodeGUI(node[0]);
             }
 
-            newBlockSelected();
-        })
-
-        let foundSelectedNode = false;
-        block.each((d: any) => {
-            if (d.id == inst.selectedNodeId) {
-                foundSelectedNode = true;
-                nodeGUI(d.data);
-            }
+            inst.newBlockSelected();
         })
 
         let node = nodes.filter(e => e.id == inst.selectedNodeId);
         if (node.length == 1) {
-            console.log()
+            console.log("AAAAAAAA")
             nodeGUI(node[0])
         } else {
             this.selectedNodeId = -1;
             DataShareService.updateServiceNodeSelected({});
         }
-        newBlockSelected();
+        this.newBlockSelected();
 
         // Add the Id to the rectangle if there is enough space.
         this.svg
@@ -280,8 +278,6 @@ export class TreemapComponent implements OnInit {
         }
 
         function nodeGUI(i) {
-            console.log(i);
-
             var linklist = {
                 "id": i.id,
                 "job": i.job,
@@ -405,11 +401,13 @@ export class TreemapComponent implements OnInit {
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
 
-        function newBlockSelected() {
-            let block = inst.svg.selectAll("g");
-            block.style("stroke", "black")
-                .style("stroke-width", (d: any) => (d.data.id == inst.selectedNodeId) ? 5 : 0)
-        }
+    }
+
+    newBlockSelected() {
+        let block = this.svg.selectAll("g");
+        console.log("Treemap selected node ID: " + this.selectedNodeId);
+        block.style("stroke", "black")
+            .style("stroke-width", (d: any) => (d.data.id == this.selectedNodeId) ? 5 : 0)
     }
 
     checkGroupOption(event) {
