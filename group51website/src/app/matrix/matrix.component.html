@@ -1,7 +1,10 @@
 <h1 class="title">Adjacency Matrix</h1>
 <h2 class="subtitle is-6">An Adjacency Matrix for the emails</h2>
 
-<div #container>
+<div class="container" (resized)="onResized($event)" #container style="
+overflow: hidden; 
+width: 100%;
+height: 800px;">
     <svg id="matrix"></svg>
 </div>
 

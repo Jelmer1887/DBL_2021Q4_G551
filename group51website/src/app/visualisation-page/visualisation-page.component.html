@@ -1,5 +1,5 @@
-<div class="block mt-1">
-    <div class="block mt-1 mx-3">
+<div class="block mt-3">
+    <div class="block mt-3 pt-4 mx-3">
 
         <!--Area for Vis Controls bar-->
         <div class="level mb-1">
@@ -18,14 +18,17 @@
                             </div>
                             <div class="dropdown-menu" id="dropdown-menu3" role="menu">
                                 <div class="dropdown-content">
-                                    <a [routerLink]="[{outlets: {vis1: ['force']}}]" class="dropdown-item">
+                                    <a #FDG1 [routerLink]="[{outlets: {vis1: ['force']}}]" class="dropdown-item" (click)="HideSelection('FDG2')">
                                         Force Directed Graph
                                     </a>
-                                    <a [routerLink]="[{outlets: {vis1: ['arc']}}]" class="dropdown-item">
+                                    <a #Arc1 [routerLink]="[{outlets: {vis1: ['arc']}}]" class="dropdown-item" (click)="HideSelection('Arc2')">
                                         Arc Diagram
                                     </a>
-                                    <a [routerLink]="[{outlets: {vis1: ['matrix']}}]" class="dropdown-item">
+                                    <a #Matrix1 [routerLink]="[{outlets: {vis1: ['matrix']}}]" class="dropdown-item" (click)="HideSelection('Matrix2')">
                                         Adjacency Matrix
+                                    </a>
+                                    <a #Tree1 [routerLink]="[{outlets: {vis1: ['tree']}}]" class="dropdown-item" (click)="HideSelection('Tree2')">
+                                        Treemap
                                     </a>
                                 </div>
                             </div>
@@ -34,16 +37,15 @@
                 </div>
 
             </div>
-            <h3 id="myRangeStart"></h3>
-            <div class="level-item">
-                <h3 id="myRangeMin"></h3>
+            <!--<h3 id="myRangeStart"></h3>-->
+            <!-- Slider -->
+            <div class="level-item mx-5">
+                <span id="myRangeMin" class="tag is-medium is-light mx-2 px-1 has-text-left"></span>
                 <ngx-slider [(value)]="value" [(highValue)]="highValue" (userChangeEnd)="setNewDate($event)"
                     [options]="currentOptions"></ngx-slider>
-                <!-- <input class="slider is-info is-medium mt-3 ml-5" (change)="setNewDate($event)" step="1" min="1"
-                    [max]="dateRange" value="1" type="range" id="myRange" style="width:90%"> -->
-                <h3 id="myRangeMax"></h3>
+                <span id="myRangeMax" class="tag is-medium is-light mx-2 px-1 has-text-right"></span>
             </div>
-            <h3 id="myRangeEnd"></h3>
+            <!--<h3 id="myRangeEnd"></h3>-->
 
             <div class="level-right">
                 <div #dropdown2 class="level-item">
@@ -58,14 +60,17 @@
                         </div>
                         <div class="dropdown-menu" id="dropdown-menu3" role="menu">
                             <div class="dropdown-content">
-                                <a [routerLink]="[{outlets: {vis2: ['force']}}]" class="dropdown-item">
+                                <a #FDG2 [routerLink]="[{outlets: {vis2: ['force']}}]" class="dropdown-item" (click)="HideSelection('FDG1')">
                                     Force Directed Graph
                                 </a>
-                                <a [routerLink]="[{outlets: {vis2: ['arc']}}]" class="dropdown-item">
+                                <a #Arc2 [routerLink]="[{outlets: {vis2: ['arc']}}]" class="dropdown-item" (click)="HideSelection('Arc1')">
                                     Arc Diagram
                                 </a>
-                                <a [routerLink]="[{outlets: {vis2: ['matrix']}}]" class="dropdown-item">
+                                <a #Matrix2 [routerLink]="[{outlets: {vis2: ['matrix']}}]" class="dropdown-item" (click)="HideSelection('Matrix1')">
                                     Adjacency Matrix
+                                </a>
+                                <a #Tree2 [routerLink]="[{outlets: {vis2: ['tree']}}]" class="dropdown-item" (click)="HideSelection('Tree1')">
+                                    Treemap
                                 </a>
                             </div>
                         </div>
@@ -147,8 +152,26 @@
                             <table id="id_table" class="table is-narrow is-hoverable is-fullwidth">
                                 <tbody>
                                     <tr>
-                                        <td id="node_id">Click a node to display addition information</td>
+                                        <td>Click a node to display addition information</td>
                                     </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- emails sentiment header-->
+                    <header class="card-header">
+                        <p class="card-header-title">Average sentiment per email</p>
+                        <span class="card-header-icon" style="cursor:unset">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </header>
+
+                    <!--send sentiment value-->
+                    <div class="card-content has-text">
+                        <div class="table-container">
+                            <table id="vibes_table" class="table is narrow is-hoverable is-fullwidth">
+                                <tbody>
                                 </tbody>
                             </table>
                         </div>
@@ -174,7 +197,7 @@
 
                     <!-- emails send header-->
                     <header class="card-header">
-                        <p class="card-header-title">Send emails to (id)</p>
+                        <p class="card-header-title">Sent emails to (id)</p>
                         <span class="card-header-icon" style="cursor:unset">
                             <i class="fas fa-info-circle"></i>
                         </span>
@@ -210,8 +233,9 @@
     </div>
 </div>
 
-<div class="columns is-centered">
-    <div class="column is-5 has-text-centered">
+<!--
+    <div class="columns is-centered">
+        <div class="column is-5 has-text-centered">
         <div class="box">
             <app-matrix></app-matrix>
         </div>
@@ -222,3 +246,4 @@
         </div>
     </div>
 </div>
+-->

@@ -1,10 +1,10 @@
 import { DataShareService } from './../data-share.service';
 import { Subscription } from 'rxjs';
-import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output } from '@angular/core';
+import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, EventEmitter, Output, OnInit } from '@angular/core';
 import * as d3 from 'd3';
-import { jobs, nodeColor } from '../app.component';
-import { VisualisationPageComponent } from '../visualisation-page/visualisation-page.component';
+import { globalBrushDisable, jobs, nodeColor } from '../app.component';
 import { BrushShareService } from '../brush-share.service';
+import { ResizedEvent } from 'angular-resize-event';
 //we need to import this component in the app.module.ts
 //we need to add the line below to visualisation-page.component.html:
 //<app-arc-diagram [file]="file"></app-arc-diagram>
@@ -15,31 +15,36 @@ import { BrushShareService } from '../brush-share.service';
     styles: [
     ]
 })
-export class ArcDiagramComponent implements AfterViewInit, OnChanges {
+export class ArcDiagramComponent implements AfterViewInit, OnInit {
 
     // Input variables.
     data: Data;
     sort: string;
-    selectedNodeInfo: any = {id: -1};
+    selectedNodeInfo: any = { id: -1 };
     vis2Fullscreen: boolean = false;
+    vis1Fullscreen: boolean = false;
     //@Output() nodeEmailsEvent = new EventEmitter<Array<any>>();  // custom event updatting emails from clicked node to parent component
 
-    private width;
-    private height = 800;
-
+    public width: number = 1000;
+    public height: number = 800;
+    private svg;
     private brushedNodes = [];
     private brushEnabled = false;
-
+    private fullScreen: boolean = false;
     private datasubscription: Subscription;
     private selectedSubscription: Subscription;
+    private fullscreen1Subscription: Subscription;
     private fullscreen2Subscription: Subscription;
     private brushSubscription: Subscription;
 
     constructor() { }
 
     ngOnInit() {
+        this.svg = d3.select("#arc-diagram")
+            .attr('width', this.width)
+            .attr('height', this.height)
         console.log("arcDiagram: initialising: subbing to Service!")
-        
+
         this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
             console.log("arcDiagram: Datashareservice: data update detected!");
             this.data = newData;
@@ -50,17 +55,17 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
             console.log("arcdiagram: new selected node received!")
             let hasChanged: boolean = false
-            if (this.selectedNodeInfo.hasOwnProperty("id")){
+            if (this.selectedNodeInfo.hasOwnProperty("id")) {
                 hasChanged = (this.selectedNodeInfo["id"] != newNode["id"])
             } else {
                 hasChanged = true
             }
             this.selectedNodeInfo = newNode;
-            if (hasChanged == true){
+            if (hasChanged == true) {
                 console.log("arcdiagram: The node selected is " + this.selectedNodeInfo['id'])
             } else {
                 console.log("arcdiagram: new selected node was already selected!")
-                this.initiateDiagram();
+                // this.initiateDiagram();
             }
             this.newNodeSelected();
         })
@@ -68,13 +73,27 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         this.fullscreen2Subscription = DataShareService.svis2Fullscreen.subscribe(newBool => {
             console.log("arcdiagram: new vis2Fullscreen received: " + newBool)
             const hasChanged: boolean = (this.vis2Fullscreen != newBool)
-            if (hasChanged == true){
+            if (hasChanged == true) {
                 this.vis2Fullscreen = newBool
                 console.log("arcdiagram: the new vis2fscr value is " + newBool);
                 this.initiateDiagram();
                 this.newNodeSelected()
             } else {
                 console.log("arcdiagram: vis2fscr value wasn't changed");
+            }
+
+        })
+
+        this.fullscreen1Subscription = DataShareService.svis1Fullscreen.subscribe(newBool => {
+            console.log("arcdiagram: new vis1Fullscreen received: " + newBool)
+            const hasChanged: boolean = (this.vis1Fullscreen != newBool)
+            if (hasChanged == true) {
+                this.vis1Fullscreen = newBool
+                console.log("arcdiagram: the new vis1fscr value is " + newBool);
+                this.initiateDiagram();
+                this.newNodeSelected()
+            } else {
+                console.log("arcdiagram: vis1fscr value wasn't changed");
             }
 
         })
@@ -95,6 +114,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     this.disableBrushMode();
                 }
             }
+            /*.attr("width", this.width)
+            .attr("height", this.height);*/
+
         })
     }
 
@@ -108,38 +130,27 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     checkSortOption(event): void {
         // console.log(event.target);
         this.sort = event.target.value;
-
-        // NOTE: There's an error when you do the following:
-        // Go into brush mode,
-        // Switch the sorting,
-        // Click in the diagram again.
-        // To prevent this, I switch to pan/zoom mode whenever the sorting switches.
-        this.brushEnabled = false;
-        this.disableBrushMode();
-        BrushShareService.updateBrush({
-            brushEnabled: false,
-            brushedNodes: BrushShareService.brushSource.value.brushedNodes,
-        })
+        globalBrushDisable();
         this.initiateDiagram();
     }
 
-    // -- --- -- \\
+    onResized(event: ResizedEvent) {
+        //console.log("//////////----------------///////////");
+        this.width = event.newWidth;
+        this.height = event.newHeight;
+        // console.log(event.newHeight);
+        // console.log(event.newWidth);
 
-    ngOnChanges(changes: SimpleChanges): void {
-        /* MOVED TO SUBSCRIPTION
-        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
-            console.log("ArcDiagram: The node selected is " + this.selectedNodeInfo['id'])
-            this.newNodeSelected()
-        } else {
-            this.initiateDiagram()
-        }*/
+        // set the width and height of the element (account for margins)
+        this.svg
+            .attr("width", this.width)
+            .attr("height", this.height)
+
+        //this.fullScreen == false ? this.fullScreen = true : this.fullScreen = false;
+        this.initiateDiagram()
     }
 
     initiateDiagram() {
-        if (this.container) {
-            this.width = this.container.nativeElement.offsetWidth;
-        }
-
         this.runDiagram(this.data);
     }
 
@@ -156,15 +167,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
         } else if (this.sort == "amount") {
             sortNodesAmount();
         }
-        //console.log(nodes);
-        const svg = d3.select("#arc-diagram")
-            //.append("svg")
-            .attr("width", this.width)
-            .attr("height", this.height);
-        //.append("g")
-        //.attr("transform", "translate(0,50)");
 
-        svg.selectAll("*").remove()
+        this.svg.selectAll("*").remove()
 
         //CEO, President, Vice President, Managing Director, Director, In House Lawyer, Trader, Employee, Unknown.
         function sortNodesJob() {
@@ -208,6 +212,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             .range([0, this.height])
             .padding(0.5)
             .domain(nodeID);
+        var y = d3.scalePoint()
+            .range([0, this.width])
+            .padding(0.5)
+            .domain(nodeID)
 
         var nodeRadius = 2;
         //add circles for the nodes
@@ -224,10 +232,30 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
 
         }
 
-        function nodeGUI(inst, i) {
-            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [], "mailCount": i.mailCount };
+        function nodeGUI(i) {
+            var linklist = {
+                "id": i.id,
+                "job": i.job,
+                "sendto": [],
+                "receivedfrom": [],
+                "mailCount": i.mailCount,
+                "mailReceived": i.mailReceived,
+                "mailSent": i.mailSent,
+                "address": i.address,
+                "sentiment_total": 0.0,
+                "sentiment_received": {
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
+                "sentiment_send": {
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
+            };
 
-            //console.log(linklist);
+            // console.log(individualLinks);
             var sentLinks = data.individualLinks.filter(function (e) {
                 return e.source == i.id;      //Finds emails sent
             })
@@ -236,19 +264,100 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 return e.target == i.id;      //Finds emails received
             })
 
+            let sent_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
             for (var link in sentLinks) {
                 linklist["sendto"].push(sentLinks[link]['target'])
-            }
-            for (var link in receivedLinks) {
-                linklist["receivedfrom"].push(receivedLinks[link]['source'])
+
+                // compute sentiment from node
+                let s: number = parseFloat(sentLinks[link]['sentiment']);
+                if (s >= 0.1) {
+                    linklist.sentiment_send.pos += s
+                    sent_counter.pos++;
+                } else if (s <= -0.1) {
+                    linklist.sentiment_send.neg += s
+                    sent_counter.neg++;
+                }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_send.total += s;
+                sent_counter.total++;
             }
 
-            console.log("arcdiagram: updating selected node to service...");
-            //inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
+            let received_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
+            for (var link in receivedLinks) {
+                linklist["receivedfrom"].push(receivedLinks[link]['source'])
+
+                // compute sentiment from node
+                let s: number = parseFloat(receivedLinks[link]['sentiment']);
+                if (s >= 0.1) {
+                    linklist.sentiment_received.pos += s
+                    received_counter.pos++;
+                } else if (s <= -0.1) {
+                    linklist.sentiment_received.neg += s
+                    received_counter.neg++;
+                }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_received.total += s
+                received_counter.total++;
+            }
+
+            // convert sentiment to ratio
+            let total: number = linklist.sentiment_send.pos
+            if (sent_counter.pos == 0) {
+                linklist.sentiment_send.pos = 0
+            } else {
+                linklist.sentiment_send.pos = total / sent_counter.pos;
+            }
+
+            total = linklist.sentiment_send.neg
+            if (sent_counter.neg == 0) {
+                linklist.sentiment_send.neg = 0;
+            } else {
+                linklist.sentiment_send.neg = total / sent_counter.neg;
+            }
+
+            total = linklist.sentiment_received.pos
+            if (received_counter.pos == 0) {
+                linklist.sentiment_received.pos = 0
+            } else {
+                linklist.sentiment_received.pos = total / received_counter.pos;
+            }
+
+            total = linklist.sentiment_received.neg
+            if (received_counter.neg == 0) {
+                linklist.sentiment_received.neg = 0
+            } else {
+                linklist.sentiment_received.neg = total / received_counter.neg;
+            }
+
+            if (received_counter.total + sent_counter.total == 0) {
+                linklist.sentiment_total = 0;
+            } else {
+                linklist.sentiment_total /= (received_counter.total + sent_counter.total);
+            }
+
+            if (received_counter.total == 0) {
+                linklist.sentiment_received.total = 0;
+            } else {
+                linklist.sentiment_received.total /= received_counter.total;
+            }
+
+            if (sent_counter.total == 0) {
+                linklist.sentiment_send.total = 0;
+            } else {
+                linklist.sentiment_send.total /= sent_counter.total;
+            }
+
+            if (inst.selectedNodeInfo['id'] === -1) {
+                for (var member in linklist) delete linklist[member];
+            }
+
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
-        if (!this.vis2Fullscreen) {
-            const node = svg.selectAll("mynodes")
+
+        if (!this.vis2Fullscreen && !this.vis1Fullscreen) {
+            const node = this.svg.selectAll("mynodes")
                 .data(nodes)
                 .enter()
                 .append("circle")
@@ -265,7 +374,20 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "function: " + d.job;
                 });
 
-            const label = svg.selectAll("mylabels")
+            let foundSelectedNode = false;
+            node.each(function (d: any) {
+                if (d.id == inst.selectedNodeInfo['id']) {
+                    foundSelectedNode = true;
+                    nodeGUI(d);
+                }
+            })
+
+            if (!foundSelectedNode) {
+                this.selectedNodeInfo['id'] = -1;
+                DataShareService.updateServiceNodeSelected({});
+            }
+
+            const label = this.svg.selectAll("mylabels")
                 .data(nodes)
                 .enter()
                 .append("text")
@@ -277,7 +399,11 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 .style("text-anchor", "middle")
                 .style('fill', "#000")
                 .on("click", (event, d: any) => {
-                    nodeGUI(inst, d)
+                    if (inst.selectedNodeInfo['id'] == d.id) {
+                        inst.selectedNodeInfo['id'] = -1;
+                    }
+
+                    nodeGUI(d)
                 })
                 //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
                 .on("mouseover", function (event, d: any) {
@@ -288,9 +414,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
                 })
                 .on("mouseout", function (event, d: any) {
-                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000' )
-                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal' )
-                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
+                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000')
+                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal')
+                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
                     .attr("x", 1)
@@ -303,7 +429,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "e-mail: " + d.address + "\n" +
                         "function: " + d.job;
                 });
-            /*const overlay = svg.append("g")
+            /*const overlay = this.svg.append("g")
                 .attr("fill", " none")
                 .attr("pointer-events", "all")
                 .selectAll('rect')
@@ -321,7 +447,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     */
             //add the links
 
-            const link = svg.selectAll('mylinks')
+            const link = this.svg.selectAll('mylinks')
                 .data(links)
                 .enter()
                 .append('path')
@@ -340,12 +466,12 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 .attr("stroke", (d: any) => this.linkColor(d.sentiment))
                 .attr("stroke-opacity", 0.6)
                 .attr("stroke-width", (d: any) => Math.max(Math.min(Math.sqrt(d.sentiment.length), nodeRadius * 2), 1));
-        } else if (this.vis2Fullscreen) {
-            const node = svg.selectAll("mynodes")
+        } else if (this.vis2Fullscreen || this.vis1Fullscreen) {
+            const node = this.svg.selectAll("mynodes")
                 .data(nodes)
                 .enter()
                 .append("circle")
-                .attr("cx", function (d: any) { return (x(d.id)) })
+                .attr("cx", function (d: any) { return (y(d.id)) })
                 .attr("cy", this.height - 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job));
@@ -358,7 +484,20 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "function: " + d.job;
                 });
 
-            const label = svg.selectAll("mylabels")
+            let foundSelectedNode = false;
+            node.each(function (d: any) {
+                if (d.id == inst.selectedNodeInfo['id']) {
+                    foundSelectedNode = true;
+                    nodeGUI(d);
+                }
+            })
+
+            if (!foundSelectedNode) {
+                this.selectedNodeInfo['id'] = -1;
+                DataShareService.updateServiceNodeSelected({});
+            }
+
+            const label = this.svg.selectAll("mylabels")
                 .data(nodes)
                 .enter()
                 .append("text")
@@ -366,11 +505,14 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                 .attr("font-family", "sans-serif")
                 .attr("x", this.height - 15)
                 .attr("y", 7)
-                .attr("transform", (d: any) => `translate(${d.x = x(d.id) + nodeRadius + 1},${0}) rotate(90)`)
+                .attr("transform", (d: any) => `translate(${d.x = y(d.id) + nodeRadius + 1},${0}) rotate(90)`)
                 .text(d => makeText(d))
                 .style("text-anchor", "middle")
                 .on("click", (event, d: any) => {
-                    nodeGUI(inst, d)
+                    if (inst.selectedNodeInfo['id'] == d.id) {
+                        inst.selectedNodeInfo['id'] = -1;
+                    }
+                    nodeGUI(d)
                 })
                 //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
                 .on("mouseover", function (event, d: any) {
@@ -381,9 +523,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                     //.style('stroke-width', (a: any) => a.source === d.id || a.target === d.id ? 2 : 1)
                 })
                 .on("mouseout", function (event, d: any) {
-                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000' )
-                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') :'normal' )
-                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
+                    label.style('fill', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? '#000' : '#ccc') : '#000')
+                    label.style('font-weight', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.id === inst.selectedNodeInfo['id'] ? 'bold' : 'normal') : 'normal')
+                    link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != undefined ? (a.source === inst.selectedNodeInfo['id'] || a.target === inst.selectedNodeInfo['id'] ? nodeColor(inst.selectedNodeInfo['job']) : inst.linkColorHover(a.sentiment)) : inst.linkColor(a.sentiment))
                 })
                 .call(mylabels => mylabels.append("text")
                     .attr("y", 12)
@@ -397,14 +539,14 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         "function: " + d.job;
                 });
 
-            const link = svg.selectAll('mylinks')
+            const link = this.svg.selectAll('mylinks')
                 .data(links)
                 .enter()
                 .append('path')
                 .attr('d', function (d: any) {
-                    var start = x(d.source)    // X position of start node on the X axis
+                    var start = y(d.source)    // X position of start node on the X axis
                     //console.log(start);
-                    var end = x(d.target)      // X position of end node
+                    var end = y(d.target)      // X position of end node
                     return ['M', start, 770,    // the arc starts at the coordinate y=start, x=width-30 (where the starting node is)
                         'A',                            // This means we're gonna build an elliptical arc
                         (start - end) / 2, ',',    // Next 2 lines are the coordinates of the inflexion point. Height of this point is proportional with start - end distance
@@ -420,10 +562,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     newNodeSelected() {
-        const svg = d3.select("#arc-diagram")
+        //const svg = d3.select("#arc-diagram")
         //const node = svg.selectAll("circle")
-        const label = svg.selectAll("text")
-        const link = svg.selectAll('path')
+        const label = this.svg.selectAll("text")
+        const link = this.svg.selectAll('path')
 
         //label.style('stroke', "#ccc")
         label.style('font-weight', (a: any) => {
@@ -450,7 +592,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
             }
         });
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'] != 0) {
+            if (this.selectedNodeInfo['id'] != undefined) {
                 if (a.source === this.selectedNodeInfo['id'] || a.target === this.selectedNodeInfo['id'] ||
                     this.brushedNodes.includes(a.source) || this.brushedNodes.includes(a.target)) {
                     return nodeColor(this.selectedNodeInfo['job'])
@@ -465,9 +607,9 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     enableBrushMode() {
-        const svg = d3.select("#arc-diagram");
+        //const svg = d3.select("#arc-diagram");
         var inst = this;
-        svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
+        this.svg.call(d3.brush()                     // Add the brush feature using the d3.brush function
             .extent([[0, 0], [this.width, this.height]])       // initialise the brush area, so the entire graph
             .on("start end", function (e) {
                 inst.brushedNodes = [];
@@ -478,7 +620,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         y1 = e.selection[1][1];
 
                     // Select node from circle
-                    svg.selectAll("circle")
+                    this.svg.selectAll("circle")
                         .each(function (d: any) {
                             // Get the coordinates
                             var cx = d3.select(this).attr("cx");
@@ -492,7 +634,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
                         });
 
                     // Select node from text.
-                    svg.selectAll("text")
+                    this.svg.selectAll("text")
                         .each(function (d: any) {
                             // Get the x of the text
                             var cx = d3.select(this).attr("x");
@@ -527,12 +669,12 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     disableBrushMode() {
-        const svg = d3.select("#arc-diagram")
+        //const svg = d3.select("#arc-diagram")
 
         // Disable the brush
-        svg.call(d3.brush().extent([[0, 0], [0, 0]]))
-        svg.on(".brush", null);
-        svg.selectAll("rect").remove();
+        this.svg.call(d3.brush().extent([[0, 0], [0, 0]]))
+        this.svg.on(".brush", null);
+        this.svg.selectAll("rect").remove();
     }
 
     //link colour based on sentiment of message
@@ -565,13 +707,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges {
     }
 
     ngAfterViewInit(): void {
-        this.width = this.container.nativeElement.offsetWidth;
         this.runDiagram(this.data);
     }
-
-    @ViewChild('container')
-    container: ElementRef;
-
 }
 
 

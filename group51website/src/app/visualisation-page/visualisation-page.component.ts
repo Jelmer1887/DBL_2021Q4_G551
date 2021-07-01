@@ -5,7 +5,7 @@ import { UploadService } from './../upload.service';
 import { ForceGraphComponent } from './../force-graph/force-graph.component';
 import { ArcDiagramComponent } from '../arc-diagram/arc-diagram.component';
 import * as d3 from 'd3';
-import { jobs, nodeColor, setJobs } from '../app.component';
+import { globalBrushDisable, jobs, nodeColor, setJobs } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 import { MatrixComponent } from '../matrix/matrix.component';
 import { BrushShareService } from '../brush-share.service';
@@ -20,12 +20,26 @@ export class VisualisationPageComponent implements OnInit {
     // child element selection for DOM manipulation
     @ViewChild('vis1') vis1;
     @ViewChild('vis2') vis2;
+
     @ViewChild('infoCard') infoCard;
     @ViewChild('button1') button1;
+
     @ViewChild('button2') button2;
+
     @ViewChild('dropdown1') dd1;
     @ViewChild('dropdown2') dd2;
 
+    @ViewChild('FDG1') FDG1;
+    @ViewChild('FDG2') FDG2;
+
+    @ViewChild('Arc1') Arc1;
+    @ViewChild('Arc2') Arc2;
+
+    @ViewChild('Matrix1') Matrix1;
+    @ViewChild('Matrix2') Matrix2;
+
+    @ViewChild('Tree1') Tree1;
+    @ViewChild('Tree2') Tree2;
 
     //Next few lines are to initialise the slider
     value: number = 0;         //set low value
@@ -51,7 +65,22 @@ export class VisualisationPageComponent implements OnInit {
     brushMode: boolean = false;
     max;
 
-    selectedNodeInfo: any = { 'id': -1, 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.
+    selectedNodeInfo: any = {/*{ 'id': -1, 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.*/
+        "id": -1,
+        "job": [],
+        "sendto": [],
+        "receivedfrom": [],
+        "mailCount": 0,
+        "address": '',
+        "sentiment_received": {
+            "pos": 0.0,
+            "neg": 0.0,
+        },
+        "sentiment_send": {
+            "pos": 0.0,
+            "neg": 0.0,
+        },
+    };
     vis1Fullscreen: boolean = false;
     vis2Fullscreen: boolean = false;
 
@@ -78,13 +107,13 @@ export class VisualisationPageComponent implements OnInit {
     ngOnInit(): void {
         this.filesubscription = this.uploadService.currentFile.subscribe(newfile => {
             this.file = newfile;
-            this.parseFile();
+            this.parseFile(true);
         });
         this.selectSubscription = DataShareService.sselectednode.subscribe(newNode => {
             const hasChanged: boolean = (newNode.id != this.selectedNodeInfo.id)
             console.log("page: received new selected node! new = " + hasChanged)
             this.selectedNodeInfo = newNode;
-            if (hasChanged == true) { this.updateNodeInfo(this.selectedNodeInfo) }
+            this.updateNodeInfo(this.selectedNodeInfo)
         })
     }
 
@@ -98,17 +127,18 @@ export class VisualisationPageComponent implements OnInit {
         this.currentOptions = newOptions;       //update slider
     }
 
-    changeDateLabels(start, end) {
-        var startDay = start.getDate()
-        var startMonth = start.toLocaleString('default', { month: 'long' })
-        var startYear = start.getFullYear()
+    changeDateLabels(start, end): void {
+        const startDay = start.getDate()
+        const startMonth = start.toLocaleString('default', { month: 'long' })
+        const startYear = start.getFullYear()
+        const STYLING = "class = \" tag is-medium mb-2 \""
 
         var endDay = end.getDate()
         var endMonth = end.toLocaleString('default', { month: 'long' })
         var endYear = end.getFullYear()
 
-        var startDateString = '<b> From: ' + startDay + ' ' + startMonth + ', ' + startYear + '</b>'
-        var endDateString = '<b> Till: ' + endDay + ' ' + endMonth + ', ' + endYear + '</b>'
+        var startDateString = '<p ' + STYLING + '> From: ' + startDay + ' ' + startMonth + ', ' + startYear + '</p>'
+        var endDateString = '<p ' + STYLING + '> Till: ' + endDay + ' ' + endMonth + ', ' + endYear + '</p>'
 
         const newOptions: Options = Object.assign({}, this.currentOptions);    //create new options variable and copy old options
         newOptions.translate = (value: number, label: LabelType): string => {
@@ -125,14 +155,27 @@ export class VisualisationPageComponent implements OnInit {
         this.currentOptions = newOptions;
     }
 
-    parseFile(): void {
+    parseFile(checkFormat: boolean): void {
         let fileReader = new FileReader();
 
         fileReader.onload = (e) => {
 
             // Array of strings with every string being a line.
             var lines: string[] = fileReader.result.toString().split('\n');
-            lines.shift();
+
+            // Get the first line which defines the format
+            var format = lines.shift();
+
+            // to lower case and remove whitespace since this shouldn't matter.
+            format = format.toLowerCase().replace(/\s/g, "");
+            console.log(format);
+            if (checkFormat &&
+                (format != "date,fromid,fromemail,fromjobtitle,toid,toemail,tojobtitle,messagetype,sentiment")) {
+                alert("The format of the dataset seems to not be officially supported. " +
+                    "The supported format is: \n" +
+                    "date,fromId,fromEmail,fromJobtitle,toId,toEmail,toJobtitle,messageType,sentiment"
+                );
+            }
 
             // Empty the nodes and links so we can read the new ones.
             var newData: Data = {
@@ -378,19 +421,26 @@ export class VisualisationPageComponent implements OnInit {
 
         this.changeDateLabels(newStartDate, newEndDate);
 
-        this.parseFile();
+        globalBrushDisable();
+        this.parseFile(false);
     }
 
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
 
-        if (!node.hasOwnProperty('id')) {
+        if (!node.hasOwnProperty('id') || node.id < 0) {
             console.log("page: updateNodeInfo: node is empty!");
+
+            let rows = document.querySelectorAll('tr');
+            for (let i = 0; rows[i]; i++) {
+                let row = (rows[i] as HTMLTableRowElement);
+                row.remove();
+            }
             return
         }
 
         // function to add a row to the info section
-        function createInfoRow(table: HTMLTableElement, discr: string, value: any): void {
+        function createInfoRow(table: HTMLTableElement, discr: string, value: any, size: number = 6): void {
             // update ID
             let newRow: HTMLTableRowElement = document.createElement('tr');         // create row for value
 
@@ -400,6 +450,7 @@ export class VisualisationPageComponent implements OnInit {
             newRow.append(text);
 
             text = document.createElement('td');                                    // set new value
+            text.className = "is-size-" + (size).toString() + "-widescreen is-size-" + (size + 1).toString() + "-tablet"
             text.innerText = value;
             newRow.append(text);
 
@@ -500,13 +551,27 @@ export class VisualisationPageComponent implements OnInit {
 
         // get table of info
         let idTable = (document.getElementById("id_table") as HTMLTableElement);
+        let sentimentTable = (document.getElementById("vibes_table") as HTMLTableElement);
 
         // update ID
         createInfoRow(idTable, "ID:", node.id.toString());
+        // update email address
+        createInfoRow(idTable, "Address:", node.address, 7);
         // update job
         createInfoRow(idTable, "Job:", node.job);
         // update nr of emails
-        createInfoRow(idTable, "nr of emails send/received:", node.mailCount)
+        createInfoRow(idTable, "Emails total:", node.mailCount)
+        createInfoRow(idTable, "Emails received:", node.mailReceived)
+        createInfoRow(idTable, "Emails sent:", node.mailSent)
+        // update sentiment values
+        let decimalPlaces = 4;
+        createInfoRow(sentimentTable, "Total:", node.sentiment_total.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Received:", node.sentiment_received.total.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Sent:", node.sentiment_send.total.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Positive received:", node.sentiment_received.pos.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Positive sent:", node.sentiment_send.pos.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Negative received:", node.sentiment_send.pos.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Negative sent:", node.sentiment_send.neg.toFixed(decimalPlaces))
     }
 
     setBrushMode(): void {
@@ -539,6 +604,7 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'inline');
             this.vis1Fullscreen = false;
+            DataShareService.updateServiceVis1FullScreen(false);
         } else {
             this.renderer.setAttribute(
                 this.vis1.nativeElement,
@@ -554,7 +620,10 @@ export class VisualisationPageComponent implements OnInit {
                 'display',
                 'none');
             this.vis1Fullscreen = true;
+            DataShareService.updateServiceVis1FullScreen(true);
         }
+
+        globalBrushDisable();
     }
 
     fullscreenVis2() {
@@ -569,6 +638,11 @@ export class VisualisationPageComponent implements OnInit {
                 this.vis1.nativeElement,
                 'display',
                 'inline')
+
+            this.renderer.setStyle(
+                this.dd1.nativeElement,
+                'display',
+                'inline');
             this.vis2Fullscreen = false;
             console.log("updating vis2fscr to: " + false)
             DataShareService.updateServiceVis2FullScreen(false);
@@ -583,12 +657,81 @@ export class VisualisationPageComponent implements OnInit {
                 this.vis1.nativeElement,
                 'display',
                 'none')
+
+            this.renderer.setStyle(
+                this.dd1.nativeElement,
+                'display',
+                'none');
+            
             this.vis2Fullscreen = true;
             console.log("updating vis2fscr to: " + true)
             DataShareService.updateServiceVis2FullScreen(true);
 
         }
 
+        globalBrushDisable();
+    }
+
+    HideSelection(hideSelection: string){
+        
+        //you dont want to read this code.
+        switch(hideSelection) {
+        case "FDG1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','none')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','block')
+        break
+
+        case "FDG2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','none')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','block')
+        break
+
+        case "Arc1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','none')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','block')
+        break
+
+        case "Arc2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','none')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','block')
+        break
+
+        case "Matrix1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','none')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','block')
+        break
+
+        case "Matrix2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','none')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','block')
+        break
+
+        case "Tree1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','none')
+        break
+
+        case "Tree2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','none')
+        break
+        }
     }
 
 }

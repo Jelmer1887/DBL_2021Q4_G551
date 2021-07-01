@@ -2,7 +2,7 @@ import { DataShareService } from './../data-share.service';
 import { Subscription } from 'rxjs';
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
-import { jobs, nodeColor } from '../app.component';
+import { globalBrushDisable, jobs, nodeColor } from '../app.component';
 import { ResizedEvent } from 'angular-resize-event';
 
 @Component({
@@ -65,11 +65,8 @@ export class TreemapComponent implements OnInit {
         this.svg
             .attr("width", this.width)
             .attr("height", this.height)
-    }
 
-    // graphs is build upon a change in data (or any change for that matter)
-    ngOnChanges(changes: SimpleChanges): void {
-        //this.buildGraph();
+        this.buildGraph();
     }
 
     // -- GRAPH CREATION FUNCTIONS --------------------------------------------------- -- \\
@@ -182,11 +179,14 @@ export class TreemapComponent implements OnInit {
             .attr("class", "tile")
             .attr("fill", (d: any) => nodeColor(d['data']['job']))
             .attr("opacity", (d: any) => opacity(d['data']['value']))
-            .attr("data-name", (d: any) => "Id: " + d['data']['id'])
-            .attr("data-category", (d: any) => d['data']['job'])
-            .attr("data-value", (d: any) => d['data']['value'])
             .attr("width", (d: any) => d['x1'] - d['x0'])
             .attr("height", (d: any) => d['y1'] - d['y0'])
+            .append("title")
+            .text((d: any) => {
+                return "Id: " + d['data']['name'] + "\n" +
+                    "Value: " + d['data']['value'] + "\n" +
+                    "Job: " + d['data']['job'];
+            });
 
 
         // Add the Id to the rectangle if there is enough space.
@@ -247,11 +247,13 @@ export class TreemapComponent implements OnInit {
 
     checkGroupOption(event) {
         this.groupedByJob = event.target.checked;
+        globalBrushDisable();
         this.buildGraph();
     }
 
     checkValueOption(event) {
         this.valueOption = event.target.value;
+        globalBrushDisable();
         this.buildGraph();
     }
 }

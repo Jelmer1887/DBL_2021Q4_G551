@@ -24,7 +24,7 @@ export class DataShareService {
     // currently only arcDiagram (should it?) - vis2Fullscreen
     static svis2Fullscreen: BehaviorSubject<any> = new BehaviorSubject(false)
 
-
+    static svis1Fullscreen: BehaviorSubject<any> = new BehaviorSubject(false)
     // update methods --------------------------------------------------
 
     public static updateData(newData: Data) {
@@ -42,5 +42,9 @@ export class DataShareService {
         this.svis2Fullscreen.next(newVal)
     }
 
+    public static updateServiceVis1FullScreen(newVal: boolean){
+        console.log("service: new fullscreen2 value incoming!")
+        this.svis1Fullscreen.next(newVal)
+    }
     constructor() { }
 }

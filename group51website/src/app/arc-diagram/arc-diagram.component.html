@@ -1,10 +1,14 @@
 <h1 class="title">Arc Diagram</h1>
 <h2 class="subtitle is-6">An Arc Diagram for the emails</h2>
 
-<div #container>
+<div  class="container" (resized)="onResized($event)" #container style="
+overflow: hidden; 
+display: inline-block; 
+width: 100%;
+height: 800px;">
     <svg id="arc-diagram"></svg>
 </div>
-
+<!--Weird thing above. onResized did not run without adding display: inline-block to the above div? -->
 <div class="container">
     <div class="level">
         <div class="level-item">

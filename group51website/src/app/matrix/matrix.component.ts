@@ -1,8 +1,9 @@
 import { Component, AfterViewInit, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, OnInit, EventEmitter, Output } from '@angular/core';
 import * as d3 from 'd3';
 import { Subscription } from 'rxjs';
-import { jobs, nodeColor } from '../app.component';
+import { globalBrushDisable, jobs, nodeColor } from '../app.component';
 import { DataShareService } from '../data-share.service';
+import { ResizedEvent } from 'angular-resize-event';
 
 @Component({
     selector: 'app-matrix',
@@ -24,6 +25,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     private width;
     private height = 800;
     private weighted = false;
+    public svg;
     // variable holding information of clicked node
     nodeinfo = { "id": 0, "sendto": [], "receivedfrom": [] };
 
@@ -33,6 +35,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         .scaleExtent([0.5, 10])
 
     ngOnInit() {
+        this.svg= d3.select('#matrix')
         this.dataSubscription = DataShareService.sdatasource.subscribe(newData => {
             console.log("matrix: Datashareservice: data update detected!");
             this.data = newData;
@@ -42,21 +45,40 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     checkMatrixSortOption(event): void {
-        this.matrixSort = event.target.value
+        this.matrixSort = event.target.value;
+        globalBrushDisable();
         this.initiateGraph();
     }
 
     checkMatrixView(event): void {
-        this.matrixView = event.target.value
+        this.matrixView = event.target.value;
+        globalBrushDisable();
         this.initiateGraph();
     }
 
     checkWeighted(event): void {
         this.weighted = event.target.checked;
+        globalBrushDisable();
         this.initiateGraph();
     }
 
+    onResized(event: ResizedEvent) {
+        //console.log("//////////----------------///////////");
+        if(this.matrixView == "all") { //in job view the matrix would just look fat
+        this.width = event.newWidth;
+        this.height = event.newHeight;
+        console.log(event.newHeight);
+        console.log(event.newWidth);
 
+        // set the width and height of the element (account for margins)
+        this.svg
+            .attr("width", this.width)
+            .attr("height", this.height)
+
+        //this.fullScreen == false ? this.fullScreen = true : this.fullScreen = false;
+        this.initiateGraph();
+        }
+    }
 
     displayAccordingly() {
         var sortOptions = document.getElementById("sortOptions");
@@ -348,14 +370,21 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             return weightedJobNodes;
         }
 
-        const svg = d3.select('#matrix')
+        function makeTextSize(array) {
+            if (array.length>50) {
+                if (array.lenght>110) {
+                    return 5;
+                }
+                return 6;
+            } else {
+                return 8;
+            }
+        }
+
+        this.svg
             .attr("width", this.width)
             .attr("height", this.height); //800
-        svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
-
-        const legend = d3.select("#matrix-legend")
-            .attr("width", this.width)
-            .attr("height", 80);
+        this.svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
 
         if (this.matrixView == "job") {
             var sortOrder = [];
@@ -369,8 +398,8 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             var xMargin = 60;
             var yMargin = 60;
 
-            var heightBy2 = ((this.height - 2 * yMargin) / (jobs.length))/2;
-            var widthBy2 = ((this.width - 2 * xMargin) / (jobs.length))/2;
+            var heightBy2 = ((this.height - 2 * yMargin) / (jobs.length)) / 2;
+            var widthBy2 = ((this.width - 2 * xMargin) / (jobs.length)) / 2;
             var maxWeight = findMaxJobWeight(jobLinks);
             var gridData = makeJobGridData(jobs);
             // console.log(gridData);
@@ -390,7 +419,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .range(["#d8d8ff", "#0000b1"]) //#000063
                 .domain([1, maxWeight])
 
-            const grid = svg.selectAll("grid")
+            const grid = this.svg.selectAll("grid")
                 .data(gridData)
                 .enter()
                 .append("rect")
@@ -403,7 +432,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID
                 .style("fill", "none");
 
-            const linkBox = svg.selectAll("myBoxes")
+            const linkBox = this.svg.selectAll("myBoxes")
                 .data(jobLinks)
                 .enter()
                 .append("rect")
@@ -421,34 +450,34 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     grid.style('fill', "none")
                 })
                 .append("title")
-                .text((d: any) => {d.weight
+                .text((d: any) => {
                     return "source: " + d.source + "\n" +
                         "target: " + d.target + "\n" +
-                        "weight :" + d.weight;
+                        "weight: " + d.weight;
                 });
-                
-            const yAxisLabel = svg.selectAll("myYlabels")
+
+            const yAxisLabel = this.svg.selectAll("myYlabels")
                 .data(jobNodes)
                 .enter()
                 .append("circle")
                 .attr("cx", 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
-                .attr("cy", function (d: any) { return (y(d.job)) + heightBy2}) // 
-            
-             yAxisLabel.append("title")
+                .attr("cy", function (d: any) { return (y(d.job)) + heightBy2 }) // 
+
+            yAxisLabel.append("title")
                 .text((d: any) => {
                     return "function: " + d.job;
                 });
-            
-            const xAxisLabel = svg.selectAll("myXlabels")
+
+            const xAxisLabel = this.svg.selectAll("myXlabels")
                 .data(jobNodes)
                 .enter()
                 .append("circle")
                 .attr("cy", 30)
                 .attr("r", nodeRadius)
                 .style("fill", (d: any) => nodeColor(d.job))
-                .attr("cx", function (d: any) { return (x(d.job)) + widthBy2})
+                .attr("cx", function (d: any) { return (x(d.job)) + widthBy2 })
             xAxisLabel.append("title")
                 .text((d: any) => {
                     return "function: " + d.job;
@@ -457,7 +486,6 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         if (this.matrixView == "all") {
-
             //handles sorting requests
             if ((this.matrixSort == 'id')) {
                 sortNodesID();
@@ -468,28 +496,28 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
             }
 
             var xMargin = 15; //the amount of space in the matrix reserved for text
-            var yMargin = 10; // idem
+            var yMargin = 15; // idem
             sortLinksID(links);
             var nodeID = [];
             //console.log(data.adjacencyMatrix[6][6]);
-            const svg = d3.select('#matrix')
+            this.svg
                 .attr("width", this.width)
                 .attr("height", this.height); //800
-            svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
+            this.svg.selectAll("*").remove(); //what does this do exactly? it removes all children of the svg, so you get an empty graph. - Kay
             for (var i = 0; i < nodes.length; i++) {
                 //nodeID.push(Object.values(Object.values(Object.values(nodes))[i]));
                 nodeID.push(Object.values(nodes[i])[0]);
             }
             var maxWeight = findMaxWeight();
             //boxes are distanced based on the number and order of the nodes in nodeID            
-            var x = d3.scalePoint()
-                .range([xMargin, this.width - ((this.width - xMargin) / (nodeID.length + 1))])
-                .padding(0.5)
+            var x = d3.scalePoint()  //this.width - xMargin - (this.width - 2 * xMargin) / jobs.length]
+                .range([xMargin, this.width - xMargin - (this.width - 2*xMargin) / (nodeID.length)])
+                .padding(0)
                 .domain(nodeID);
 
             var y = d3.scalePoint()
-                .range([yMargin, this.height - ((this.height - yMargin) / (nodeID.length + 1))])
-                .padding(0.5)
+                .range([yMargin, this.height - yMargin - (this.height - 2*yMargin) / (nodeID.length)])
+                .padding(0)
                 .domain(nodeID);
 
             var myColor = d3.scaleLinear<string>()
@@ -498,28 +526,31 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
             var gridData = makeGridData();
 
+            var heightBy2 = ((this.height - 2 * yMargin) / (nodeID.length)) / 2;
+            var widthBy2 = ((this.width - 2 * xMargin) / (nodeID.length)) / 2;
+
             sortLinksID(gridData);
 
-            const grid = svg.selectAll("grid")
+            const grid = this.svg.selectAll("grid")
                 .data(gridData)
                 .enter()
                 .append("rect")
                 .attr("stroke", "black")
                 .attr('stroke-width', 0.3)
                 .attr('stroke-opacity', 0.5)                            //comments indicate previous version in case stuff breaks
-                .attr("width", (this.width - xMargin) / (nodeID.length + 1)) //(this.width - xMargin) / nodeID.length) 
-                .attr("height", (this.height - yMargin) / (nodeID.length + 1)) //(this.height - yMargin) / nodeID.length)
+                .attr("width", (this.width - 2 * xMargin) / (nodeID.length)) //(this.width - xMargin) / nodeID.length) 
+                .attr("height", (this.height - 2 * yMargin) / (nodeID.length)) //(this.height - yMargin) / nodeID.length)
                 .attr("x", function (d: any) { return (x(d.target)) }) //x position depends on target ID, function (d: any) { return (x(d.target) + xMargin) })
                 .attr("y", function (d: any) { return y(d.source) }) //y postion depends on source ID, function (d: any) { return y(d.source) }) 
                 .style("fill", "none");
 
-            const linkBox = svg.selectAll("myBoxes")
+            const linkBox = this.svg.selectAll("myBoxes")
                 .data(links)
                 .enter()
                 .append("rect")
                 .attr("stroke", "black")
-                .attr("width", (this.width - xMargin) / (nodeID.length + 1))
-                .attr("height", (this.height - yMargin) / (nodeID.length + 1))
+                .attr("width", (this.width - 2 * xMargin) / (nodeID.length))
+                .attr("height", (this.height - 2 * yMargin) / (nodeID.length))
                 .attr("x", function (d: any) { return (x(d.target)) }) //x position depends on target ID
                 .attr("y", function (d: any) { return (y(d.source)) }) //y postion depends on source ID
                 .attr("fill", (d: any) => (myColor(data.adjacencyMatrix[d.source][d.target])))
@@ -536,15 +567,16 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                         "target: " + d.target + "\n" +
                         "weight :" + data.adjacencyMatrix[d.source][d.target];
                 });
-
-            const yAxisLabel = svg.selectAll("myYlabels")
+            console.log(nodeID.length);
+            const yAxisLabel = this.svg.selectAll("myYlabels")
                 .data(nodes)
                 .enter()
                 .append("text")
-                .attr("font-size", "8")
+                .attr("font-size", 8)
                 .attr("font-family", "sans-serif")
-                .attr("x", 1)
-                .attr("transform", (d: any) => `translate(${0},${d.y = y(d.id) + (this.height - yMargin) / nodeID.length})`)
+                .attr("x", 0)
+                .attr("y", (nodeID.length < 80) ? (function (d: any) { return (y(d.id)) + heightBy2}) : (function (d: any) { return (y(d.id))+ 2*heightBy2}))
+                //.attr("transform", (d: any) => `translate(${0},${d.y = y(d.id) + (this.height - yMargin) / nodeID.length})`)
                 .text(d => makeText(d))
                 .style("text-anchor", "middle")
                 .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
@@ -552,13 +584,16 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
                     //inst.nodeToParent.emit(d.id)
                 });
 
-            const xAxisLabel = svg.selectAll("myXlabels")
+            const xAxisLabel = this.svg.selectAll("myXlabels")
                 .data(nodes)
                 .enter()
                 .append("text")
-                .attr("font-size", "5")
+                .attr("font-size", makeTextSize(nodeID))
                 .attr("font-family", "sans-serif")
-                .attr("transform", (d: any) => `translate(${d.x = x(d.id)},${0}) rotate(90)`)
+                .attr('x', 0)
+                //.attr("transform", (d: any) => `translate(${d.x = x(d.id)},${0}) rotate(90)`)
+                .attr('y', ( (widthBy2) > ( (this.width - 2 * xMargin) / (160) ) ) ? (function (d:any) { return -1*((x(d.id)) + widthBy2)}) : (function (d:any) { return -1*((x(d.id)))}))
+                .attr("transform", (d: any) => `rotate(90)`)
                 .text(d => makeText(d))
                 .style("text-anchor", "middle")
                 .style('fill', "black")//.style("fill", (d: any) => nodeColor(d.job))
@@ -577,6 +612,7 @@ export class MatrixComponent implements AfterViewInit, OnChanges, OnInit {
 
     ngAfterViewInit(): void {
         this.width = this.container.nativeElement.offsetWidth;
+        this.initiateGraph();
     }
 
     @ViewChild('container')

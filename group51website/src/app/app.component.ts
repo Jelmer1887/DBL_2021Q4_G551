@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { BrushShareService } from './brush-share.service';
 
 @Component({
     selector: 'app-root',
@@ -68,19 +69,19 @@ export function nodeColor(job): string {
             return "#555555";
             */
         case "Employee":
-            return "#68e256";
+            return "#5668e2";
         case "Vice President":
             return "#56e2cf";
         case "Manager":
             return "#56aee2";
         case "In House Lawyer":
-            return "#5668e2";
+            return "#68e256";
         case "Trader":
             return "#cf56e2";
         case "Director":
-            return "#e25668";
-        case "Managing Director":
             return "#e28956";
+        case "Managing Director":
+            return "#e25668"; 
         case "President":
             return "#e2cf56";
         case "CEO":
@@ -91,4 +92,11 @@ export function nodeColor(job): string {
         default:
             return "#000000";
     }
+}
+
+export function globalBrushDisable() {
+    BrushShareService.updateBrush({
+        brushEnabled: false,
+        brushedNodes: [],
+    })
 }

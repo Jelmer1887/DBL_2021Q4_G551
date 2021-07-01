@@ -1,60 +1,56 @@
-<nav class="navbar has-background-info-light" role="navigation" aria-label="main navigation">
-  <div class="navbar-brand">
-    <a routerLink="" class="navbar-item">
-      <img src="./assets/logo_veye_email.png" width=60px alt="logo">
-      <h1 class="title">Network <b>Vis</b>ion</h1>
-      
-    </a>
-  </div>
-
-  <a class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="NavMenu"></a>
-
-  <div id="NavMenu" class="navbar-menu">
-
-    <!--
-    <div class="navbar-start has-text is-size-4">
-      <a class="navbar-item" routerLink="">
-        Home
-      </a>
+<nav class="navbar has-background-white" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <a routerLink="" class="container">
+            <img src="./assets/logo_veye_email_text_long.png" width="480" height="84" alt="logo">
+        </a>
     </div>
-    -->
 
-    
-    <div class="navbar-end has-text is-size-5">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="NavMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+    </a>
 
-      <div class="navbar-item">
-        <button class="button is-rounded is-medium is-info is-outlined" (click)="toggleUploadModal()">See uploaded datasets</button>
-      </div>
+    <div id="NavMenu" class="navbar-menu">
 
-      <div class="navbar-item">
-        <!-- Upload Button -->
-        <div class="file has-name is-info" id="file-upload">
-          <!--Container-->
-          <label class="file-label">
-            <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv' name="resume">
-            <span class="file-cta">
-              <span class="file-icon">
-                <i class="fas fa-upload"></i>
-              </span>
-              <span class="file-label">
-                Upload .csv file
-              </span>
-            </span>
-            <span class="file-name">
-              No file selected
-            </span>
-          </label>
-        </div>
-      </div>
+        <div class="navbar-end has-text is-size-5">
+
+            <!-- currently disabled, remove the style to enable it -->
+            <div class="navbar-item" style="display: none;">
+                <button class="button is-rounded is-medium is-info is-outlined" (click)="toggleUploadModal()">See
+                    uploaded datasets</button>
+            </div>
+
+            <div class="navbar-item">
+                <!-- Upload Button -->
+                <div class="file has-name is-info" id="file-upload">
+                    <!--Container-->
+                    <label class="file-label">
+                        <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv'
+                            name="resume">
+                        <span class="file-cta">
+                            <span class="file-icon">
+                                <i class="fas fa-upload"></i>
+                            </span>
+                            <span class="file-label">
+                                Upload .csv file
+                            </span>
+                        </span>
+                        <span class="file-name">
+                            No file selected
+                        </span>
+                    </label>
+                </div>
+            </div>
 
 
-      <div class="navbar-item">
-        <span class="icon mr-2">
-          <i class="far fa-map"></i>
-        </span>
-        <a routerLink="/static-vis">Visualisations</a>
-      </div>
-      <!--
+            <div class="navbar-item">
+                <span class="icon mr-2">
+                    <i class="far fa-map"></i>
+                </span>
+                <a routerLink="/static-vis">Visualisations</a>
+            </div>
+            <!--
       <div class="navbar-item">
         <span class="icon mr-2">
           <i class="far fa-map"></i>
@@ -62,148 +58,150 @@
         <a routerLink="/dynamic-vis">Dynamic view</a>
       </div>
       -->
-      <div class="navbar-item">
-        <span class="icon mr-2">
-          <i class="fas fa-question-circle"></i>
-        </span>
-        <a routerLink="/about">About</a>
-      </div>
+            <div class="navbar-item">
+                <span class="icon mr-2">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+                <a routerLink="/about">About</a>
+            </div>
+        </div>
+
     </div>
-
-  </div>
 </nav>
-
 
 <!-- Upload Modal (pop up) -->
 <div id="upload_modal" class="modal">
-  <div id="upload_modal_background" class="modal-background"></div>
-  <div class="modal-card">
+    <div id="upload_modal_background" class="modal-background"></div>
+    <div class="modal-card">
 
-    <!--Header-->
-    <header class="modal-card-head has-background-success">
-      <h1 class="modal-card-title">Datasets</h1>
-      <button class="delete is-large" aria-label="close" (click)="toggleUploadModal()"></button>
-    </header>
+        <!--Header-->
+        <header class="modal-card-head has-background-success">
+            <h1 class="modal-card-title">Datasets</h1>
+            <button class="delete is-large" aria-label="close" (click)="toggleUploadModal()"></button>
+        </header>
 
-    <!--Section with list-->
-    <section class="modal-card-body has-text-centered">
+        <!--Section with list-->
+        <section class="modal-card-body has-text-centered">
 
-      <div id="not_status" class="notification is-warning py-2 my-1">
-        <button class="delete" (click)= "removeNotification('not_status')"></button>
-        Press the <b>Status</b> button to change the selected dataset
-      </div>
+            <div id="not_status" class="notification is-warning py-2 my-1">
+                <button class="delete" (click)="removeNotification('not_status')"></button>
+                Press the <b>Status</b> button to change the selected dataset (currently non-funtional)
+            </div>
 
-      <div id="not_warning" class="notification is-danger py-2 my-1">
-        <button class="delete" (click)= "removeNotification('not_warning')"></button>
-        The upload button on this page is currently broken
-      </div>
+            <div id="not_warning" class="notification is-danger py-2 my-1">
+                <button class="delete" (click)="removeNotification('not_warning')"></button>
+                This "see uploaded datasets" is just a concept layout preview, and not functional
+            </div>
 
-      <h1 class="title is-4 mb-1 mt-1">Datasets database</h1>
-      <h2 class="sub-title">all <span class="tag is-warning is-inline">.csv</span> files uploaded so far</h2>
-      
-      <!--Table-->
-      <div class="table-container table is-fullwidth is-centered">
-        <table id="upload_modal_table" class="table is-fullwidth is-striped">
-          <thead><tr>
-            <th>nr</th>
-            <th>File name</th>
-            <th>size</th>
-            <th>upload date</th>
-            <th>Status</th>
-          </tr></thead>
-          <tbody>
-            <tr>
-              <th>1</th>
-              <td>SomeFile.fake</td>
-              <td>0 bytes</td>
-              <td>00/00/0000</td>
-              <td>
-                <button class="button is-small is-rounded is-pulled-left is-success is-light">
-                  <span class="icon is-small mr-3">
-                    <i class="fas fa-check"></i>
-                  </span>
-                  <span>Selected</span>
-                </button>
-              </td>
-            </tr>
-            
-            <tr>
-              <th>2</th>
-              <td>Pancakes.fake</td>
-              <td>2 Terabytes</td>
-              <td>02/03/0405</td>
-              <td>
-                <button class="button is-small is-rounded is-pulled-left is-success is-outlined">
-                  <span class="icon is-small">
-                    <i class="fas fa-circle"></i>
-                  </span>
-                  <span>Uploaded</span>
-                </button>
-              </td>
-            </tr>
+            <h1 class="title is-4 mb-1 mt-1">Datasets database</h1>
+            <h2 class="sub-title">all <span class="tag is-warning is-inline">.csv</span> files uploaded so far</h2>
 
-            <tr>
-              <th>3</th>
-              <td>Chocolate.fake</td>
-              <td>2.34 Kilobytes</td>
-              <td>23/45/6789</td>
-              <td>
-                <button class="button is-small is-rounded is-pulled-left is-danger is-static">
-                  <span class="icon is-small">
-                    <i class="fas fa-times"></i>
-                  </span>
-                  <span>Failed</span>
-                </button>
-              </td>
-            </tr>
+            <!--Table-->
+            <div class="table-container table is-fullwidth is-centered">
+                <table id="upload_modal_table" class="table is-fullwidth is-striped">
+                    <thead>
+                        <tr>
+                            <th>nr</th>
+                            <th>File name</th>
+                            <th>size</th>
+                            <th>upload date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>1</th>
+                            <td>SomeFile.fake</td>
+                            <td>0 bytes</td>
+                            <td>00/00/0000</td>
+                            <td>
+                                <button class="button is-small is-rounded is-pulled-left is-success is-light">
+                                    <span class="icon is-small mr-3">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                    <span>Selected</span>
+                                </button>
+                            </td>
+                        </tr>
 
-            <tr>
-              <th>4</th>
-              <td>Waffles.fake</td>
-              <td>2302 bytes</td>
-              <td>11/10/2000</td>
-              <td>
-                <button class="button is-small is-rounded is-pulled-left is-success is-outlined">
-                  <span class="icon is-small">
-                    <i class="fas fa-circle"></i>
-                  </span>
-                  <span>Uploaded</span>
-                </button>
-              </td>
-            </tr>
+                        <tr>
+                            <th>2</th>
+                            <td>Pancakes.fake</td>
+                            <td>2 Terabytes</td>
+                            <td>02/03/0405</td>
+                            <td>
+                                <button class="button is-small is-rounded is-pulled-left is-success is-outlined">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-circle"></i>
+                                    </span>
+                                    <span>Uploaded</span>
+                                </button>
+                            </td>
+                        </tr>
 
-          </tbody>
-        </table>
-      </div>
-      
-      
-      
-    </section>
+                        <tr>
+                            <th>3</th>
+                            <td>Chocolate.fake</td>
+                            <td>2.34 Kilobytes</td>
+                            <td>23/45/6789</td>
+                            <td>
+                                <button class="button is-small is-rounded is-pulled-left is-danger is-static">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                    <span>Failed</span>
+                                </button>
+                            </td>
+                        </tr>
 
-    <!--Footer-->
-    <footer class="modal-card-foot has-background-white">
-      
+                        <tr>
+                            <th>4</th>
+                            <td>Waffles.fake</td>
+                            <td>2302 bytes</td>
+                            <td>11/10/2000</td>
+                            <td>
+                                <button class="button is-small is-rounded is-pulled-left is-success is-outlined">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-circle"></i>
+                                    </span>
+                                    <span>Uploaded</span>
+                                </button>
+                            </td>
+                        </tr>
 
-      <!-- Upload Button -->
-      <div class="file has-name is-success is-pulled-right" id="file-upload">
-        <!--Container-->
-        <label class="file-label">
-          <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv' name="resume">
-          <span class="file-cta">
-            <span class="file-icon">
-              <i class="fas fa-upload"></i>
-            </span>
-            <span class="file-label">
-              Upload new file
-            </span>
-          </span>
-          <span class="file-name">
-            No file selected
-          </span>
-        </label>
-      </div>
+                    </tbody>
+                </table>
+            </div>
 
 
-    </footer>
-  </div>
+
+        </section>
+
+        <!--Footer-->
+        <footer class="modal-card-foot has-background-white">
+
+
+            <!-- Upload Button -->
+            <div class="file has-name is-success is-pulled-right" id="file-upload">
+                <!--Container-->
+                <label class="file-label">
+                    <input class="file-input" (change)="onFileUpload()" #fileInput type='file' accept='.csv'
+                        name="resume">
+                    <span class="file-cta">
+                        <span class="file-icon">
+                            <i class="fas fa-upload"></i>
+                        </span>
+                        <span class="file-label">
+                            Upload new file
+                        </span>
+                    </span>
+                    <span class="file-name">
+                        No file selected
+                    </span>
+                </label>
+            </div>
+
+
+        </footer>
+    </div>
 </div>
