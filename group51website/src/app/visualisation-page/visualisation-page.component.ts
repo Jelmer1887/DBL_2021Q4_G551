@@ -20,12 +20,26 @@ export class VisualisationPageComponent implements OnInit {
     // child element selection for DOM manipulation
     @ViewChild('vis1') vis1;
     @ViewChild('vis2') vis2;
+
     @ViewChild('infoCard') infoCard;
     @ViewChild('button1') button1;
+
     @ViewChild('button2') button2;
+
     @ViewChild('dropdown1') dd1;
     @ViewChild('dropdown2') dd2;
 
+    @ViewChild('FDG1') FDG1;
+    @ViewChild('FDG2') FDG2;
+
+    @ViewChild('Arc1') Arc1;
+    @ViewChild('Arc2') Arc2;
+
+    @ViewChild('Matrix1') Matrix1;
+    @ViewChild('Matrix2') Matrix2;
+
+    @ViewChild('Tree1') Tree1;
+    @ViewChild('Tree2') Tree2;
 
     //Next few lines are to initialise the slider
     value: number = 0;         //set low value
@@ -624,6 +638,11 @@ export class VisualisationPageComponent implements OnInit {
                 this.vis1.nativeElement,
                 'display',
                 'inline')
+
+            this.renderer.setStyle(
+                this.dd1.nativeElement,
+                'display',
+                'inline');
             this.vis2Fullscreen = false;
             console.log("updating vis2fscr to: " + false)
             DataShareService.updateServiceVis2FullScreen(false);
@@ -638,6 +657,12 @@ export class VisualisationPageComponent implements OnInit {
                 this.vis1.nativeElement,
                 'display',
                 'none')
+
+            this.renderer.setStyle(
+                this.dd1.nativeElement,
+                'display',
+                'none');
+            
             this.vis2Fullscreen = true;
             console.log("updating vis2fscr to: " + true)
             DataShareService.updateServiceVis2FullScreen(true);
@@ -645,6 +670,68 @@ export class VisualisationPageComponent implements OnInit {
         }
 
         globalBrushDisable();
+    }
+
+    HideSelection(hideSelection: string){
+        
+        //you dont want to read this code.
+        switch(hideSelection) {
+        case "FDG1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','none')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','block')
+        break
+
+        case "FDG2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','none')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','block')
+        break
+
+        case "Arc1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','none')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','block')
+        break
+
+        case "Arc2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','none')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','block')
+        break
+
+        case "Matrix1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','none')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','block')
+        break
+
+        case "Matrix2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','none')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','block')
+        break
+
+        case "Tree1":
+        this.renderer.setStyle(this.FDG1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix1.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree1.nativeElement,'display','none')
+        break
+
+        case "Tree2":
+        this.renderer.setStyle(this.FDG2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Arc2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Matrix2.nativeElement,'display','block')
+        this.renderer.setStyle(this.Tree2.nativeElement,'display','none')
+        break
+        }
     }
 
 }

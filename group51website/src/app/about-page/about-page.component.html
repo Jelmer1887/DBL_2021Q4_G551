@@ -15,22 +15,92 @@
   <div class="hero-body">
     <div class="columns is-mobile">
       <div class="column">
+        <img src="./assets/GIFS/Upload.gif" alt="job" style="width: 70%">
+      </div>
+      <div class="column">
         <div class="container mx-5"
-          style="text-align: left; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
+          style="text-align: right; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
           <p class="title">
             1. Uploading a .csv file
           </p>
           <p class="subtitle">
             Simply click on the upload button on the navbar or on the "Upload your own csv" button! This can be done
-            from
-            any page.
+            from any page.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="columns is-mobile">
+      <div class="column">
+        <div class="container mx-5"
+          style="text-align: left; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
+          <p class="title">
+            2. The visualization page
+          </p>
+          <p class="subtitle">
+            The slider at the top of the page is used to select the start and end dates of the data you wish to analyze. You can also use the 
+            dropdown menus to choose 2 different visualizations, or use the 'fullscreen' buttons to view only one of them.
           </p>
         </div>
       </div>
       <div class="column">
         <div class="container mx-5" style="text-align: center">
-          <img src="./assets/Animation1.gif" alt="job" style="width: 70%">
+          <img src="./assets/GIFS/General.gif" alt="job" style="width: 100%">
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="tabs is-centered is-boxed my-0">
+  <ul>
+    <li #FDGTab class="is-active" (click)="openTab('FDG')">
+      
+      <a>
+        <span>Force Directed Graph</span>
+      </a>
+    </li>
+    <li #ArcTab (click)="openTab('Arc')">
+      <a>
+        <span>Arc Diagram</span>
+      </a>
+    </li>
+    <li #MatrixTab (click)="openTab('Matrix')">
+      <a>
+        <span>Adjacency Matrix</span>
+      </a>
+    </li>
+    <li #TreeTab (click)="openTab('Tree')">
+      <a>
+        <span>Tree Map</span>
+      </a>
+    </li>
+  </ul>
+</div>
+
+<section class="hero is-link">
+  <div class="columns is-mobile my-5">
+    <div class="column">
+      <div class="container mx-5" style="text-align: center">
+        <img #TabGif src="./assets/GIFS/FDG.gif" alt="job" style="width: 100%">
+      </div>
+    </div>
+    <div class="column">
+      <div class="container mx-5"
+        style="text-align: center; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
+        <p #TabTitle class="title">
+          3.1. Force Directed Graph
+        </p>
+        <p #TabSubtitle class="subtitle">
+          This visualization is a node-link diagram that in which the nodes are employees and the edges are emails. 
+          The emails can also be grouped togheter to limit clutter and the size of a node represents its throughput of emails.
+        </p>
       </div>
     </div>
   </div>
@@ -40,20 +110,20 @@
   <div class="hero-body">
     <div class="columns is-mobile">
       <div class="column">
-        <img src="./assets/Animation2.gif" alt="job" style="width: 70%">
-      </div>
-      <div class="column">
-        <div class="container mx-5"
-          style="text-align: right; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
+        <div class="container"
+          style="text-align: left; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
           <p class="title">
-            2. Understanding the visualisation
+            4. Node Information Panel
           </p>
           <p class="subtitle">
-            Now that the file is uploaded, a force directed graph will be generated. A node is an employee,
-            the thickness of an edge represents the number of emails exchanged and red or green edges represent positive
-            or
-            negative interactions.
+            To better understand the graph, you can click on a node to see more information about it, 
+            such as ID, emails sent and recieved or sentiment of emails.
           </p>
+        </div>
+      </div>
+      <div class="column">
+        <div class="container" style="text-align: center">
+          <img src="./assets/GIFS/NodeInfo.gif" alt="job" style="width: 70%">
         </div>
       </div>
     </div>
@@ -64,20 +134,18 @@
   <div class="hero-body">
     <div class="columns is-mobile">
       <div class="column">
-        <div class="container"
-          style="text-align: left; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
-          <p class="title">
-            3. Interaction techniques
-          </p>
-          <p class="subtitle">
-            To better understand the graph, you can drag any the nodes around, hover over a node to get more
-            information about it or click a node or an edge to print information the console.
-          </p>
-        </div>
+        <img src="./assets/GIFS/BrushSelect.gif" alt="job" style="width: 90%">
       </div>
       <div class="column">
-        <div class="container" style="text-align: center">
-          <img src="./assets/Animation3.gif" alt="job" style="width: 70%">
+        <div class="container mx-5"
+          style="text-align: right; top: 50%; -ms-transform: translateY(-50%); transform: translateY(-50%);">
+          <p class="title">
+            5. Brush Select
+          </p>
+          <p class="subtitle">
+            If you want to follow a group of nodes throughout multiple visualizations, simply 
+            click on the "Brush Select" button and draw a box on the desired group.
+          </p>
         </div>
       </div>
     </div>

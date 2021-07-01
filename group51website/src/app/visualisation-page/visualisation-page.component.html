@@ -18,16 +18,16 @@
                             </div>
                             <div class="dropdown-menu" id="dropdown-menu3" role="menu">
                                 <div class="dropdown-content">
-                                    <a [routerLink]="[{outlets: {vis1: ['force']}}]" class="dropdown-item">
+                                    <a #FDG1 [routerLink]="[{outlets: {vis1: ['force']}}]" class="dropdown-item" (click)="HideSelection('FDG2')">
                                         Force Directed Graph
                                     </a>
-                                    <a [routerLink]="[{outlets: {vis1: ['arc']}}]" class="dropdown-item">
+                                    <a #Arc1 [routerLink]="[{outlets: {vis1: ['arc']}}]" class="dropdown-item" (click)="HideSelection('Arc2')">
                                         Arc Diagram
                                     </a>
-                                    <a [routerLink]="[{outlets: {vis1: ['matrix']}}]" class="dropdown-item">
+                                    <a #Matrix1 [routerLink]="[{outlets: {vis1: ['matrix']}}]" class="dropdown-item" (click)="HideSelection('Matrix2')">
                                         Adjacency Matrix
                                     </a>
-                                    <a [routerLink]="[{outlets: {vis1: ['tree']}}]" class="dropdown-item">
+                                    <a #Tree1 [routerLink]="[{outlets: {vis1: ['tree']}}]" class="dropdown-item" (click)="HideSelection('Tree2')">
                                         Treemap
                                     </a>
                                 </div>
@@ -60,16 +60,16 @@
                         </div>
                         <div class="dropdown-menu" id="dropdown-menu3" role="menu">
                             <div class="dropdown-content">
-                                <a [routerLink]="[{outlets: {vis2: ['force']}}]" class="dropdown-item">
+                                <a #FDG2 [routerLink]="[{outlets: {vis2: ['force']}}]" class="dropdown-item" (click)="HideSelection('FDG1')">
                                     Force Directed Graph
                                 </a>
-                                <a [routerLink]="[{outlets: {vis2: ['arc']}}]" class="dropdown-item">
+                                <a #Arc2 [routerLink]="[{outlets: {vis2: ['arc']}}]" class="dropdown-item" (click)="HideSelection('Arc1')">
                                     Arc Diagram
                                 </a>
-                                <a [routerLink]="[{outlets: {vis2: ['matrix']}}]" class="dropdown-item">
+                                <a #Matrix2 [routerLink]="[{outlets: {vis2: ['matrix']}}]" class="dropdown-item" (click)="HideSelection('Matrix1')">
                                     Adjacency Matrix
                                 </a>
-                                <a [routerLink]="[{outlets: {vis2: ['tree']}}]" class="dropdown-item">
+                                <a #Tree2 [routerLink]="[{outlets: {vis2: ['tree']}}]" class="dropdown-item" (click)="HideSelection('Tree1')">
                                     Treemap
                                 </a>
                             </div>
