@@ -620,7 +620,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnInit {
                         y1 = e.selection[1][1];
 
                     // Select node from circle
-                    this.svg.selectAll("circle")
+                    inst.svg.selectAll("circle")
                         .each(function (d: any) {
                             // Get the coordinates
                             var cx = d3.select(this).attr("cx");
@@ -634,7 +634,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnInit {
                         });
 
                     // Select node from text.
-                    this.svg.selectAll("text")
+                    inst.svg.selectAll("text")
                         .each(function (d: any) {
                             // Get the x of the text
                             var cx = d3.select(this).attr("x");
