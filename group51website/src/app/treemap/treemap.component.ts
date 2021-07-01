@@ -33,8 +33,10 @@ export class TreemapComponent implements OnInit {
     // -- Private variables
     private svg;
     private datasubscription: Subscription;
+    private selectedSubscription: Subscription;
     private groupedByJob = true;
     private valueOption = "both";
+    private selectedNodeId = -1;
 
     // compute actual constant values of properties
     constructor() {
@@ -48,11 +50,17 @@ export class TreemapComponent implements OnInit {
         this.datasubscription = DataShareService.sdatasource.subscribe(newData => {
             //console.log("TreeMap: Datashareservice: data update detected!");
             this.data = newData;
-            this.buildGraph();
+            this.buildGraph(this.data);
+        })
+
+        this.selectedSubscription = DataShareService.sselectednode.subscribe(newNode => {
+            this.selectedNodeId = newNode.id;
+            this.newBlockSelected();
         })
     }
 
     ngOnDestroy(): void {
+        this.selectedSubscription.unsubscribe();
         this.datasubscription.unsubscribe();
     }
 
@@ -66,13 +74,15 @@ export class TreemapComponent implements OnInit {
             .attr("width", this.width)
             .attr("height", this.height)
 
-        this.buildGraph();
+        this.buildGraph(this.data);
     }
 
     // -- GRAPH CREATION FUNCTIONS --------------------------------------------------- -- \\
 
     // create child-elements, compute their position, sizes, etc...
-    buildGraph(): void {
+    buildGraph(data): void {
+        let inst = this;
+
         // Reset the treemap.
         this.svg.selectAll("*").remove();
 
@@ -127,7 +137,7 @@ export class TreemapComponent implements OnInit {
                     if (j["name"] == node.job) {
 
                         j["children"].push({
-                            "name": node.id.toString(),
+                            "id": node.id.toString(),
                             "value": value,
                             //"colname": "level3",
                             "job": node.job
@@ -137,7 +147,7 @@ export class TreemapComponent implements OnInit {
             } else {
                 jsonTree["children"].push(
                     {
-                        "name": node.id.toString(),
+                        "id": node.id.toString(),
                         "value": value,
                         //"colname": "level3",
                         "job": node.job
@@ -183,11 +193,34 @@ export class TreemapComponent implements OnInit {
             .attr("height", (d: any) => d['y1'] - d['y0'])
             .append("title")
             .text((d: any) => {
-                return "Id: " + d['data']['name'] + "\n" +
+                return "Id: " + d['data']['id'] + "\n" +
                     "Value: " + d['data']['value'] + "\n" +
                     "Job: " + d['data']['job'];
-            });
+            })
 
+        block.on("click", (event, d: any) => {
+            if (d['data']['id'] == inst.selectedNodeId) {
+                inst.selectedNodeId = -1;
+                DataShareService.updateServiceNodeSelected({});
+            } else {
+                let node = nodes.filter(e => e.id == d['data']['id']);
+                console.log(node);
+                inst.selectedNodeId = d['data']['id'];
+                nodeGUI(node[0]);
+            }
+
+            inst.newBlockSelected();
+        })
+
+        let node = nodes.filter(e => e.id == inst.selectedNodeId);
+        if (node.length == 1) {
+            console.log("AAAAAAAA")
+            nodeGUI(node[0])
+        } else {
+            this.selectedNodeId = -1;
+            DataShareService.updateServiceNodeSelected({});
+        }
+        this.newBlockSelected();
 
         // Add the Id to the rectangle if there is enough space.
         this.svg
@@ -200,7 +233,7 @@ export class TreemapComponent implements OnInit {
             .text(function (d) {
                 if ((Math.abs(d['x1'] - d['x0']) > 55) &&
                     (Math.abs(d['y1'] - d['y0']) > 15)) {
-                    return "Id: " + d.data.name
+                    return "Id: " + d.data.id
                 }
                 return ""
             })
@@ -243,17 +276,149 @@ export class TreemapComponent implements OnInit {
                 .attr("font-size", "14px")
                 .attr("fill", function (d) { return nodeColor(d.data.name) })
         }
+
+        function nodeGUI(i) {
+            var linklist = {
+                "id": i.id,
+                "job": i.job,
+                "sendto": [],
+                "receivedfrom": [],
+                "mailCount": i.mailCount,
+                "mailReceived": i.mailReceived,
+                "mailSent": i.mailSent,
+                "address": i.address,
+                "sentiment_total": 0.0,
+                "sentiment_received": {
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
+                "sentiment_send": {
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
+            };
+
+            // console.log(individualLinks);
+            var sentLinks = data.individualLinks.filter(function (e) {
+                return e.source == i.id;      //Finds emails sent
+            })
+
+            var receivedLinks = data.individualLinks.filter(function (e) {
+                return e.target == i.id;      //Finds emails received
+            })
+
+            let sent_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
+            for (var link in sentLinks) {
+                linklist["sendto"].push(sentLinks[link]['target'])
+
+                // compute sentiment from node
+                let s: number = parseFloat(sentLinks[link]['sentiment']);
+                if (s >= 0.1) {
+                    linklist.sentiment_send.pos += s
+                    sent_counter.pos++;
+                } else if (s <= -0.1) {
+                    linklist.sentiment_send.neg += s
+                    sent_counter.neg++;
+                }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_send.total += s;
+                sent_counter.total++;
+            }
+
+            let received_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
+            for (var link in receivedLinks) {
+                linklist["receivedfrom"].push(receivedLinks[link]['source'])
+
+                // compute sentiment from node
+                let s: number = parseFloat(receivedLinks[link]['sentiment']);
+                if (s >= 0.1) {
+                    linklist.sentiment_received.pos += s
+                    received_counter.pos++;
+                } else if (s <= -0.1) {
+                    linklist.sentiment_received.neg += s
+                    received_counter.neg++;
+                }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_received.total += s
+                received_counter.total++;
+            }
+
+            // convert sentiment to ratio
+            let total: number = linklist.sentiment_send.pos
+            if (sent_counter.pos == 0) {
+                linklist.sentiment_send.pos = 0
+            } else {
+                linklist.sentiment_send.pos = total / sent_counter.pos;
+            }
+
+            total = linklist.sentiment_send.neg
+            if (sent_counter.neg == 0) {
+                linklist.sentiment_send.neg = 0;
+            } else {
+                linklist.sentiment_send.neg = total / sent_counter.neg;
+            }
+
+            total = linklist.sentiment_received.pos
+            if (received_counter.pos == 0) {
+                linklist.sentiment_received.pos = 0
+            } else {
+                linklist.sentiment_received.pos = total / received_counter.pos;
+            }
+
+            total = linklist.sentiment_received.neg
+            if (received_counter.neg == 0) {
+                linklist.sentiment_received.neg = 0
+            } else {
+                linklist.sentiment_received.neg = total / received_counter.neg;
+            }
+
+            if (received_counter.total + sent_counter.total == 0) {
+                linklist.sentiment_total = 0;
+            } else {
+                linklist.sentiment_total /= (received_counter.total + sent_counter.total);
+            }
+
+            if (received_counter.total == 0) {
+                linklist.sentiment_received.total = 0;
+            } else {
+                linklist.sentiment_received.total /= received_counter.total;
+            }
+
+            if (sent_counter.total == 0) {
+                linklist.sentiment_send.total = 0;
+            } else {
+                linklist.sentiment_send.total /= sent_counter.total;
+            }
+
+            if (inst.selectedNodeId === -1) {
+                for (var member in linklist) delete linklist[member];
+            }
+
+            DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
+        }
+
+    }
+
+    newBlockSelected() {
+        let block = this.svg.selectAll("g");
+        console.log("Treemap selected node ID: " + this.selectedNodeId);
+        block.style("stroke", "black")
+            .style("stroke-width", (d: any) => (d.data.id == this.selectedNodeId) ? 5 : 0)
     }
 
     checkGroupOption(event) {
         this.groupedByJob = event.target.checked;
         globalBrushDisable();
-        this.buildGraph();
+        this.buildGraph(this.data);
     }
 
     checkValueOption(event) {
         this.valueOption = event.target.value;
         globalBrushDisable();
-        this.buildGraph();
+        this.buildGraph(this.data);
     }
 }
