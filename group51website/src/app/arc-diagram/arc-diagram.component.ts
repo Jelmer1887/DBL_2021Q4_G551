@@ -592,7 +592,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnInit {
             }
         });
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'] != undefined) {
+            if (this.selectedNodeInfo['id'] != undefined ||
+                this.brushedNodes.length != 0) {
                 if (a.source === this.selectedNodeInfo['id'] || a.target === this.selectedNodeInfo['id'] ||
                     this.brushedNodes.includes(a.source) || this.brushedNodes.includes(a.target)) {
                     return nodeColor(this.selectedNodeInfo['job'])
