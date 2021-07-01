@@ -15,7 +15,7 @@ import { ResizedEvent } from 'angular-resize-event';
     styles: [
     ]
 })
-export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
+export class ArcDiagramComponent implements AfterViewInit, OnInit {
 
     // Input variables.
     data: Data;
@@ -65,7 +65,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                 console.log("arcdiagram: The node selected is " + this.selectedNodeInfo['id'])
             } else {
                 console.log("arcdiagram: new selected node was already selected!")
-                this.initiateDiagram();
+                // this.initiateDiagram();
             }
             this.newNodeSelected();
         })
@@ -116,7 +116,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
             }
             /*.attr("width", this.width)
             .attr("height", this.height);*/
-            
+
         })
     }
 
@@ -149,23 +149,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
         //this.fullScreen == false ? this.fullScreen = true : this.fullScreen = false;
         this.initiateDiagram()
     }
-    // -- --- -- \\
-
-    ngOnChanges(changes: SimpleChanges): void {
-        /* MOVED TO SUBSCRIPTION
-        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
-            console.log("ArcDiagram: The node selected is " + this.selectedNodeInfo['id'])
-            this.newNodeSelected()
-        } else {
-            this.initiateDiagram()
-        }*/
-    }
 
     initiateDiagram() {
-        if (this.container) {
-            this.width = this.container.nativeElement.offsetWidth;
-        }
-
         this.runDiagram(this.data);
     }
 
@@ -181,7 +166,7 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
             sortNodesJob();
         } else if (this.sort == "amount") {
             sortNodesAmount();
-        }       
+        }
 
         this.svg.selectAll("*").remove()
 
@@ -247,25 +232,30 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
 
         }
 
-        function nodeGUI(inst, i) {
-            var linklist = { 
-                "id": i.id, 
-                "job": i.job, 
-                "sendto": [], 
-                "receivedfrom": [], 
-                "mailCount": i.mailCount, 
-                "address": i.address, 
+        function nodeGUI(i) {
+            var linklist = {
+                "id": i.id,
+                "job": i.job,
+                "sendto": [],
+                "receivedfrom": [],
+                "mailCount": i.mailCount,
+                "mailReceived": i.mailReceived,
+                "mailSent": i.mailSent,
+                "address": i.address,
+                "sentiment_total": 0.0,
                 "sentiment_received": {
-                    "pos" : 0.0,
-                    "neg" : 0.0,
-                }, 
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
                 "sentiment_send": {
-                    "pos" : 0.0,
-                    "neg" : 0.0,
-                }, 
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
             };
 
-            //console.log(linklist);
+            // console.log(individualLinks);
             var sentLinks = data.individualLinks.filter(function (e) {
                 return e.source == i.id;      //Finds emails sent
             })
@@ -274,94 +264,98 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                 return e.target == i.id;      //Finds emails received
             })
 
-            let sent_counter = {"pos": 0, "neg": 0}  // counts nr of pos and neg emails
+            let sent_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
             for (var link in sentLinks) {
                 linklist["sendto"].push(sentLinks[link]['target'])
 
                 // compute sentiment from node
                 let s: number = parseFloat(sentLinks[link]['sentiment']);
-                if (s >= 0.0){
+                if (s >= 0.1) {
                     linklist.sentiment_send.pos += s
                     sent_counter.pos++;
-                    console.log("card: send positive vibes: "+ s.toString())
-                } else if (s < 0.0){
+                } else if (s <= -0.1) {
                     linklist.sentiment_send.neg += s
                     sent_counter.neg++;
-                    console.log("card: send negative vibes: "+ s.toString())
-                } else {
-                    console.log("card: error while computing send vibes: s is not comparing...")
-                    console.log("card: s = "+s.toString())
-                    console.log("card: list p/n: "+linklist.sentiment_send.pos.toString() + ' / '+ linklist.sentiment_send.neg.toString())
                 }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_send.total += s;
+                sent_counter.total++;
             }
 
-            let recieved_counter = {"pos": 0, "neg": 0}  // counts nr of pos and neg emails
+            let received_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
             for (var link in receivedLinks) {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
 
                 // compute sentiment from node
                 let s: number = parseFloat(receivedLinks[link]['sentiment']);
-                if (s >= 0.0){
+                if (s >= 0.1) {
                     linklist.sentiment_received.pos += s
-                    recieved_counter.pos++;
-                    console.log("card: got positive vibes: "+ s.toString())
-                } else if (s < 0.0){
+                    received_counter.pos++;
+                } else if (s <= -0.1) {
                     linklist.sentiment_received.neg += s
-                    recieved_counter.neg++;
-                    console.log("card: got negative vibes: "+ s.toString())
-                } else {
-                    console.log("card: error while computing gotten vibes: s is not comparing...")
-                    console.log("card: s = "+s.toString())
-                    console.log("card: list p/n: "+linklist.sentiment_received.pos.toString() + ' / '+ linklist.sentiment_received.neg.toString())
+                    received_counter.neg++;
                 }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_received.total += s
+                received_counter.total++;
             }
 
             // convert sentiment to ratio
-            console.log("card: converting all vibes to avrg...")
-            let total: number = linklist.sentiment_received.pos
+            let total: number = linklist.sentiment_send.pos
+            if (sent_counter.pos == 0) {
+                linklist.sentiment_send.pos = 0
+            } else {
+                linklist.sentiment_send.pos = total / sent_counter.pos;
+            }
 
-            linklist.sentiment_received.pos = total / sent_counter.pos;
-            console.log("card: rpositive: "+ linklist.sentiment_received.pos)
-            total = linklist.sentiment_received.neg
-            linklist.sentiment_received.neg = total / sent_counter.neg;
-            console.log("card: rnegative: "+ linklist.sentiment_received.neg)
-
-            total = linklist.sentiment_send.pos
-            linklist.sentiment_send.pos = total / recieved_counter.pos;
-            console.log("card: rpositive: "+ linklist.sentiment_send.pos)
             total = linklist.sentiment_send.neg
-            linklist.sentiment_send.neg = total / recieved_counter.neg;
-            console.log("card: rnegative: "+ linklist.sentiment_send.neg)
-
-            if (linklist.sentiment_received.neg == undefined || linklist.sentiment_received.neg > 100000) {linklist.sentiment_received.neg = 0}
-            if (linklist.sentiment_received.pos == undefined || linklist.sentiment_received.pos > 100000) {linklist.sentiment_received.pos = 0}
-            if (linklist.sentiment_send.neg == undefined || linklist.sentiment_send.neg > 100000) {linklist.sentiment_send.neg = 0}
-            if (linklist.sentiment_send.pos == undefined || linklist.sentiment_send.pos > 100000) {linklist.sentiment_send.pos = 0}
-
-            console.log(
-                "card: final values are (rn, rp, sn, sp) = (" 
-                + linklist.sentiment_received.neg + ','
-                + linklist.sentiment_received.pos + ','
-                + linklist.sentiment_send.neg + ','
-                + linklist.sentiment_send.pos + ')'
-            
-            )
-
-            if (linklist['id'] === inst.selectedNodeInfo['id']){
-                for (var member in linklist) delete linklist[member];
-                console.log(linklist)
-                //linklist = { 'id': undefined, 'job': [], 'sendto': [], 'receivedfrom': [], "mailCount": [] };
+            if (sent_counter.neg == 0) {
+                linklist.sentiment_send.neg = 0;
+            } else {
+                linklist.sentiment_send.neg = total / sent_counter.neg;
             }
-            
-            if (linklist['id'] === inst.selectedNodeInfo['id']){
-                for (var member in linklist) delete linklist[member];
-                //linklist = { 'id': [], 'job': [], 'sendto': [], 'receivedfrom': [], "mailCount": [] };
+
+            total = linklist.sentiment_received.pos
+            if (received_counter.pos == 0) {
+                linklist.sentiment_received.pos = 0
+            } else {
+                linklist.sentiment_received.pos = total / received_counter.pos;
             }
-            
-            console.log("arcdiagram: updating selected node to service...");
-            //inst.nodeEmailsEvent.emit(linklist);  // send lists of email senders/receivers to parent
+
+            total = linklist.sentiment_received.neg
+            if (received_counter.neg == 0) {
+                linklist.sentiment_received.neg = 0
+            } else {
+                linklist.sentiment_received.neg = total / received_counter.neg;
+            }
+
+            if (received_counter.total + sent_counter.total == 0) {
+                linklist.sentiment_total = 0;
+            } else {
+                linklist.sentiment_total /= (received_counter.total + sent_counter.total);
+            }
+
+            if (received_counter.total == 0) {
+                linklist.sentiment_received.total = 0;
+            } else {
+                linklist.sentiment_received.total /= received_counter.total;
+            }
+
+            if (sent_counter.total == 0) {
+                linklist.sentiment_send.total = 0;
+            } else {
+                linklist.sentiment_send.total /= sent_counter.total;
+            }
+
+            if (inst.selectedNodeInfo['id'] === -1) {
+                for (var member in linklist) delete linklist[member];
+            }
+
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
+
         if (!this.vis2Fullscreen && !this.vis1Fullscreen) {
             const node = this.svg.selectAll("mynodes")
                 .data(nodes)
@@ -380,6 +374,19 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                         "function: " + d.job;
                 });
 
+            let foundSelectedNode = false;
+            node.each(function (d: any) {
+                if (d.id == inst.selectedNodeInfo['id']) {
+                    foundSelectedNode = true;
+                    nodeGUI(d);
+                }
+            })
+
+            if (!foundSelectedNode) {
+                this.selectedNodeInfo['id'] = -1;
+                DataShareService.updateServiceNodeSelected({});
+            }
+
             const label = this.svg.selectAll("mylabels")
                 .data(nodes)
                 .enter()
@@ -392,7 +399,11 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                 .style("text-anchor", "middle")
                 .style('fill', "#000")
                 .on("click", (event, d: any) => {
-                    nodeGUI(inst, d)
+                    if (inst.selectedNodeInfo['id'] == d.id) {
+                        inst.selectedNodeInfo['id'] = -1;
+                    }
+
+                    nodeGUI(d)
                 })
                 //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
                 .on("mouseover", function (event, d: any) {
@@ -473,6 +484,19 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                         "function: " + d.job;
                 });
 
+            let foundSelectedNode = false;
+            node.each(function (d: any) {
+                if (d.id == inst.selectedNodeInfo['id']) {
+                    foundSelectedNode = true;
+                    nodeGUI(d);
+                }
+            })
+
+            if (!foundSelectedNode) {
+                this.selectedNodeInfo['id'] = -1;
+                DataShareService.updateServiceNodeSelected({});
+            }
+
             const label = this.svg.selectAll("mylabels")
                 .data(nodes)
                 .enter()
@@ -485,7 +509,10 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                 .text(d => makeText(d))
                 .style("text-anchor", "middle")
                 .on("click", (event, d: any) => {
-                    nodeGUI(inst, d)
+                    if (inst.selectedNodeInfo['id'] == d.id) {
+                        inst.selectedNodeInfo['id'] = -1;
+                    }
+                    nodeGUI(d)
                 })
                 //creating rectangles would make this event handling a lot more consistent, now you really have to aim your mouse to hit the text
                 .on("mouseover", function (event, d: any) {
@@ -680,13 +707,8 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     ngAfterViewInit(): void {
-        this.width = this.container.nativeElement.offsetWidth;
         this.runDiagram(this.data);
     }
-
-    @ViewChild('container')
-    container: ElementRef;
-
 }
 
 

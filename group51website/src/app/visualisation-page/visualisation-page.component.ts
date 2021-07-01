@@ -52,20 +52,20 @@ export class VisualisationPageComponent implements OnInit {
     max;
 
     selectedNodeInfo: any = {/*{ 'id': -1, 'job': [], 'sendto': [], 'receivedfrom': [] }; // holds array of all emails send and received.*/
-        "id": -1, 
-        "job": [], 
-        "sendto": [], 
-        "receivedfrom": [], 
-        "mailCount": 0, 
-        "address": '', 
+        "id": -1,
+        "job": [],
+        "sendto": [],
+        "receivedfrom": [],
+        "mailCount": 0,
+        "address": '',
         "sentiment_received": {
-            "pos" : 0.0,
-            "neg" : 0.0,
-        }, 
+            "pos": 0.0,
+            "neg": 0.0,
+        },
         "sentiment_send": {
-            "pos" : 0.0,
-            "neg" : 0.0,
-        }, 
+            "pos": 0.0,
+            "neg": 0.0,
+        },
     };
     vis1Fullscreen: boolean = false;
     vis2Fullscreen: boolean = false;
@@ -99,7 +99,7 @@ export class VisualisationPageComponent implements OnInit {
             const hasChanged: boolean = (newNode.id != this.selectedNodeInfo.id)
             console.log("page: received new selected node! new = " + hasChanged)
             this.selectedNodeInfo = newNode;
-            if (hasChanged == true) { this.updateNodeInfo(this.selectedNodeInfo) }
+            this.updateNodeInfo(this.selectedNodeInfo)
         })
     }
 
@@ -414,9 +414,9 @@ export class VisualisationPageComponent implements OnInit {
     // setter for selectedNode, used to update info-card, triggered through html event
     updateNodeInfo(node): void {
 
-        if (!node.hasOwnProperty('id')) {
+        if (!node.hasOwnProperty('id') || node.id < 0) {
             console.log("page: updateNodeInfo: node is empty!");
-            
+
             let rows = document.querySelectorAll('tr');
             for (let i = 0; rows[i]; i++) {
                 let row = (rows[i] as HTMLTableRowElement);
@@ -436,7 +436,7 @@ export class VisualisationPageComponent implements OnInit {
             newRow.append(text);
 
             text = document.createElement('td');                                    // set new value
-            text.className = "is-size-"+(size).toString()+"-widescreen is-size-"+(size + 1).toString()+"-tablet"
+            text.className = "is-size-" + (size).toString() + "-widescreen is-size-" + (size + 1).toString() + "-tablet"
             text.innerText = value;
             newRow.append(text);
 
@@ -542,17 +542,22 @@ export class VisualisationPageComponent implements OnInit {
         // update ID
         createInfoRow(idTable, "ID:", node.id.toString());
         // update email address
-        createInfoRow(idTable, "address:", node.address, 7);
+        createInfoRow(idTable, "Address:", node.address, 7);
         // update job
         createInfoRow(idTable, "Job:", node.job);
         // update nr of emails
-        createInfoRow(idTable, "emails", node.mailCount)
+        createInfoRow(idTable, "Emails total:", node.mailCount)
+        createInfoRow(idTable, "Emails received:", node.mailReceived)
+        createInfoRow(idTable, "Emails sent:", node.mailSent)
         // update sentiment values
-        createInfoRow(sentimentTable, "positive received:", node.sentiment_received.pos)
-        createInfoRow(sentimentTable, "positive sent:", node.sentiment_send.pos)
-        createInfoRow(sentimentTable, "negative received:", node.sentiment_send.pos)
-        createInfoRow(sentimentTable, "negative sent:", node.sentiment_send.neg)
-        
+        let decimalPlaces = 4;
+        createInfoRow(sentimentTable, "Total:", node.sentiment_total.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Received:", node.sentiment_received.total.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Sent:", node.sentiment_send.total.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Positive received:", node.sentiment_received.pos.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Positive sent:", node.sentiment_send.pos.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Negative received:", node.sentiment_send.pos.toFixed(decimalPlaces))
+        createInfoRow(sentimentTable, "Negative sent:", node.sentiment_send.neg.toFixed(decimalPlaces))
     }
 
     setBrushMode(): void {

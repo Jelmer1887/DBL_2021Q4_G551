@@ -14,7 +14,7 @@ import { BrushShareService } from '../brush-share.service';
     styles: [
     ]
 })
-export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
+export class ForceGraphComponent implements AfterViewInit, OnInit {
 
     data: Data;
     selectedNodeInfo: any = { 'id': -1 }  //id, etc... of the node last clicked
@@ -97,24 +97,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         this.newNodeSelected();
     }
 
-    // -- ---- - ---- -- \\
-    ngOnChanges(changes: SimpleChanges): void {
-        /* MOVED TO SUBSCRIPTION
-        if ('selectedNodeInfo' in changes) {  //if a new node is selected then no need to refresh the whole graph
-            console.log("forcediagram: The node selected is " + this.selectedNodeInfo['id'])
-        } else {
-            this.initiateGraph();
-        }
-        this.newNodeSelected()
-        */
-    }
-
     initiateGraph() {
-        //console.log(this.showIndividualLinks);
-        if (this.container) {
-            this.width = this.container.nativeElement.offsetWidth;
-        }
-
         this.runSimulation(this.data);
     }
 
@@ -161,7 +144,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 linkGUI(i, this.showIndividualLinks);                                //To display info about link
             })
 
-
         if (this.showIndividualLinks) {
             link.attr("stroke-width", 2)
             link.append("title")
@@ -186,8 +168,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             .attr("fill", (d: any) => nodeColor(d.job))    //colour nodes depending on job title
             .call(this.drag(simulation))                        //makes sure you can drag nodes
             .on("click", function (d, i: any) {
-                nodeGUI(inst, i);                                  //To display info about node
+                console.log(i);
                 nodeclicked(this, i);                              //Small animation of node
+                nodeGUI(i);                                  //To display info about node
             })
             .on("mouseover", function (event, d: any) {
                 d3.select(this)
@@ -202,6 +185,19 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment, 0)) : inst.linkColor(a.sentiment, 1))
                 inst.newNodeSelected();
             })
+
+        let foundSelectedNode = false;
+        node.each(function (d: any) {
+            if (d.id == inst.selectedNodeInfo['id']) {
+                foundSelectedNode = true;
+                nodeGUI(d);
+            }
+        })
+
+        if (!foundSelectedNode) {
+            this.selectedNodeInfo['id'] = -1;
+            DataShareService.updateServiceNodeSelected({});
+        }
 
 
         // Displays some useful info if you hover over a node.
@@ -260,6 +256,9 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         });
 
         function nodeclicked(d, i) {
+            if (inst.selectedNodeInfo['id'] == i.id) {
+                inst.selectedNodeInfo['id'] = -1;
+            }
             var nodeRadius = Math.max(Math.min(Math.sqrt(i.mailCount), 20), 5)
             d3.select(d)
                 .transition()
@@ -270,22 +269,27 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             link.style('stroke', (a: any) => inst.selectedNodeInfo['id'] != 0 ? (a.source.id === inst.selectedNodeInfo['id'] || a.target.id === inst.selectedNodeInfo['id'] ? inst.linkColor(a.sentiment, 1) : inst.linkColor(a.sentiment, 0)) : inst.linkColor(a.sentiment, 0))
         }
 
-        function nodeGUI(inst, i) {
-            var linklist = { 
-                "id": i.id, 
-                "job": i.job, 
-                "sendto": [], 
-                "receivedfrom": [], 
-                "mailCount": i.mailCount, 
-                "address": i.address, 
+        function nodeGUI(i) {
+            var linklist = {
+                "id": i.id,
+                "job": i.job,
+                "sendto": [],
+                "receivedfrom": [],
+                "mailCount": i.mailCount,
+                "mailReceived": i.mailReceived,
+                "mailSent": i.mailSent,
+                "address": i.address,
+                "sentiment_total": 0.0,
                 "sentiment_received": {
-                    "pos" : 0.0,
-                    "neg" : 0.0,
-                }, 
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
                 "sentiment_send": {
-                    "pos" : 0.0,
-                    "neg" : 0.0,
-                }, 
+                    "total": 0.0,
+                    "pos": 0.0,
+                    "neg": 0.0,
+                },
             };
 
             // console.log(individualLinks);
@@ -297,78 +301,95 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                 return e.target == i.id;      //Finds emails received
             })
 
-            let sent_counter = {"pos": 0, "neg": 0}  // counts nr of pos and neg emails
+            let sent_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
             for (var link in sentLinks) {
                 linklist["sendto"].push(sentLinks[link]['target'])
-                
+
                 // compute sentiment from node
                 let s: number = parseFloat(sentLinks[link]['sentiment']);
-                if (s >= 0.0){
+                if (s >= 0.1) {
                     linklist.sentiment_send.pos += s
                     sent_counter.pos++;
-                    console.log("card: send positive vibes: "+ s.toString())
-                } else if (s < 0.0){
+                } else if (s <= -0.1) {
                     linklist.sentiment_send.neg += s
                     sent_counter.neg++;
-                    console.log("card: send negative vibes: "+ s.toString())
-                } else {
-                    console.log("card: error while computing send vibes: s is not comparing...")
-                    console.log("card: s = "+s.toString())
-                    console.log("card: list p/n: "+linklist.sentiment_send.pos.toString() + ' / '+ linklist.sentiment_send.neg.toString())
                 }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_send.total += s;
+                sent_counter.total++;
             }
 
-            let recieved_counter = {"pos": 0, "neg": 0}  // counts nr of pos and neg emails
+            let received_counter = { "pos": 0, "neg": 0, "total": 0 }  // counts nr of pos and neg emails
             for (var link in receivedLinks) {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
-                
+
                 // compute sentiment from node
                 let s: number = parseFloat(receivedLinks[link]['sentiment']);
-                if (s >= 0.0){
+                if (s >= 0.1) {
                     linklist.sentiment_received.pos += s
-                    recieved_counter.pos++;
-                    console.log("card: got positive vibes: "+ s.toString())
-                } else if (s < 0.0){
+                    received_counter.pos++;
+                } else if (s <= -0.1) {
                     linklist.sentiment_received.neg += s
-                    recieved_counter.neg++;
-                    console.log("card: got negative vibes: "+ s.toString())
-                } else {
-                    console.log("card: error while computing gotten vibes: s is not comparing...")
-                    console.log("card: s = "+s.toString())
-                    console.log("card: list p/n: "+linklist.sentiment_received.pos.toString() + ' / '+ linklist.sentiment_received.neg.toString())
+                    received_counter.neg++;
                 }
+
+                linklist.sentiment_total += s;
+                linklist.sentiment_received.total += s
+                received_counter.total++;
             }
 
             // convert sentiment to ratio
-            console.log("card: converting all vibes to avrg...")
-            let total: number = linklist.sentiment_received.pos
-
-            linklist.sentiment_received.pos = total / sent_counter.pos;
-            console.log("card: rpositive: "+ linklist.sentiment_received.pos)
-            total = linklist.sentiment_received.neg
-            linklist.sentiment_received.neg = total / sent_counter.neg;
-            console.log("card: rnegative: "+ linklist.sentiment_received.neg)
-
-            total = linklist.sentiment_send.pos
-            linklist.sentiment_send.pos = total / recieved_counter.pos;
-            console.log("card: rpositive: "+ linklist.sentiment_send.pos)
-            total = linklist.sentiment_send.neg
-            linklist.sentiment_send.neg = total / recieved_counter.neg;
-            console.log("card: rnegative: "+ linklist.sentiment_send.neg)
-
-            if (recieved_counter.neg == 0) {linklist.sentiment_received.neg = 0}
-            if (recieved_counter.pos == 0) {linklist.sentiment_received.pos = 0}
-            if (sent_counter.neg == 0) {linklist.sentiment_send.neg = 0}
-            if (sent_counter.pos == 0) {linklist.sentiment_send.pos = 0}
-
-            if (linklist['id'] === inst.selectedNodeInfo['id']){
-                for (var member in linklist) delete linklist[member];
-                console.log(linklist)
-                //linklist = { 'id': undefined, 'job': [], 'sendto': [], 'receivedfrom': [], "mailCount": [] };
+            let total: number = linklist.sentiment_send.pos
+            if (sent_counter.pos == 0) {
+                linklist.sentiment_send.pos = 0
+            } else {
+                linklist.sentiment_send.pos = total / sent_counter.pos;
             }
-            
-            console.log("forcegraph: updating selected node to service...");
-            //inst.nodeEmailsEvent.emit(linklist);  
+
+            total = linklist.sentiment_send.neg
+            if (sent_counter.neg == 0) {
+                linklist.sentiment_send.neg = 0;
+            } else {
+                linklist.sentiment_send.neg = total / sent_counter.neg;
+            }
+
+            total = linklist.sentiment_received.pos
+            if (received_counter.pos == 0) {
+                linklist.sentiment_received.pos = 0
+            } else {
+                linklist.sentiment_received.pos = total / received_counter.pos;
+            }
+
+            total = linklist.sentiment_received.neg
+            if (received_counter.neg == 0) {
+                linklist.sentiment_received.neg = 0
+            } else {
+                linklist.sentiment_received.neg = total / received_counter.neg;
+            }
+
+            if (received_counter.total + sent_counter.total == 0) {
+                linklist.sentiment_total = 0;
+            } else {
+                linklist.sentiment_total /= (received_counter.total + sent_counter.total);
+            }
+
+            if (received_counter.total == 0) {
+                linklist.sentiment_received.total = 0;
+            } else {
+                linklist.sentiment_received.total /= received_counter.total;
+            }
+
+            if (sent_counter.total == 0) {
+                linklist.sentiment_send.total = 0;
+            } else {
+                linklist.sentiment_send.total /= sent_counter.total;
+            }
+
+            if (inst.selectedNodeInfo['id'] === -1) {
+                for (var member in linklist) delete linklist[member];
+            }
+
             DataShareService.updateServiceNodeSelected(linklist); // send lists of email senders/receivers to service
         }
 
@@ -384,7 +405,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
             } else {
                 console.log("Email transfers between " + fromNode[0]['id'] + " and " + toNode[0]['id'])
             }
-
         }
 
         // sort the links by source, then target
@@ -445,7 +465,7 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
         var link = svg.selectAll(edgeStyle)
 
         link.style('stroke', (a: any) => {
-            if (this.selectedNodeInfo['id'] != undefined ||  this.brushedNodes.length != 0) {
+            if (this.selectedNodeInfo['id'] != undefined || this.brushedNodes.length != 0) {
                 var highlighted = (this.brushedNodes.includes(a.source.id) || this.brushedNodes.includes(a.target.id)) ||
                     (a.source.id === this.selectedNodeInfo['id'] || a.target.id === this.selectedNodeInfo['id'])
                 return (highlighted ? this.linkColor(a.sentiment, 1) : this.linkColor(a.sentiment, 0))
@@ -517,11 +537,8 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     onResized(event: ResizedEvent) {
         this.width = event.newWidth;
         this.height = event.newHeight;
-        
-        const svg = d3.select("#force-graph")   //let d3 know where the simulation takes place
-            .attr("viewBox", `0 0 ${this.width} ${this.height}`)
-            .attr("width", this.width)
-            .attr("height", this.height)
+
+        this.runSimulation(this.data);
     }
 
     enableBrushMode() {
@@ -539,10 +556,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
                         y0 = e.selection[0][1],
                         y1 = e.selection[1][1];
 
-                    // TODO: The transformation is the same for every node, 
-                    // so parsing it for every node is a bit of a waste of time.
-                    // We should do parse it for one node and then use that tx, ty and scale for all of them. - Kay
-                    // Gets the transform as a string: "translate(x, y) scale(s)""
                     var transform = d3.select("g").attr("transform").split(" ");
                     var transString: any = transform[0];
                     transString = transString.substring(transString.indexOf("(") + 1, transString.indexOf(")")) // Get the part between ()
@@ -606,10 +619,6 @@ export class ForceGraphComponent implements AfterViewInit, OnChanges, OnInit {
     }
 
     ngAfterViewInit(): void {
-        this.width = this.container.nativeElement.offsetWidth;
-        this.runSimulation(this.data);
+        //this.runSimulation(this.data);
     }
-
-    @ViewChild('container')
-    container: ElementRef;
 }
