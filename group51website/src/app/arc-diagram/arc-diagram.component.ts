@@ -232,7 +232,22 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
         }
 
         function nodeGUI(inst, i) {
-            var linklist = { "id": i.id, "job": i.job, "sendto": [], "receivedfrom": [], "mailCount": i.mailCount };
+            var linklist = { 
+                "id": i.id, 
+                "job": i.job, 
+                "sendto": [], 
+                "receivedfrom": [], 
+                "mailCount": i.mailCount, 
+                "address": i.address, 
+                "sentiment_received": {
+                    "pos" : 0.0,
+                    "neg" : 0.0,
+                }, 
+                "sentiment_send": {
+                    "pos" : 0.0,
+                    "neg" : 0.0,
+                }, 
+            };
 
             //console.log(linklist);
             var sentLinks = data.individualLinks.filter(function (e) {
@@ -243,11 +258,83 @@ export class ArcDiagramComponent implements AfterViewInit, OnChanges, OnInit {
                 return e.target == i.id;      //Finds emails received
             })
 
+            let sent_counter = {"pos": 0, "neg": 0}  // counts nr of pos and neg emails
             for (var link in sentLinks) {
                 linklist["sendto"].push(sentLinks[link]['target'])
+
+                // compute sentiment from node
+                let s: number = parseFloat(sentLinks[link]['sentiment']);
+                if (s >= 0.0){
+                    linklist.sentiment_send.pos += s
+                    sent_counter.pos++;
+                    console.log("card: send positive vibes: "+ s.toString())
+                } else if (s < 0.0){
+                    linklist.sentiment_send.neg += s
+                    sent_counter.neg++;
+                    console.log("card: send negative vibes: "+ s.toString())
+                } else {
+                    console.log("card: error while computing send vibes: s is not comparing...")
+                    console.log("card: s = "+s.toString())
+                    console.log("card: list p/n: "+linklist.sentiment_send.pos.toString() + ' / '+ linklist.sentiment_send.neg.toString())
+                }
             }
+
+            let recieved_counter = {"pos": 0, "neg": 0}  // counts nr of pos and neg emails
             for (var link in receivedLinks) {
                 linklist["receivedfrom"].push(receivedLinks[link]['source'])
+
+                // compute sentiment from node
+                let s: number = parseFloat(receivedLinks[link]['sentiment']);
+                if (s >= 0.0){
+                    linklist.sentiment_received.pos += s
+                    recieved_counter.pos++;
+                    console.log("card: got positive vibes: "+ s.toString())
+                } else if (s < 0.0){
+                    linklist.sentiment_received.neg += s
+                    recieved_counter.neg++;
+                    console.log("card: got negative vibes: "+ s.toString())
+                } else {
+                    console.log("card: error while computing gotten vibes: s is not comparing...")
+                    console.log("card: s = "+s.toString())
+                    console.log("card: list p/n: "+linklist.sentiment_received.pos.toString() + ' / '+ linklist.sentiment_received.neg.toString())
+                }
+            }
+
+            // convert sentiment to ratio
+            console.log("card: converting all vibes to avrg...")
+            let total: number = linklist.sentiment_received.pos
+
+            linklist.sentiment_received.pos = total / sent_counter.pos;
+            console.log("card: rpositive: "+ linklist.sentiment_received.pos)
+            total = linklist.sentiment_received.neg
+            linklist.sentiment_received.neg = total / sent_counter.neg;
+            console.log("card: rnegative: "+ linklist.sentiment_received.neg)
+
+            total = linklist.sentiment_send.pos
+            linklist.sentiment_send.pos = total / recieved_counter.pos;
+            console.log("card: rpositive: "+ linklist.sentiment_send.pos)
+            total = linklist.sentiment_send.neg
+            linklist.sentiment_send.neg = total / recieved_counter.neg;
+            console.log("card: rnegative: "+ linklist.sentiment_send.neg)
+
+            if (linklist.sentiment_received.neg == undefined || linklist.sentiment_received.neg > 100000) {linklist.sentiment_received.neg = 0}
+            if (linklist.sentiment_received.pos == undefined || linklist.sentiment_received.pos > 100000) {linklist.sentiment_received.pos = 0}
+            if (linklist.sentiment_send.neg == undefined || linklist.sentiment_send.neg > 100000) {linklist.sentiment_send.neg = 0}
+            if (linklist.sentiment_send.pos == undefined || linklist.sentiment_send.pos > 100000) {linklist.sentiment_send.pos = 0}
+
+            console.log(
+                "card: final values are (rn, rp, sn, sp) = (" 
+                + linklist.sentiment_received.neg + ','
+                + linklist.sentiment_received.pos + ','
+                + linklist.sentiment_send.neg + ','
+                + linklist.sentiment_send.pos + ')'
+            
+            )
+
+            if (linklist['id'] === inst.selectedNodeInfo['id']){
+                for (var member in linklist) delete linklist[member];
+                console.log(linklist)
+                //linklist = { 'id': undefined, 'job': [], 'sendto': [], 'receivedfrom': [], "mailCount": [] };
             }
             
             if (linklist['id'] === inst.selectedNodeInfo['id']){
